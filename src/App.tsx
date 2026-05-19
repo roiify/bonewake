@@ -72,8 +72,11 @@ export default function App() {
     );
   }
 
+  // BrowserRouter basename mirrors Vite's base so GitHub Pages subpath works.
+  const basename = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
+
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename || undefined}>
       <BgmRouter />
       <Routes>
         <Route element={<Shell />}>

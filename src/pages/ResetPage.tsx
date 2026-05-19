@@ -30,7 +30,7 @@ export default function ResetPage() {
 
         setStatus('Wiped. Reloading…');
         // Hard reload to '/' so the React app reinitializes from scratch.
-        setTimeout(() => { window.location.replace('/'); }, 600);
+        setTimeout(() => { window.location.replace(import.meta.env.BASE_URL ?? '/'); }, 600);
       } catch (e) {
         setStatus('Error: ' + (e as Error).message);
       }

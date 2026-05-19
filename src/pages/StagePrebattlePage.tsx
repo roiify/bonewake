@@ -15,6 +15,7 @@ import { recordEvent } from '../lib/lifetime';
 import { incrementTask } from '../lib/tasks';
 import { rollClearDrops, addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD, essenceItemId } from '../data/ultimateGear';
+import { activeBonds } from '../data/bonds';
 
 const SQUAD_KEY = 'pf_squad';
 
@@ -202,12 +203,12 @@ export default function StagePrebattlePage() {
       {(() => {
         const squadIds = playerUnits.map(u => u.templateId);
         if (squadIds.length < 2) return null;
-        const bonds = getActiveBonds(squadIds);
+        const bonds = activeBonds(squadIds);
         if (bonds.length === 0) return null;
         return (
           <div className="rounded-md border border-amber-700 bg-amber-900/15 p-2 space-y-1">
             <div className="text-[10px] font-pixel text-amber-300">ACTIVE BONDS</div>
-            {bonds.map((b) => (
+            {bonds.map(b => (
               <div key={b.id} className="text-[10px] text-zinc-300 flex items-center gap-2">
                 <span>{b.emoji}</span>
                 <span className="font-pixel text-amber-300">{b.name}</span>
