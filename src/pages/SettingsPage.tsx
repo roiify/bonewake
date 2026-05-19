@@ -3,6 +3,7 @@ import { useProfile } from '../store/profile';
 import { DEFAULT_SETTINGS, type GameSettings } from '../lib/db';
 import { sound } from '../lib/audio';
 import { useEffect, useState } from 'react';
+import BackupsPanel from '../components/BackupsPanel';
 
 function Slider({ label, value, onChange, suffix }: { label: string; value: number; onChange: (n: number) => void; suffix?: string }) {
   return (
@@ -99,10 +100,12 @@ export default function SettingsPage() {
         <Toggle label="CRT scanlines overlay" value={s.showScanlines} onChange={v => update('showScanlines', v)} />
       </div>
 
+      <BackupsPanel />
+
       <button
         className="btn-pixel danger w-full"
         onClick={() => setS({ ...DEFAULT_SETTINGS })}
-      >Reset to defaults</button>
+      >Reset settings to defaults</button>
 
       <div className="text-[9px] text-zinc-600 text-center pt-2">
         Settings save automatically. Audio unlocks after first tap.

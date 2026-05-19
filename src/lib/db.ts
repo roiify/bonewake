@@ -148,6 +148,18 @@ export interface MailMessage {
   sentAt: number;
 }
 
+export interface SaveBackup {
+  id?: number;
+  createdAt: number;
+  label: string;
+  source: 'auto' | 'manual' | 'pre-restore';
+  payload: string;
+  level: number;
+  heroCount: number;
+  gold: number;
+  gems: number;
+}
+
 export class GameDB extends Dexie {
   profile!: EntityTable<Profile, 'id'>;
   heroes!: EntityTable<OwnedHero, 'id'>;
@@ -157,6 +169,7 @@ export class GameDB extends Dexie {
   pullLogs!: EntityTable<PullLog, 'id'>;
   tasks!: EntityTable<TaskProgress, 'taskId'>;
   mail!: EntityTable<MailMessage, 'id'>;
+  backups!: EntityTable<SaveBackup, 'id'>;
 
   constructor() {
     super('pixel-fighter-save');
@@ -174,6 +187,9 @@ export class GameDB extends Dexie {
     });
     this.version(3).stores({
       mail: '++id, sentAt, read',
+    });
+    this.version(4).stores({
+      backups: '++id, createdAt, source',
     });
   }
 }

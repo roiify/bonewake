@@ -4,6 +4,7 @@ import { initSave, DEFAULT_SETTINGS } from './lib/db';
 import { useProfile } from './store/profile';
 import { ensureAudioInit, sound } from './lib/audio';
 import { sendMail } from './lib/mail';
+import { maybeAutoBackup } from './lib/backup';
 import SettingsPage from './pages/SettingsPage';
 import { useHeroes } from './store/heroes';
 import { useItems } from './store/items';
@@ -60,6 +61,8 @@ export default function App() {
         });
         await useProfile.getState().patch({ welcomeMailSent: true });
       }
+      // Rotating auto-backup (no-op if last backup is <22h old)
+      maybeAutoBackup();
       setReady(true);
     })();
   }, [loadProfile, loadHeroes, loadItems]);
