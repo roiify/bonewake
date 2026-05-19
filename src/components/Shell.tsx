@@ -43,7 +43,7 @@ export function Shell() {
   return (
     <div className="h-full flex flex-col max-w-[420px] mx-auto bg-zinc-950 relative">
       {/* Top bar */}
-      <header className="px-3 py-2 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur z-10 sticky top-0">
+      <header className="px-2.5 py-2 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur z-10 sticky top-0">
         <div className="flex items-center gap-2">
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-base font-pixel text-zinc-900">
             {profile.level}
@@ -58,7 +58,7 @@ export function Shell() {
             </div>
           </div>
         </div>
-        <div className="flex gap-1.5 mt-2 justify-between">
+        <div className="grid grid-cols-4 gap-1.5 mt-2">
           <CurrencyChip icon="🪙" value={profile.gold} color="#fbbf24" />
           <CurrencyChip icon="💎" value={profile.gems} color="#a78bfa" />
           <CurrencyChip icon="🤝" value={profile.friendPoints} color="#fb7185" />
@@ -69,12 +69,12 @@ export function Shell() {
       <EnergyModal open={energyOpen} onClose={() => setEnergyOpen(false)} />
 
       {/* Content */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-[max(12px,env(safe-area-inset-bottom))]">
         <Outlet />
       </main>
 
       {/* Bottom nav */}
-      <nav className="grid grid-cols-5 border-t border-zinc-800 bg-zinc-950 z-10">
+      <nav className="grid grid-cols-5 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur z-10 sticky bottom-0 pb-[max(0px,env(safe-area-inset-bottom))]">
         <TabLink to="/" icon={<Home size={18} />} label="Home" />
         <TabLink to="/battle" icon={<Swords size={18} />} label="Battle" />
         <TabLink to="/heroes" icon={<Users size={18} />} label="Heroes" />
@@ -91,7 +91,7 @@ function TabLink({ to, icon, label }: { to: string; icon: React.ReactNode; label
       to={to}
       end={to === '/'}
       className={({ isActive }) =>
-        `flex flex-col items-center justify-center py-2 gap-0.5 transition-colors ${
+        `flex flex-col items-center justify-center py-2.5 gap-1 transition-colors ${
           isActive ? 'text-amber-400' : 'text-zinc-500 hover:text-zinc-300'
         }`
       }

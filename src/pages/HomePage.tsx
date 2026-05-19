@@ -44,9 +44,9 @@ export default function HomePage() {
   }
 
   return (
-    <div className="p-3 space-y-3">
+    <div className="p-3 space-y-3 pb-5">
       <div
-        className="relative rounded-lg overflow-hidden border border-zinc-800 mb-3 h-32 flex items-end justify-center"
+        className="relative rounded-lg overflow-hidden border border-zinc-800 mb-3 h-28 sm:h-32 flex items-end justify-center"
         style={{
           backgroundImage: 'url(/sprites/bg/sky_clouds.jpg)',
           backgroundSize: 'cover',
@@ -95,23 +95,23 @@ export default function HomePage() {
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-2 gap-3">
-        <Link to="/battle" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-rose-900/40 to-zinc-900 p-3 hover:border-rose-700 transition-colors">
+      <div className="grid grid-cols-2 gap-2.5">
+        <Link to="/battle" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-rose-900/40 to-zinc-900 p-3 min-h-24 hover:border-rose-700 transition-colors">
           <div className="text-2xl">⚔️</div>
           <div className="font-pixel text-xs mt-2">Story</div>
           <div className="text-[10px] text-zinc-500 mt-0.5">15 stages</div>
         </Link>
-        <Link to="/summon" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-violet-900/40 to-zinc-900 p-3 hover:border-violet-700 transition-colors">
+        <Link to="/summon" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-violet-900/40 to-zinc-900 p-3 min-h-24 hover:border-violet-700 transition-colors">
           <div className="text-2xl">✨</div>
           <div className="font-pixel text-xs mt-2">Summon</div>
           <div className="text-[10px] text-zinc-500 mt-0.5">3 banners</div>
         </Link>
-        <Link to="/heroes" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-amber-900/40 to-zinc-900 p-3 hover:border-amber-700 transition-colors">
+        <Link to="/heroes" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-amber-900/40 to-zinc-900 p-3 min-h-24 hover:border-amber-700 transition-colors">
           <div className="text-2xl">👥</div>
           <div className="font-pixel text-xs mt-2">Heroes</div>
           <div className="text-[10px] text-zinc-500 mt-0.5">{heroes.length} owned</div>
         </Link>
-        <Link to="/tasks" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-emerald-900/40 to-zinc-900 p-3 hover:border-emerald-700 transition-colors">
+        <Link to="/tasks" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-emerald-900/40 to-zinc-900 p-3 min-h-24 hover:border-emerald-700 transition-colors">
           <div className="text-2xl">📜</div>
           <div className="font-pixel text-xs mt-2">Tasks</div>
           <div className="text-[10px] text-zinc-500 mt-0.5">{taskCount.done}/{taskCount.total} done</div>

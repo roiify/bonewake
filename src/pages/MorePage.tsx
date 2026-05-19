@@ -22,13 +22,13 @@ export default function MorePage() {
   const [unread, setUnread] = useState(0);
   useEffect(() => { getUnreadCount().then(setUnread); }, []);
   return (
-    <div className="p-3 space-y-2">
+    <div className="p-3 space-y-2 pb-5">
       <h2 className="font-pixel text-sm mb-3">More</h2>
       {sections.map(s => (
-        <Link key={s.to} to={s.to} className="block rounded-md border border-zinc-800 bg-zinc-900 hover:border-zinc-600 p-3 flex items-center gap-3">
+        <Link key={s.to} to={s.to} className="block rounded-md border border-zinc-800 bg-zinc-900 hover:border-zinc-600 p-3 flex items-center gap-3 min-h-16">
           <span className="text-2xl">{s.icon}</span>
           <div className="flex-1">
-            <div className="text-sm flex items-center gap-1.5">
+            <div className="text-sm leading-tight flex items-center gap-1.5 flex-wrap">
               {s.label}
               {s.to === '/mail' && unread > 0 && (
                 <span className="bg-rose-500 text-zinc-950 text-[8px] font-pixel px-1.5 py-0.5 rounded-full">{unread}</span>
