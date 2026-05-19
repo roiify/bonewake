@@ -1,4 +1,5 @@
 import { Howl, Howler } from 'howler';
+import { asset } from './assetPath';
 
 export type BgmTrack = 'main' | 'battle' | 'tower' | 'boss';
 export type SfxName = 'click' | 'hit' | 'ult' | 'victory' | 'defeat' | 'levelup' | 'pull';
@@ -20,21 +21,20 @@ class SoundManager {
     // BGM (looping)
     (['main', 'battle', 'tower', 'boss'] as BgmTrack[]).forEach(t => {
       this.bgmHowls[t] = new Howl({
-        src: [`/audio/bgm_${t}.mp3`],
+        src: [asset(`audio/bgm_${t}.mp3`)],
         loop: true,
         volume: this.bgmVolume(),
-        html5: true, // streaming for longer files
+        html5: true,
       });
     });
-    // SFX (one-shot)
     const sfxFiles: Record<SfxName, string> = {
-      click:    '/audio/sfx_click.wav',
-      hit:      '/audio/sfx_hit.wav',
-      ult:      '/audio/sfx_ult.mp3',
-      victory:  '/audio/sfx_victory.mp3',
-      defeat:   '/audio/sfx_defeat.mp3',
-      levelup:  '/audio/sfx_levelup.mp3',
-      pull:     '/audio/sfx_pull.mp3',
+      click:    asset('audio/sfx_click.wav'),
+      hit:      asset('audio/sfx_hit.wav'),
+      ult:      asset('audio/sfx_ult.mp3'),
+      victory:  asset('audio/sfx_victory.mp3'),
+      defeat:   asset('audio/sfx_defeat.mp3'),
+      levelup:  asset('audio/sfx_levelup.mp3'),
+      pull:     asset('audio/sfx_pull.mp3'),
     };
     for (const [name, src] of Object.entries(sfxFiles)) {
       this.sfxHowls[name as SfxName] = new Howl({ src: [src], volume: this.sfxVolume() });

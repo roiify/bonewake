@@ -1,4 +1,7 @@
 import type { HeroTemplate } from '../types';
+import { asset } from '../lib/assetPath';
+
+const A = (p: string) => asset(p);
 
 const stat = (hp: number, atk: number, def: number, spd: number, crit = 0.1) =>
   ({ hp, atk, def, spd, crit });
@@ -101,12 +104,12 @@ export const HERO_SPRITES: Record<string, {
   cols: number;
   rows: number;
 }> = {
-  luna:   { idle: '/sprites/echoes/heroes/luna_idle.png',   attack: '/sprites/echoes/heroes/luna_attack.png',   skill: '/sprites/echoes/heroes/luna_skill.png',   hit: '/sprites/echoes/heroes/luna_hit.png',   death: '/sprites/echoes/heroes/luna_death.png',   cols: 4, rows: 4 },
-  elara:  { idle: '/sprites/echoes/heroes/elara_idle.png',  attack: '/sprites/echoes/heroes/elara_attack.png',  skill: '/sprites/echoes/heroes/elara_skill.png',  hit: '/sprites/echoes/heroes/elara_hit.png',  death: '/sprites/echoes/heroes/elara_death.png',  cols: 4, rows: 4 },
-  aelia:  { idle: '/sprites/echoes/heroes/aelia_idle.png',  attack: '/sprites/echoes/heroes/aelia_attack.png',  skill: '/sprites/echoes/heroes/aelia_skill.png',  hit: '/sprites/echoes/heroes/aelia_hit.png',  death: '/sprites/echoes/heroes/aelia_death.png',  cols: 4, rows: 4 },
-  kengo:  { idle: '/sprites/echoes/heroes/kengo_idle.png',  attack: '/sprites/echoes/heroes/kengo_attack.png',  skill: '/sprites/echoes/heroes/kengo_skill.png',  hit: '/sprites/echoes/heroes/kengo_hit.png',  death: '/sprites/echoes/heroes/kengo_death.png',  cols: 4, rows: 4 },
-  len:    { idle: '/sprites/echoes/heroes/len_idle.png',    attack: '/sprites/echoes/heroes/len_attack.png',    skill: '/sprites/echoes/heroes/len_skill.png',    hit: '/sprites/echoes/heroes/len_hit.png',    death: '/sprites/echoes/heroes/len_death.png',    cols: 4, rows: 4 },
-  kaius:  { idle: '/sprites/echoes/heroes/kaius_idle.png',  attack: '/sprites/echoes/heroes/kaius_attack.png',  skill: '/sprites/echoes/heroes/kaius_skill.png',  hit: '/sprites/echoes/heroes/kaius_hit.png',  death: '/sprites/echoes/heroes/kaius_death.png',  cols: 4, rows: 4 },
+  luna:   { idle: A('sprites/echoes/heroes/luna_idle.png'),   attack: A('sprites/echoes/heroes/luna_attack.png'),   skill: A('sprites/echoes/heroes/luna_skill.png'),   hit: A('sprites/echoes/heroes/luna_hit.png'),   death: A('sprites/echoes/heroes/luna_death.png'),   cols: 4, rows: 4 },
+  elara:  { idle: A('sprites/echoes/heroes/elara_idle.png'),  attack: A('sprites/echoes/heroes/elara_attack.png'),  skill: A('sprites/echoes/heroes/elara_skill.png'),  hit: A('sprites/echoes/heroes/elara_hit.png'),  death: A('sprites/echoes/heroes/elara_death.png'),  cols: 4, rows: 4 },
+  aelia:  { idle: A('sprites/echoes/heroes/aelia_idle.png'),  attack: A('sprites/echoes/heroes/aelia_attack.png'),  skill: A('sprites/echoes/heroes/aelia_skill.png'),  hit: A('sprites/echoes/heroes/aelia_hit.png'),  death: A('sprites/echoes/heroes/aelia_death.png'),  cols: 4, rows: 4 },
+  kengo:  { idle: A('sprites/echoes/heroes/kengo_idle.png'),  attack: A('sprites/echoes/heroes/kengo_attack.png'),  skill: A('sprites/echoes/heroes/kengo_skill.png'),  hit: A('sprites/echoes/heroes/kengo_hit.png'),  death: A('sprites/echoes/heroes/kengo_death.png'),  cols: 4, rows: 4 },
+  len:    { idle: A('sprites/echoes/heroes/len_idle.png'),    attack: A('sprites/echoes/heroes/len_attack.png'),    skill: A('sprites/echoes/heroes/len_skill.png'),    hit: A('sprites/echoes/heroes/len_hit.png'),    death: A('sprites/echoes/heroes/len_death.png'),    cols: 4, rows: 4 },
+  kaius:  { idle: A('sprites/echoes/heroes/kaius_idle.png'),  attack: A('sprites/echoes/heroes/kaius_attack.png'),  skill: A('sprites/echoes/heroes/kaius_skill.png'),  hit: A('sprites/echoes/heroes/kaius_hit.png'),  death: A('sprites/echoes/heroes/kaius_death.png'),  cols: 4, rows: 4 },
 };
 
 export const ENEMY_SPRITES: Record<string, {
@@ -118,8 +121,8 @@ export const ENEMY_SPRITES: Record<string, {
   cols: number;
   rows: number;
 }> = {
-  shambler:      { idle: '/sprites/echoes/enemies/shambler_idle.png',      attack: '/sprites/echoes/enemies/shambler_attack.png',      hit: '/sprites/echoes/enemies/shambler_hit.png',      death: '/sprites/echoes/enemies/shambler_death.png',      cols: 4, rows: 4 },
-  boneknight:    { idle: '/sprites/echoes/enemies/boneknight_idle.png',    attack: '/sprites/echoes/enemies/boneknight_attack.png',                                                                                                                  cols: 4, rows: 4 },
-  fastghoul:     { idle: '/sprites/echoes/enemies/fastghoul_idle.png',     attack: '/sprites/echoes/enemies/fastghoul_attack.png',                                                                                                                  cols: 4, rows: 4 },
-  graveyardlich: { idle: '/sprites/echoes/enemies/graveyardlich_idle.png', skill:  '/sprites/echoes/enemies/graveyardlich_skill.png', hit: '/sprites/echoes/enemies/graveyardlich_hit.png', death: '/sprites/echoes/enemies/graveyardlich_death.png', cols: 4, rows: 4 },
+  shambler:      { idle: A('sprites/echoes/enemies/shambler_idle.png'),      attack: A('sprites/echoes/enemies/shambler_attack.png'),      hit: A('sprites/echoes/enemies/shambler_hit.png'),      death: A('sprites/echoes/enemies/shambler_death.png'),      cols: 4, rows: 4 },
+  boneknight:    { idle: A('sprites/echoes/enemies/boneknight_idle.png'),    attack: A('sprites/echoes/enemies/boneknight_attack.png'),                                                                                                                  cols: 4, rows: 4 },
+  fastghoul:     { idle: A('sprites/echoes/enemies/fastghoul_idle.png'),     attack: A('sprites/echoes/enemies/fastghoul_attack.png'),                                                                                                                  cols: 4, rows: 4 },
+  graveyardlich: { idle: A('sprites/echoes/enemies/graveyardlich_idle.png'), skill:  A('sprites/echoes/enemies/graveyardlich_skill.png'), hit: A('sprites/echoes/enemies/graveyardlich_hit.png'), death: A('sprites/echoes/enemies/graveyardlich_death.png'), cols: 4, rows: 4 },
 };

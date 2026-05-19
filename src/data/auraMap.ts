@@ -1,31 +1,35 @@
 import type { Element } from '../types';
+import { asset } from '../lib/assetPath';
 
 // Map element → aura sprite path (from extracted assets)
 export const ELEMENT_AURA: Record<Element, string> = {
-  fire: '/sprites/aura/yellow.png',
-  water: '/sprites/aura/blue.png',
-  earth: '/sprites/aura/yellow.png',
-  light: '/sprites/aura/yellow.png',
-  dark: '/sprites/aura/purple.png',
+  fire: asset('sprites/aura/yellow.png'),
+  water: asset('sprites/aura/blue.png'),
+  earth: asset('sprites/aura/yellow.png'),
+  light: asset('sprites/aura/yellow.png'),
+  dark: asset('sprites/aura/purple.png'),
 };
 
-// VFX assets for ultimates
 export const ULT_VFX = {
-  beam: '/sprites/vfx/beam_yellow.png',
-  orbs: '/sprites/vfx/energy_orbs.png',
-  swirl: '/sprites/vfx/pink_swirl.png',
+  beam: asset('sprites/vfx/beam_yellow.png'),
+  orbs: asset('sprites/vfx/energy_orbs.png'),
+  swirl: asset('sprites/vfx/pink_swirl.png'),
 };
 
-// Chapter battle backgrounds
 export const CHAPTER_BG: Record<number, string> = {
-  1: '/sprites/bg/sky_cliffs.jpg',
-  2: '/sprites/bg/mountain_lake.jpg',
-  3: '/sprites/bg/cosmic_fire.jpg',
+  1: asset('sprites/bg/sky_cliffs.jpg'),
+  2: asset('sprites/bg/mountain_lake.jpg'),
+  3: asset('sprites/bg/cosmic_fire.jpg'),
+  4: asset('sprites/bg/cosmic_fire.jpg'),
+  5: asset('sprites/bg/sky_cliffs.jpg'),
+  6: asset('sprites/bg/sky_clouds.jpg'),
 };
 
-// Chapter biome card emblems
 export const CHAPTER_BIOME: Record<number, string> = {
-  1: '/sprites/biome/snow.png',       // alt: snow as Chapter 1 plains
-  2: '/sprites/biome/desert.png',
-  3: '/sprites/biome/snow_tower.png',
+  1: asset('sprites/biome/snow.png'),
+  2: asset('sprites/biome/desert.png'),
+  3: asset('sprites/biome/snow_tower.png'),
+  4: asset('sprites/biome/snow_tower.png'),
+  5: asset('sprites/biome/desert.png'),
+  6: asset('sprites/biome/snow.png'),
 };

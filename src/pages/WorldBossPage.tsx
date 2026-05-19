@@ -106,7 +106,7 @@ export default function WorldBossPage() {
       {/* Header */}
       <div
         className="relative rounded-lg overflow-hidden h-32 flex items-end justify-center"
-        style={{ backgroundImage: 'url(/sprites/bg/cosmic_fire.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+        style={{ backgroundImage: `url(${import.meta.env.BASE_URL}sprites/bg/cosmic_fire.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center' }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-zinc-950/20" />
         <div className="relative z-10 text-center pb-3">

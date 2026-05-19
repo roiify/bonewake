@@ -48,7 +48,7 @@ export default function HomePage() {
       <div
         className="relative rounded-lg overflow-hidden border border-zinc-800 mb-3 h-28 sm:h-32 flex items-end justify-center"
         style={{
-          backgroundImage: 'url(/sprites/bg/sky_clouds.jpg)',
+          backgroundImage: `url(${import.meta.env.BASE_URL}sprites/bg/sky_clouds.jpg)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center 30%',
         }}

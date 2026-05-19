@@ -87,7 +87,7 @@ export default function HeroesPage() {
     <div className="p-3 space-y-3">
       <div
         className="relative rounded-md overflow-hidden h-20 border border-zinc-800 -mx-3 -mt-3 mb-3"
-        style={{ backgroundImage: 'url(/sprites/bg/mountain_lake.jpg)', backgroundSize: 'cover', backgroundPosition: 'center 40%' }}
+        style={{ backgroundImage: `url(${import.meta.env.BASE_URL}sprites/bg/mountain_lake.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center 40%' }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 to-transparent" />
         <div className="relative h-full flex items-end p-3">
