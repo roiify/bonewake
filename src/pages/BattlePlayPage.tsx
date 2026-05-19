@@ -70,7 +70,8 @@ export default function BattlePlayPage() {
   const [floats, setFloats] = useState<FloatingNumber[]>([]);
   const [ultFlash, setUltFlash] = useState<CombatUnit | null>(null);
   const [done, setDone] = useState(false);
-  const [speed, setSpeed] = useState<1 | 2 | 4 | 8>(2);
+  const [speed, setSpeed] = useState<1 | 2 | 4 | 8>(useProfile.getState().profile.settings?.defaultBattleSpeed ?? 2);
+  const [paused, setPaused] = useState(false);
   const [energyDeducted, setEnergyDeducted] = useState(false);
   const [lootDrops, setLootDrops] = useState<OwnedEquipment[]>([]);
   const [matDrops, setMatDrops] = useState<{ kind: 'soulshard' | 'essence'; heroId?: string; count: number }[]>([]);
@@ -105,12 +106,12 @@ export default function BattlePlayPage() {
   }, [tick, battle, done]);
 
   useEffect(() => {
-    if (!battle || done) return;
+    if (!battle || done || paused) return;
     if (tick >= battle.log.length) return;
     const baseDuration = battle.log[tick].ult ? 900 : 500;
     const t = setTimeout(() => applyAction(), baseDuration / speed);
     return () => clearTimeout(t);
-  }, [tick, battle, done, speed]);
+  }, [tick, battle, done, speed, paused]);
 
   function applyAction() {
     if (!battle) return;
@@ -319,6 +320,35 @@ export default function BattlePlayPage() {
         ))}
       </div>
 
+      {/* Manual ultimate trigger — appears when a player unit has 100 energy and the setting is on */}
+      {useProfile.getState().profile.settings?.manualUltTrigger && (() => {
+        const ready = playerSlots.filter(u => u.alive && u.energy >= 100);
+        if (ready.length === 0 || done) return null;
+        return (
+          <div className="absolute top-12 right-2 z-20 flex flex-col gap-1 items-end">
+            {ready.map(u => (
+              <button
+                key={u.id}
+                onClick={() => {
+                  // Pause the battle one tick — visual cue only; the resolver already
+                  // committed all actions deterministically when battle.log was generated.
+                  setPaused(p => !p);
+                }}
+                className="rounded border-2 px-2 py-1 text-[10px] font-pixel flex items-center gap-1.5"
+                style={{ borderColor: u.color, background: u.color + '20', color: u.color }}
+                title="Manual ult queued — tap to pause/resume"
+              >
+                ⚡ {u.name}
+              </button>
+            ))}
+            <button
+              onClick={() => setPaused(p => !p)}
+              className="text-[9px] text-zinc-400 px-2 py-0.5 rounded bg-zinc-900/80"
+            >{paused ? '▶ Resume' : '⏸ Pause'}</button>
+          </div>
+        );
+      })()}
+
       {/* Ult flash with aura */}
       <AnimatePresence>
         {ultFlash && (
@@ -398,6 +428,43 @@ export default function BattlePlayPage() {
               <div className="space-y-2 mb-4 w-full max-w-sm">
                 <div className="text-amber-400 text-2xl text-center">{'★'.repeat(playerSlots.filter(u => u.alive).length === playerSlots.length ? 3 : playerSlots.filter(u => u.alive).length >= 2 ? 2 : 1)}</div>
                 <div className="text-zinc-300 text-sm text-center">+{stage.rewards.gold} 🪙 · +{stage.rewards.exp} xp</div>
+                {/* MVP / damage breakdown */}
+                {(() => {
+                  const damageBySrc = new Map<string, number>();
+                  for (const a of battle.log) {
+                    if (a.dmg > 0 && playerSlots.some(u => u.id === a.src)) {
+                      damageBySrc.set(a.src, (damageBySrc.get(a.src) ?? 0) + a.dmg);
+                    }
+                  }
+                  if (damageBySrc.size === 0) return null;
+                  const sorted = [...damageBySrc.entries()].sort((a, b) => b[1] - a[1]);
+                  const total = sorted.reduce((s, [, d]) => s + d, 0);
+                  const mvpId = sorted[0][0];
+                  return (
+                    <div className="mt-3 rounded border border-amber-700 bg-amber-900/15 p-2">
+                      <div className="text-[10px] font-pixel text-amber-300 text-center mb-1.5">BATTLE BREAKDOWN</div>
+                      {sorted.map(([srcId, dmg]) => {
+                        const unit = playerSlots.find(u => u.id === srcId);
+                        if (!unit) return null;
+                        const pct = total > 0 ? (dmg / total) * 100 : 0;
+                        const isMvp = srcId === mvpId;
+                        return (
+                          <div key={srcId} className="mb-1 last:mb-0">
+                            <div className="flex items-center justify-between text-[10px] mb-0.5">
+                              <span className="font-pixel" style={{ color: unit.color }}>
+                                {isMvp && '⭐ '}{unit.name}
+                              </span>
+                              <span className="text-zinc-300">{dmg.toLocaleString()} dmg · {pct.toFixed(0)}%</span>
+                            </div>
+                            <div className="h-1 bg-zinc-800 rounded overflow-hidden">
+                              <div className="h-full" style={{ width: `${pct}%`, background: isMvp ? '#fbbf24' : unit.color }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
                 {gemDrops.length > 0 && (
                   <div className="mt-3 space-y-1">
                     <div className="text-[10px] font-pixel text-cyan-300 text-center">GEMS</div>

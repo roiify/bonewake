@@ -11,6 +11,7 @@ import {
   generateFloor,
   isBossFloor,
   isMegaBossFloor,
+  isEndless,
   isoWeek,
 } from '../data/tower';
 import { resolveBattle } from '../lib/combat';
@@ -38,11 +39,17 @@ export default function TowerPage() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ won: boolean; floor: number; rewards: any } | null>(null);
 
-  // Weekly reset detection
+  // Weekly reset detection — only the FIRST 100 floors reset.
+  // Endless mode (>100) progress persists from `lifetime.towerMaxFloor` across resets.
   const currentWeek = isoWeek();
   const weekChanged = profile.towerWeekStart !== currentWeek;
-  const highestFloor = weekChanged ? 0 : (profile.towerHighestFloor ?? 0);
-  const nextFloor = Math.min(TOWER_MAX_FLOOR, highestFloor + 1);
+  const allTimeMax = profile.lifetime?.towerMaxFloor ?? 0;
+  // Weekly highest within the 1-100 section
+  const weeklyHighest = weekChanged ? 0 : Math.min(TOWER_MAX_FLOOR, profile.towerHighestFloor ?? 0);
+  // If you've ever reached floor >100 and you've cleared this week's 100, jump back into endless
+  const inEndless = allTimeMax > TOWER_MAX_FLOOR && weeklyHighest >= TOWER_MAX_FLOOR;
+  const nextFloor = inEndless ? allTimeMax + 1 : weeklyHighest + 1;
+  const highestFloor = inEndless ? allTimeMax : weeklyHighest;
 
   // Daily attempts
   const today = todayStr();
@@ -59,7 +66,6 @@ export default function TowerPage() {
   }, [weekChanged, currentWeek]);
 
   const floorDef = generateFloor(nextFloor);
-  const allTimeMax = profile.lifetime?.towerMaxFloor ?? 0;
 
   async function climb() {
     if (busy || !canAttempt) return;
@@ -93,7 +99,8 @@ export default function TowerPage() {
       if (r.gems > 0) await useProfile.getState().addGems(r.gems);
       if (r.soulshards > 0) await addMaterial(MAT_SOULSHARD, r.soulshards);
       const newHigh = Math.max(highestFloor, nextFloor);
-      await patch({ towerHighestFloor: newHigh });
+      // weeklyHighest is capped at MAX so endless climbing doesn't get wiped by reset
+      await patch({ towerHighestFloor: Math.min(TOWER_MAX_FLOOR, newHigh) });
       await recordEvent({ kind: 'towerFloor', floor: newHigh });
       await recordEvent({ kind: 'goldEarned', amount: r.gold });
       await refreshItems();
@@ -137,16 +144,17 @@ export default function TowerPage() {
       </div>
 
       {/* Next floor preview */}
-      {highestFloor >= TOWER_MAX_FLOOR ? (
+      {weeklyHighest >= TOWER_MAX_FLOOR && !inEndless ? (
         <div className="rounded-md border-2 border-amber-700 bg-amber-900/30 p-6 text-center">
           <div className="text-3xl mb-2">👑</div>
-          <div className="font-pixel text-sm text-amber-300">APEX REACHED</div>
-          <div className="text-[10px] text-zinc-400 mt-1">All 100 floors cleared this week. Resets Monday.</div>
+          <div className="font-pixel text-sm text-amber-300">APEX REACHED — ENDLESS UNLOCKED</div>
+          <div className="text-[10px] text-zinc-400 mt-1">Press Climb to push into Floor 101+. Endless progress persists across weekly resets.</div>
         </div>
       ) : (
         <div
           className={`rounded-md border-2 p-3 ${
-            isMegaBossFloor(nextFloor) ? 'border-rose-600 bg-gradient-to-b from-rose-950/40 to-zinc-900'
+            isEndless(nextFloor) ? 'border-fuchsia-500 bg-gradient-to-b from-fuchsia-950/30 to-zinc-900'
+              : isMegaBossFloor(nextFloor) ? 'border-rose-600 bg-gradient-to-b from-rose-950/40 to-zinc-900'
               : isBossFloor(nextFloor) ? 'border-amber-600 bg-gradient-to-b from-amber-950/30 to-zinc-900'
               : 'border-zinc-700 bg-zinc-900'
           }`}
@@ -154,8 +162,9 @@ export default function TowerPage() {
           <div className="flex items-center justify-between mb-2">
             <div className="font-pixel text-xs">
               Floor {nextFloor}
+              {isEndless(nextFloor) && <span className="text-fuchsia-300 ml-2">♾ ENDLESS</span>}
               {isMegaBossFloor(nextFloor) && <span className="text-rose-400 ml-2">★ MEGA BOSS</span>}
-              {!isMegaBossFloor(nextFloor) && isBossFloor(nextFloor) && <span className="text-amber-400 ml-2">★ BOSS</span>}
+              {!isMegaBossFloor(nextFloor) && isBossFloor(nextFloor) && !isEndless(nextFloor) && <span className="text-amber-400 ml-2">★ BOSS</span>}
             </div>
             <div className="text-[10px] text-zinc-500">+{floorDef.rewards.gold} 🪙 · +{floorDef.rewards.gems} 💎{floorDef.rewards.soulshards ? ` · +${floorDef.rewards.soulshards} 💠` : ''}</div>
           </div>

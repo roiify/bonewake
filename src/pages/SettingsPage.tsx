@@ -92,6 +92,7 @@ export default function SettingsPage() {
           </div>
         </div>
         <Toggle label="Reduced motion (less animation)" value={s.reduceMotion} onChange={v => update('reduceMotion', v)} />
+        <Toggle label="Manual ultimate trigger (tap to fire)" value={!!s.manualUltTrigger} onChange={v => update('manualUltTrigger', v)} />
       </div>
 
       {/* Display */}

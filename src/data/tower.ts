@@ -2,10 +2,15 @@
 import type { CombatUnit } from '../types';
 import { buildEnemyUnit } from '../lib/stats';
 
-export const TOWER_MAX_FLOOR = 100;
+export const TOWER_MAX_FLOOR = 100;        // weekly-reset section ends here
+export const TOWER_ENDLESS_FLOOR_START = 101; // post-100 = endless mode
 export const TOWER_DAILY_ATTEMPTS = 5;
 export const TOWER_REFILL_GEM_COST = 50;
 export const TOWER_REFILL_MAX_PER_DAY = 10;
+
+export function isEndless(floor: number): boolean {
+  return floor > TOWER_MAX_FLOOR;
+}
 
 // A floor is identified by its number 1..100.
 // Tier boss floors are every 10 (10, 20, ... 100) — they have 4 enemies with boosted stats.
@@ -37,19 +42,35 @@ function pickEnemyFor(floor: number, slot: number): string {
 }
 
 export function generateFloor(floor: number): TowerFloorDef {
-  const baseLevel = Math.max(1, Math.floor(floor * 1.5));
-  const star = isMegaBossFloor(floor) ? 5 : isBossFloor(floor) ? 4 : 3;
-  const slotCount = isBossFloor(floor) ? 4 : 3;
+  // Endless mode (>100): scaling extends linearly with extra hp/atk multiplier
+  const endless = isEndless(floor);
+  const baseLevel = endless
+    ? Math.max(1, Math.floor(150 + (floor - 100) * 2.5))
+    : Math.max(1, Math.floor(floor * 1.5));
+  const star = endless ? 5 : (isMegaBossFloor(floor) ? 5 : isBossFloor(floor) ? 4 : 3);
+  const slotCount = endless ? 4 : (isBossFloor(floor) ? 4 : 3);
   const team: CombatUnit[] = [];
   for (let i = 0; i < slotCount; i++) {
     const tplId = pickEnemyFor(floor, i);
-    const lvl = baseLevel + (i === 1 ? 2 : 0); // mid slot slightly stronger
-    team.push(buildEnemyUnit(tplId, lvl, star, `tower_e${i}`));
+    const lvl = baseLevel + (i === 1 ? 2 : 0);
+    const unit = buildEnemyUnit(tplId, lvl, star, `tower_e${i}`);
+    // Endless: stack hp/atk linearly past 100 to make scaling continuous
+    if (endless) {
+      const bonus = 1 + (floor - 100) * 0.05;
+      unit.hp = Math.floor(unit.hp * bonus);
+      unit.maxHp = unit.hp;
+      unit.atk = Math.floor(unit.atk * bonus);
+    }
+    team.push(unit);
   }
-  // Rewards scale with floor
+  // Rewards scale with floor; endless continues climbing
   const baseGold = 50 + floor * 25;
-  const gems = isMegaBossFloor(floor) ? 100 : isBossFloor(floor) ? 30 : (floor % 5 === 0 ? 10 : 2);
-  const shards = isMegaBossFloor(floor) ? 20 : isBossFloor(floor) ? 5 : 0;
+  const gems = endless
+    ? 5 + Math.floor((floor - 100) / 5)
+    : (isMegaBossFloor(floor) ? 100 : isBossFloor(floor) ? 30 : (floor % 5 === 0 ? 10 : 2));
+  const shards = endless
+    ? Math.max(1, Math.floor((floor - 100) / 10))
+    : (isMegaBossFloor(floor) ? 20 : isBossFloor(floor) ? 5 : 0);
   return {
     floor,
     enemyTeam: team,

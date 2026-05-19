@@ -174,6 +174,7 @@ export function toCombatUnit(
     crit: s.crit,
     energy: 0,
     ultimateId: tpl.ultimateId,
+    ultLevel: hero.ultLevel ?? 0,
     alive: true,
   };
 }

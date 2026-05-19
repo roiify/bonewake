@@ -18,6 +18,8 @@ import { ELEMENT_AURA } from '../data/auraMap';
 import { useItems } from '../store/items';
 import { consumeFragments, fragmentItemId, STAR_UP_COST, MAX_STAR } from '../lib/fragments';
 import { tierLabel, tierColor, nextTierLabel } from '../lib/tier';
+import { MAX_ULT_LEVEL, ultLevelMultiplier, ultUpgradeCost, upgradeUltimate } from '../lib/ultLeveling';
+import { ascendMythic, ascensionCost, isMythic as isMythicPiece, MAX_ASCENSION } from '../lib/mythicPlus';
 
 const SLOTS: EquipSlot[] = ['weapon', 'armor', 'helm', 'boots', 'accessory'];
 
@@ -309,6 +311,45 @@ export default function HeroDetailPage() {
                 </div>
               ))}
             </div>
+            {/* Ascension panel — only shows Mythic pieces this hero has equipped */}
+            {(() => {
+              const equippedMythics = SLOTS
+                .map(s => hero.equipped[s])
+                .map(id => equipment.find(e => e.id === id))
+                .filter((e): e is OwnedEquipment => !!e && isMythicPiece(e));
+              if (equippedMythics.length === 0) return null;
+              return (
+                <div className="mt-2 pt-2 border-t border-zinc-800 space-y-1">
+                  <div className="text-[10px] font-pixel" style={{ color: MYTHIC_COLOR }}>Mythic+ Ascension</div>
+                  {equippedMythics.map(eq => {
+                    const lvl = eq.upgradeLevel ?? 0;
+                    const cost = ascensionCost(lvl, eq.setRestrictedTo ?? '');
+                    const maxed = lvl >= MAX_ASCENSION;
+                    return (
+                      <div key={eq.id} className="flex items-center gap-2 text-[10px]">
+                        <span className="font-pixel" style={{ color: MYTHIC_COLOR }}>
+                          {eq.emoji} {eq.name}{lvl > 0 && <span className="text-amber-300 ml-1">+{lvl}</span>}
+                        </span>
+                        <div className="flex-1" />
+                        {maxed ? (
+                          <span className="text-amber-300 font-pixel">MAX +{MAX_ASCENSION}</span>
+                        ) : (
+                          <button
+                            className="btn-pixel"
+                            onClick={async () => {
+                              const r = await ascendMythic(eq.id);
+                              if (!r.ok) alert(r.error);
+                            }}
+                          >
+                            +1 ({cost.gold}🪙 {cost.soulshard}💠 {cost.essence}🔮)
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>
@@ -318,7 +359,35 @@ export default function HeroDetailPage() {
         <div className="font-pixel text-xs mb-1">Ultimate</div>
         <div className="text-sm text-amber-300">{ult.name}</div>
         <div className="text-[11px] text-zinc-400 mt-1">{ult.description}</div>
-        <div className="text-[10px] text-zinc-500 mt-1">×{ult.damageMultiplier} ATK · {ult.targeting}</div>
+        {(() => {
+          const ultLvl = hero.ultLevel ?? 0;
+          const mult = ultLevelMultiplier(ultLvl);
+          const effectiveMul = (ult.damageMultiplier * mult).toFixed(2);
+          const cost = ultUpgradeCost(ultLvl);
+          const atMax = ultLvl >= MAX_ULT_LEVEL;
+          return (
+            <>
+              <div className="text-[10px] text-zinc-500 mt-1">
+                ×{effectiveMul} ATK · {ult.targeting}
+                {ultLvl > 0 && <span className="text-amber-400 font-pixel ml-1">+{ultLvl}</span>}
+              </div>
+              {!atMax && (
+                <button
+                  className="btn-pixel primary w-full mt-2"
+                  onClick={async () => {
+                    const r = await upgradeUltimate(hero.id);
+                    if (!r.ok) alert(r.error);
+                  }}
+                >
+                  Upgrade Ult Lv{ultLvl + 1}/{MAX_ULT_LEVEL} ({cost.gold}🪙{cost.soulshard ? ` ${cost.soulshard}💠` : ''})
+                </button>
+              )}
+              {atMax && (
+                <div className="text-[10px] text-amber-300 font-pixel text-center mt-2">ULT MAXED</div>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       <Link to={`/heroes/${hero.id}/talents`} className="block rounded-md border border-rose-700 bg-rose-900/15 p-3 hover:bg-rose-900/25">

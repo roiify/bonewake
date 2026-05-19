@@ -1,6 +1,7 @@
 import seedrandom from 'seedrandom';
 import { SKILL_BY_ID } from '../data/skills';
 import { skillsForHero } from '../data/heroSkills';
+import { ultLevelMultiplier } from './ultLeveling';
 import type { CombatUnit, BattleAction, BattleResult, Element } from '../types';
 
 interface DamageMods {
@@ -163,12 +164,10 @@ export function resolveBattle(
       const skill = isUlt ? SKILL_BY_ID[unit.ultimateId] : undefined;
 
       if (isUlt && skill) {
-        // Handle ultimate — apply skill effects to target as ActiveEffect
-        // (burns/shields/buffs are tracked but their tick application is simplified
-        // for the resolver — we just attach them so the UI can show icons).
+        // Ult-level bonus from per-hero skill leveling
+        const ultMult = ultLevelMultiplier(unit.ultLevel ?? 0);
         if (skill.targeting === 'self' && skill.effect?.type === 'heal') {
-          // AoE heal allies (treat 'self' here as team-heal)
-          const healValue = skill.effect.value + Math.floor(unit.atk * 0.5);
+          const healValue = Math.floor((skill.effect.value + Math.floor(unit.atk * 0.5)) * ultMult);
           for (const ally of allies) {
             if (!ally.alive) continue;
             const before = ally.hp;
@@ -181,17 +180,15 @@ export function resolveBattle(
             const eAdv = elementAdvantage(unit.element, target.element);
             const isCrit = rng() < unit.crit;
             let dmg = Math.max(1, unit.atk * skill.damageMultiplier - target.def);
-            dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv);
+            dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv * ultMult);
             target.hp = Math.max(0, target.hp - dmg);
             log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true });
-            // Apply skill side-effects to target
             if (skill.effect && (target.effects as any)) {
               (target.effects as any).push({ kind: skill.effect.type, value: skill.effect.value, remaining: skill.effect.duration ?? 2 });
             }
             if (target.hp <= 0) target.alive = false;
           }
         } else {
-          // single / lowest
           const target = skill.targeting === 'lowest'
             ? [...enemies].filter(x => x.alive).sort((a, b) => a.hp - b.hp)[0]
             : pickEnemyTarget(enemies, rng);
@@ -199,7 +196,7 @@ export function resolveBattle(
             const eAdv = elementAdvantage(unit.element, target.element);
             const isCrit = rng() < unit.crit;
             let dmg = Math.max(1, unit.atk * skill.damageMultiplier - target.def);
-            dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv);
+            dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv * ultMult);
             target.hp = Math.max(0, target.hp - dmg);
             log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true });
             if (skill.effect && (target.effects as any)) {

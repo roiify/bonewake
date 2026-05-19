@@ -64,6 +64,7 @@ export interface GameSettings {
   defaultBattleSpeed: 1 | 2 | 4 | 8;
   showScanlines: boolean;
   reduceMotion: boolean;
+  manualUltTrigger?: boolean;
 }
 
 export const DEFAULT_SETTINGS: GameSettings = {
@@ -74,6 +75,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   defaultBattleSpeed: 2,
   showScanlines: false,
   reduceMotion: false,
+  manualUltTrigger: false,
 };
 
 export interface LifetimeStats {
@@ -99,6 +101,7 @@ export interface OwnedHero {
   equipped: Partial<Record<string, string>>;
   obtainedAt: number;
   talents?: string[];          // unlocked talent node IDs
+  ultLevel?: number;           // ultimate skill level (0..10); adds multiplier to ult damage/heal
 }
 
 export interface OwnedEquipment {

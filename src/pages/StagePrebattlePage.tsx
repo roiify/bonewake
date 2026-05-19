@@ -16,6 +16,7 @@ import { rollClearDrops, addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD, essenceItemId } from '../data/ultimateGear';
 import { activeBonds } from '../data/bonds';
 import { loadPresets } from '../lib/squadPresets';
+import { BOSS_BANTER } from '../data/bossBanter';
 
 const SQUAD_KEY = 'pf_squad';
 
@@ -159,6 +160,21 @@ export default function StagePrebattlePage() {
         <div className="font-pixel text-[10px] text-zinc-400">Stage {stage.chapter}-{stage.num}</div>
         <h2 className="font-pixel text-base text-amber-300 mt-1">{stage.name}</h2>
       </div>
+
+      {/* Boss banter — only on boss stages with defined banter */}
+      {BOSS_BANTER[stage.id] && (
+        <div className="rounded-lg border-2 border-rose-700 bg-gradient-to-b from-rose-950/40 to-zinc-900 p-3 space-y-1.5">
+          {BOSS_BANTER[stage.id].map((line, i) => (
+            <div key={i} className="text-[11px] leading-snug">
+              {line.speaker === 'narrator' ? (
+                <span className="italic text-zinc-400">{line.line}</span>
+              ) : (
+                <span className="text-rose-200"><span className="text-rose-400">▸</span> "{line.line}"</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Enemies */}
       <div className="rounded-lg border border-rose-900/50 bg-gradient-to-b from-rose-950/30 to-zinc-900 p-3">

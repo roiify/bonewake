@@ -82,6 +82,7 @@ export interface CombatUnit {
   crit: number;
   energy: number;
   ultimateId: string;
+  ultLevel?: number;
   alive: boolean;
   effects?: ActiveEffect[];
 }

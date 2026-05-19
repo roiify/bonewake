@@ -122,10 +122,14 @@ export function genLoot(opts: {
   };
 }
 
-// Aggregate stats for a given equipment instance (primary + affixes + upgrade bonus)
+// Aggregate stats for a given equipment instance (primary + affixes + upgrade bonus).
+// Mythic items use +12% per ascension level; non-Mythic use +10% per upgrade level.
 export function equipStats(eq: OwnedEquipment): Partial<Record<LootStat, number>> {
   const out: Partial<Record<LootStat, number>> = {};
-  const upgradeMult = 1 + (eq.upgradeLevel ?? 0) * 0.1;
+  const isMythic = (eq.rarity ?? 0) >= 6 && !!eq.craftedPieceId;
+  const upgradeMult = isMythic
+    ? 1 + (eq.upgradeLevel ?? 0) * 0.12
+    : 1 + (eq.upgradeLevel ?? 0) * 0.1;
   if (eq.primary) {
     const k = eq.primary.stat as LootStat;
     const v = eq.primary.value * upgradeMult;
