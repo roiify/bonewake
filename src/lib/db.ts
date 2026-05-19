@@ -1,4 +1,4 @@
-import Dexie, { type Table } from 'dexie';
+import Dexie, { type EntityTable } from 'dexie';
 
 export interface Profile {
   id: 'me';
@@ -41,20 +41,20 @@ export interface Profile {
 }
 
 export interface GameSettings {
-  audioMaster: number;
-  audioBgm: number;
-  audioSfx: number;
-  audioMuted: boolean;
+  master: number;
+  bgm: number;
+  sfx: number;
+  muted: boolean;
   defaultBattleSpeed: 1 | 2 | 4 | 8;
   showScanlines: boolean;
   reduceMotion: boolean;
 }
 
 export const DEFAULT_SETTINGS: GameSettings = {
-  audioMaster: 0.6,
-  audioBgm: 0.5,
-  audioSfx: 0.8,
-  audioMuted: false,
+  master: 0.6,
+  bgm: 0.5,
+  sfx: 0.8,
+  muted: false,
   defaultBattleSpeed: 2,
   showScanlines: false,
   reduceMotion: false,
@@ -149,14 +149,14 @@ export interface MailMessage {
 }
 
 export class GameDB extends Dexie {
-  profile!: Table<Profile, 'id'>;
-  heroes!: Table<OwnedHero, 'id'>;
-  equipment!: Table<OwnedEquipment, 'id'>;
-  items!: Table<OwnedItem, 'templateId'>;
-  stageClears!: Table<StageClear, 'stageId'>;
-  pullLogs!: Table<PullLog, 'id'>;
-  tasks!: Table<TaskProgress, 'taskId'>;
-  mail!: Table<MailMessage, 'id'>;
+  profile!: EntityTable<Profile, 'id'>;
+  heroes!: EntityTable<OwnedHero, 'id'>;
+  equipment!: EntityTable<OwnedEquipment, 'id'>;
+  items!: EntityTable<OwnedItem, 'templateId'>;
+  stageClears!: EntityTable<StageClear, 'stageId'>;
+  pullLogs!: EntityTable<PullLog, 'id'>;
+  tasks!: EntityTable<TaskProgress, 'taskId'>;
+  mail!: EntityTable<MailMessage, 'id'>;
 
   constructor() {
     super('pixel-fighter-save');
@@ -225,10 +225,10 @@ export async function initSave() {
   if (initPromise) return initPromise;
   initPromise = (async () => {
     await db.transaction('rw', db.profile, async () => {
-      const existing = await db.profile.get('me');
+      const existing = await db.profile.get({ id: 'me' });
       if (!existing) await db.profile.add({ ...DEFAULT_PROFILE });
     });
-    const p = (await db.profile.get('me'))!;
+    const p = (await db.profile.get({ id: 'me' }))!;
     const elapsed = Date.now() - p.lastEnergyTick;
     const regen = Math.floor(elapsed / ENERGY_REGEN_INTERVAL_MS);
     if (regen > 0 && p.energy < ENERGY_CAP) {
@@ -293,7 +293,7 @@ export async function exportSave(): Promise<string> {
 
 export async function importSave(json: string) {
   const data = JSON.parse(json);
-  await db.transaction('rw', db.profile, db.heroes, db.equipment, db.items, db.stageClears, db.tasks, async () => {
+  await db.transaction('rw', [db.profile, db.heroes, db.equipment, db.items, db.stageClears, db.tasks], async () => {
     await db.profile.clear();
     await db.heroes.clear();
     await db.equipment.clear();

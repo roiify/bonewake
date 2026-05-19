@@ -7,8 +7,6 @@ export const TOWER_DAILY_ATTEMPTS = 5;
 export const TOWER_REFILL_GEM_COST = 50;
 export const TOWER_REFILL_MAX_PER_DAY = 10;
 
-const ENEMY_POOL = ['shambler', 'fastghoul', 'boneknight', 'graveyardlich'];
-
 // A floor is identified by its number 1..100.
 // Tier boss floors are every 10 (10, 20, ... 100) — they have 4 enemies with boosted stats.
 // Mega-boss floors: 25, 50, 75, 100 — 4 boss enemies.

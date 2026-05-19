@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { initSave, DEFAULT_SETTINGS } from './lib/db';
 import { useProfile } from './store/profile';
 import { ensureAudioInit, sound } from './lib/audio';

@@ -45,7 +45,6 @@ export default function DebugPage() {
       if (list.length <= 1) { kept++; continue; }
       // Keep highest-star, then highest-level
       list.sort((a, b) => b.star - a.star || b.level - a.level);
-      const winner = list[0];
       kept++;
       for (const loser of list.slice(1)) {
         const tpl = HERO_BY_ID[tplId];

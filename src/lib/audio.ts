@@ -3,7 +3,7 @@ import { Howl, Howler } from 'howler';
 export type BgmTrack = 'main' | 'battle' | 'tower' | 'boss';
 export type SfxName = 'click' | 'hit' | 'ult' | 'victory' | 'defeat' | 'levelup' | 'pull';
 
-interface SoundManagerSettings {
+export interface SoundManagerSettings {
   master: number; // 0..1
   bgm: number;
   sfx: number;

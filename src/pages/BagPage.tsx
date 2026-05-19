@@ -17,12 +17,6 @@ function itemDisplayName(eq: OwnedEquipment): string {
   return 'Unknown';
 }
 
-function itemEmoji(eq: OwnedEquipment): string {
-  if (eq.baseType) return BASE_BY_ID[eq.baseType]?.emoji ?? '❓';
-  if (eq.templateId) return EQUIP_BY_ID[eq.templateId]?.emoji ?? '❓';
-  return '❓';
-}
-
 function itemRarity(eq: OwnedEquipment): number {
   if (eq.rarity) return eq.rarity;
   if (eq.templateId) return ((EQUIP_BY_ID[eq.templateId]?.rarity ?? 3) - 2);
@@ -51,7 +45,7 @@ function statLabel(stat: string, value: number): string {
 export default function BagPage() {
   const equipment = useHeroes(s => s.equipment);
   const heroes = useHeroes(s => s.heroes);
-  const [filterRarity, setFilterRarity] = useState<LootRarity | null>(null);
+  const [filterRarity, setFilterRarity] = useState<number | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -96,7 +90,7 @@ export default function BagPage() {
             className={`text-[10px] font-pixel px-2 py-1 rounded border ${filterRarity == null ? 'border-amber-400 bg-amber-400/20 text-amber-300' : 'border-zinc-700 text-zinc-400'}`}
             onClick={() => setFilterRarity(null)}
           >All</button>
-          {([1, 2, 3, 4, 5] as LootRarity[]).map(r => (
+          {([1, 2, 3, 4, 5] as const).map(r => (
             <button
               key={r}
               className={`text-[10px] font-pixel px-1.5 py-1 rounded border ${filterRarity === r ? 'bg-zinc-900' : 'opacity-50'}`}

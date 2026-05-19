@@ -1,6 +1,5 @@
 // Shop catalog. Items live in the items table when granted; some are equipment crates that
 // produce loot when "opened" (handled in ShopPage logic).
-import type { HeroTemplate } from '../types';
 
 export type ShopCurrency = 'gold' | 'gems' | 'friendPoints' | 'soulshard';
 export type ShopGrantKind =

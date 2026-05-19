@@ -1,4 +1,5 @@
 import { db, type OwnedEquipment } from './db';
+import type { LootStat } from '../data/loot';
 import { uid } from './id';
 import { PIECE_BY_ID, MAT_SOULSHARD, essenceItemId, SET_BY_HERO, ULTIMATE_SETS } from '../data/ultimateGear';
 import { useProfile } from '../store/profile';
@@ -85,11 +86,10 @@ export async function craftSetPiece(pieceId: string): Promise<OwnedEquipment | n
   return eq;
 }
 
-function dominantStat(stats: Record<string, number>): string {
-  // Prefer atk > hp > def > spd > crit for primary display
-  const order = ['atk', 'hp', 'def', 'spd', 'crit'];
+function dominantStat(stats: Record<string, number>): LootStat {
+  const order: LootStat[] = ['atk', 'hp', 'def', 'spd', 'crit'];
   for (const s of order) if (stats[s] != null) return s;
-  return Object.keys(stats)[0] ?? 'hp';
+  return (Object.keys(stats)[0] as LootStat | undefined) ?? 'hp';
 }
 
 // Check if a piece is already crafted (for UI)

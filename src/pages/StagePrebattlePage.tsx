@@ -4,6 +4,7 @@ import { STAGE_BY_ID } from '../data/stages';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
 import { HERO_BY_ID, HERO_SPRITES, ENEMY_SPRITES } from '../data/heroes';
+import { activeBonds as getActiveBonds } from '../data/bonds';
 import { buildEnemyUnit, calcHeroStats, toCombatUnit, xpForLevel } from '../lib/stats';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { tierLabel } from '../lib/tier';
@@ -71,6 +72,7 @@ export default function StagePrebattlePage() {
   }
 
   async function startBattle() {
+    if (!stage) return;
     if (squad.length === 0) { alert('Pick at least 1 hero!'); return; }
     if (profile.energy < stage.energyCost) { alert('Not enough energy!'); return; }
     navigate(`/battle/play/${stage.id}`);
@@ -87,9 +89,9 @@ export default function StagePrebattlePage() {
     for (let i = 0; i < count; i++) {
       // Sim a battle for correctness (cheap — just to get the seed/log if needed for stats)
       const playerSquad = squad.map(id => heroes.find(h => h.id === id)).filter((h): h is NonNullable<typeof h> => !!h);
-      const playerUnits = playerSquad.map((h, idx) => toCombatUnit(h, equipment, 'player', `p${idx}`)).filter((u): u is NonNullable<typeof u> => !!u);
+      const playerUnitsSim = playerSquad.map((h, idx) => toCombatUnit(h, equipment, 'player', `p${idx}`)).filter((u): u is NonNullable<typeof u> => !!u);
       const enemyUnits = stage.enemyTeam.map((e, idx) => buildEnemyUnit(e.templateId, e.level, e.star, `e${idx}`));
-      const battle = resolveBattle(playerUnits, enemyUnits);
+      const battle = resolveBattle(playerUnitsSim, enemyUnits);
       if (battle.winner !== 'player') {
         alert('Squad lost! Instant clear stopped. Strengthen your team.');
         setInstantBusy(false);
@@ -200,13 +202,12 @@ export default function StagePrebattlePage() {
       {(() => {
         const squadIds = playerUnits.map(u => u.templateId);
         if (squadIds.length < 2) return null;
-        const { activeBonds: getActiveBonds } = require('../data/bonds');
         const bonds = getActiveBonds(squadIds);
         if (bonds.length === 0) return null;
         return (
           <div className="rounded-md border border-amber-700 bg-amber-900/15 p-2 space-y-1">
             <div className="text-[10px] font-pixel text-amber-300">ACTIVE BONDS</div>
-            {bonds.map((b: any) => (
+            {bonds.map((b) => (
               <div key={b.id} className="text-[10px] text-zinc-300 flex items-center gap-2">
                 <span>{b.emoji}</span>
                 <span className="font-pixel text-amber-300">{b.name}</span>

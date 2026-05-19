@@ -1,5 +1,5 @@
 import { db } from './db';
-import { SHOP_ITEMS, type ShopItem } from '../data/shop';
+import type { ShopItem } from '../data/shop';
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import { useItems } from '../store/items';

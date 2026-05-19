@@ -22,7 +22,7 @@ export const useProfile = create<ProfileState>((set, get) => ({
   profile: { ...DEFAULT_PROFILE },
   loaded: false,
   load: async () => {
-    const p = await db.profile.get('me');
+    const p = await db.profile.get({ id: 'me' });
     if (p) set({ profile: p, loaded: true });
     else set({ loaded: true });
   },

@@ -1,17 +1,15 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import { useItems } from '../store/items';
 import {
   ULTIMATE_SETS,
-  PIECE_BY_ID,
   MAT_SOULSHARD,
   MATERIAL_META,
   essenceItemId,
   essenceMeta,
   MYTHIC_COLOR,
-  type UltimateSetDef,
   type SetPieceDef,
 } from '../data/ultimateGear';
 import { HERO_BY_ID, HERO_SPRITES } from '../data/heroes';

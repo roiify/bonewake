@@ -8,7 +8,7 @@ import type { SummonPool } from '../types';
 
 export const SUMMON_POOLS: SummonPool[] = [
   {
-    id: 'novice',
+    id: 'friend',
     name: 'Novice Wish',
     description: 'Guaranteed S-tier hero. Always works.',
     cost: { currency: 'friendPoints', amount: 1 },

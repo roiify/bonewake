@@ -15,7 +15,7 @@ function elementAdvantage(a: Element, b: Element): number {
   return 1.0;
 }
 
-function pickEnemyTarget(self: CombatUnit, enemies: CombatUnit[], rng: () => number): CombatUnit | undefined {
+function pickEnemyTarget(enemies: CombatUnit[], rng: () => number): CombatUnit | undefined {
   const alive = enemies.filter(e => e.alive);
   if (!alive.length) return undefined;
   // 70% lowest HP, 30% random
@@ -92,7 +92,7 @@ export function resolveBattle(
           // single / lowest
           const target = skill.targeting === 'lowest'
             ? [...enemies].filter(x => x.alive).sort((a, b) => a.hp - b.hp)[0]
-            : pickEnemyTarget(unit, enemies, rng);
+            : pickEnemyTarget(enemies, rng);
           if (target) {
             const eAdv = elementAdvantage(unit.element, target.element);
             const isCrit = rng() < unit.crit;
@@ -124,7 +124,7 @@ export function resolveBattle(
             continue;
           }
         }
-        const target = pickEnemyTarget(unit, enemies, rng);
+        const target = pickEnemyTarget(enemies, rng);
         if (!target) continue;
         const eAdv = elementAdvantage(unit.element, target.element);
         const isCrit = rng() < unit.crit;

@@ -47,10 +47,10 @@ export default function SettingsPage() {
     const t = setTimeout(() => {
       patch({ settings: s });
       sound.applySettings({
-        master: s.audioMaster,
-        bgm: s.audioBgm,
-        sfx: s.audioSfx,
-        muted: s.audioMuted,
+        master: s.master,
+        bgm: s.bgm,
+        sfx: s.sfx,
+        muted: s.muted,
       });
     }, 200);
     return () => clearTimeout(t);
@@ -68,10 +68,10 @@ export default function SettingsPage() {
       {/* Audio */}
       <div className="rounded-md border border-zinc-800 bg-zinc-900 p-3 space-y-3">
         <div className="font-pixel text-xs text-amber-300">Audio</div>
-        <Toggle label="Mute all audio" value={s.audioMuted} onChange={v => update('audioMuted', v)} />
-        <Slider label="Master Volume"   value={s.audioMaster} onChange={v => update('audioMaster', v)} />
-        <Slider label="Music"           value={s.audioBgm}    onChange={v => update('audioBgm', v)} />
-        <Slider label="Sound Effects"   value={s.audioSfx}    onChange={v => update('audioSfx', v)} />
+        <Toggle label="Mute all audio" value={s.muted} onChange={v => update('muted', v)} />
+        <Slider label="Master Volume"   value={s.master} onChange={v => update('master', v)} />
+        <Slider label="Music"           value={s.bgm}    onChange={v => update('bgm', v)} />
+        <Slider label="Sound Effects"   value={s.sfx}    onChange={v => update('sfx', v)} />
         <button className="btn-pixel w-full" onClick={() => sound.playSfx('click')}>Test SFX</button>
       </div>
 

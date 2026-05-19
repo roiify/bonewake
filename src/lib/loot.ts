@@ -21,10 +21,6 @@ function rollFloat(min: number, max: number): number {
   return min + Math.random() * (max - min);
 }
 
-function rollInt(min: number, max: number): number {
-  return Math.floor(rollFloat(min, max + 1));
-}
-
 // Roll a rarity weighted by the global table, with optional min floor
 export function rollRarity(minRarity: LootRarity = 1, luckBoost = 0): LootRarity {
   const entries = (Object.entries(RARITY_WEIGHTS) as [string, number][])

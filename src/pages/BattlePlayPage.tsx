@@ -42,7 +42,6 @@ export default function BattlePlayPage() {
   const equipment = useHeroes(s => s.equipment);
   const updateHero = useHeroes(s => s.updateHero);
   const addEquipment = useHeroes(s => s.addEquipment);
-  const profile = useProfile(s => s.profile);
 
   const battle: BattleResult | null = useMemo(() => {
     if (!stage) return null;
