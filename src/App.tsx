@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { initSave, DEFAULT_SETTINGS } from './lib/db';
 import { useProfile } from './store/profile';
 import { ensureAudioInit, sound } from './lib/audio';
+import { sendMail } from './lib/mail';
+import SettingsPage from './pages/SettingsPage';
 import { useHeroes } from './store/heroes';
 import { useItems } from './store/items';
 import { Shell } from './components/Shell';
@@ -48,6 +50,16 @@ export default function App() {
       // Audio inits on first user gesture
       const unlock = () => { ensureAudioInit(); sound.applySettings(s); window.removeEventListener('pointerdown', unlock); };
       window.addEventListener('pointerdown', unlock, { once: true });
+      // First-launch welcome mail with starter rewards
+      const p = useProfile.getState().profile;
+      if (!p.welcomeMailSent) {
+        await sendMail({
+          subject: 'Welcome, Hero!',
+          body: 'Your journey begins.\n\nPull from the Novice banner for a guaranteed S-tier hero, then clear stages to grow your power. Features unlock as you level up:\n\n• L5: Material Dungeons\n• L8: Tower of Trials\n• L10: Ultimate Crafting\n• L15: World Boss\n\nHere\'s a starter pack to get you going.',
+          rewards: { gold: 2000, gems: 200, friendPoints: 50, energy: 100 },
+        });
+        await useProfile.getState().patch({ welcomeMailSent: true });
+      }
       setReady(true);
     })();
   }, [loadProfile, loadHeroes, loadItems]);
@@ -100,6 +112,7 @@ export default function App() {
           <Route path="/worldboss" element={<WorldBossPage />} />
           <Route path="/heroes/:heroId/talents" element={<TalentsPage />} />
           <Route path="/debug" element={<DebugPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
         <Route path="/battle/play/:stageId" element={
           <div className="h-full max-w-[420px] mx-auto bg-zinc-950">
