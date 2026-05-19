@@ -1,0 +1,101 @@
+// Material Dungeons — themed farming, weekday rotation, guaranteed targeted rewards.
+import { buildEnemyUnit } from '../lib/stats';
+import type { CombatUnit } from '../types';
+
+export type DungeonKind = 'gold' | 'xp' | 'gear' | 'gem';
+
+export interface DungeonTier {
+  tier: 1 | 2 | 3;
+  name: string;
+  energyCost: number;
+  enemyLevel: number;
+  enemyStar: number;
+  rewards: { gold?: number; exp?: number; gems?: number; equipmentMinRarity?: 1 | 2 | 3 | 4 | 5; equipmentCount?: number };
+}
+
+export interface DungeonDef {
+  id: DungeonKind;
+  name: string;
+  description: string;
+  emoji: string;
+  enemyTemplateIds: string[];        // What enemies appear
+  availableWeekdays: number[];       // 0 = Sunday, 1 = Monday, ... 6 = Saturday
+  tiers: DungeonTier[];
+}
+
+export const DUNGEONS: DungeonDef[] = [
+  {
+    id: 'gold',
+    name: 'Gold Mine',
+    description: 'Crack open the bone hoard. Heavy gold drops.',
+    emoji: '⛏️',
+    enemyTemplateIds: ['shambler', 'boneknight'],
+    availableWeekdays: [1, 4], // Mon, Thu
+    tiers: [
+      { tier: 1, name: 'Surface Vein', energyCost: 6,  enemyLevel: 5,  enemyStar: 3, rewards: { gold: 800 } },
+      { tier: 2, name: 'Deep Shaft',   energyCost: 12, enemyLevel: 15, enemyStar: 4, rewards: { gold: 2200 } },
+      { tier: 3, name: 'Mother Lode',  energyCost: 20, enemyLevel: 30, enemyStar: 5, rewards: { gold: 5500 } },
+    ],
+  },
+  {
+    id: 'xp',
+    name: 'XP Grove',
+    description: 'Slow ghouls offer up their unlife as fuel.',
+    emoji: '🌿',
+    enemyTemplateIds: ['fastghoul', 'shambler'],
+    availableWeekdays: [2, 5], // Tue, Fri
+    tiers: [
+      { tier: 1, name: 'Whispering Pines', energyCost: 6,  enemyLevel: 5,  enemyStar: 3, rewards: { exp: 300 } },
+      { tier: 2, name: 'Twilight Glade',   energyCost: 12, enemyLevel: 15, enemyStar: 4, rewards: { exp: 800 } },
+      { tier: 3, name: 'Heart of the Grove',energyCost:20, enemyLevel: 30, enemyStar: 5, rewards: { exp: 2000 } },
+    ],
+  },
+  {
+    id: 'gear',
+    name: 'Equipment Trove',
+    description: 'Old armory haunted by gear-hungry knights.',
+    emoji: '🎁',
+    enemyTemplateIds: ['boneknight', 'fastghoul'],
+    availableWeekdays: [3, 6], // Wed, Sat
+    tiers: [
+      { tier: 1, name: 'Old Armory',      energyCost: 8,  enemyLevel: 5,  enemyStar: 3, rewards: { equipmentMinRarity: 2, equipmentCount: 2 } },
+      { tier: 2, name: 'Knight\'s Hoard', energyCost: 14, enemyLevel: 15, enemyStar: 4, rewards: { equipmentMinRarity: 3, equipmentCount: 2 } },
+      { tier: 3, name: 'Royal Vault',     energyCost: 22, enemyLevel: 30, enemyStar: 5, rewards: { equipmentMinRarity: 4, equipmentCount: 2 } },
+    ],
+  },
+  {
+    id: 'gem',
+    name: 'Gem Geode',
+    description: 'The lich\'s cache yields gems.',
+    emoji: '💎',
+    enemyTemplateIds: ['graveyardlich', 'boneknight'],
+    availableWeekdays: [0], // Sunday only — rarest
+    tiers: [
+      { tier: 1, name: 'Cracked Geode', energyCost: 10, enemyLevel: 10, enemyStar: 3, rewards: { gems: 25 } },
+      { tier: 2, name: 'Sealed Vault',  energyCost: 18, enemyLevel: 20, enemyStar: 4, rewards: { gems: 75 } },
+      { tier: 3, name: 'Lich\'s Trove', energyCost: 28, enemyLevel: 35, enemyStar: 5, rewards: { gems: 200 } },
+    ],
+  },
+];
+
+export function dungeonsForToday(): DungeonDef[] {
+  const day = new Date().getDay();
+  return DUNGEONS.filter(d => d.availableWeekdays.includes(day));
+}
+
+export function buildDungeonTeam(def: DungeonDef, tier: DungeonTier): CombatUnit[] {
+  return def.enemyTemplateIds.slice(0, 3).map((tid, i) =>
+    buildEnemyUnit(tid, tier.enemyLevel + (i === 1 ? 2 : 0), tier.enemyStar, `dgn_${i}`)
+  ).concat(
+    def.enemyTemplateIds.length < 3
+      ? Array.from({ length: 3 - def.enemyTemplateIds.length }).map((_, i) =>
+          buildEnemyUnit(def.enemyTemplateIds[0], tier.enemyLevel, tier.enemyStar, `dgn_pad_${i}`)
+        )
+      : []
+  );
+}
+
+const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+export function weekdayNames(days: number[]): string {
+  return days.map(d => WEEKDAY_NAMES[d]).join(', ');
+}

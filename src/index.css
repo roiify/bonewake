@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #09090b;
+  color: #e4e4e7;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+* { box-sizing: border-box; }
+
+button { font-family: inherit; }
+
+.btn-pixel {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, #27272a, #18181b);
+  border: 1px solid #3f3f46;
+  border-radius: 6px;
+  color: #fafafa;
+  cursor: pointer;
+  transition: transform 0.08s, filter 0.08s;
+  user-select: none;
+}
+.btn-pixel:hover:not(:disabled) { filter: brightness(1.15); }
+.btn-pixel:active:not(:disabled) { transform: scale(0.96); }
+.btn-pixel:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-pixel.primary {
+  background: linear-gradient(180deg, #f59e0b, #b45309);
+  border-color: #fbbf24;
+  color: #18181b;
+}
+.btn-pixel.danger {
+  background: linear-gradient(180deg, #ef4444, #991b1b);
+  border-color: #f87171;
+}
+.btn-pixel.success {
+  background: linear-gradient(180deg, #22c55e, #15803d);
+  border-color: #4ade80;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }

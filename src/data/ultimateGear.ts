@@ -1,0 +1,254 @@
+// Ultimate gear sets — endgame, crafted from materials dropped on 3-star clears.
+// Each hero has a 5-piece signature set with set-bonuses at 2 / 3 / 5 pieces equipped.
+
+import type { EquipSlot } from '../types';
+import type { LootStat } from './loot';
+
+export type Stats = Partial<Record<LootStat, number>>;
+
+export interface SetPieceDef {
+  id: string;             // unique craft id, e.g. 'luna_dawn_scepter'
+  setId: string;          // groups pieces — 'luna_dawn'
+  name: string;
+  slot: EquipSlot;
+  emoji: string;
+  stats: Stats;
+  flavor: string;
+  isUltimateWeapon?: boolean;   // The signature weapon piece (slot=weapon, slightly stronger)
+  cost: { soulshard: number; essence: number; gold: number };
+}
+
+export interface UltimateSetDef {
+  id: string;             // matches setId on each piece
+  name: string;           // display name for the set
+  heroId: string;         // which hero this set belongs to
+  description: string;
+  pieces: SetPieceDef[];
+  // Set bonuses at thresholds
+  bonuses: { atPieces: number; stats: Stats; description: string }[];
+}
+
+// Helper to make a craft cost
+const c = (shard: number, ess: number, gold: number) =>
+  ({ soulshard: shard, essence: ess, gold });
+
+export const ULTIMATE_SETS: UltimateSetDef[] = [
+  // LUNA — Healer / Light
+  {
+    id: 'luna_dawn',
+    name: 'Dawn Regalia',
+    heroId: 'luna',
+    description: "Robes of the first light. Mends what is broken; burns what should not be.",
+    pieces: [
+      { id: 'luna_dawn_scepter', setId: 'luna_dawn', name: 'Dawn Scepter', slot: 'weapon', emoji: '☀️',
+        stats: { atk: 280, crit: 0.18, hp: 800 }, flavor: 'Sealed with morning fire.',
+        isUltimateWeapon: true, cost: c(120, 60, 40000) },
+      { id: 'luna_dawn_veil', setId: 'luna_dawn', name: 'Dawn Veil', slot: 'armor', emoji: '🥻',
+        stats: { def: 120, hp: 1800 }, flavor: 'Woven from dawnlight.',
+        cost: c(60, 25, 18000) },
+      { id: 'luna_dawn_circlet', setId: 'luna_dawn', name: 'Dawn Circlet', slot: 'helm', emoji: '👑',
+        stats: { hp: 900, def: 70, crit: 0.06 }, flavor: 'Halo of the dawn.',
+        cost: c(50, 20, 15000) },
+      { id: 'luna_dawn_steps', setId: 'luna_dawn', name: 'Dawn Steps', slot: 'boots', emoji: '👡',
+        stats: { spd: 55, hp: 400 }, flavor: 'Each step a sunrise.',
+        cost: c(40, 15, 12000) },
+      { id: 'luna_dawn_pendant', setId: 'luna_dawn', name: 'Dawn Pendant', slot: 'accessory', emoji: '☀',
+        stats: { atk: 100, crit: 0.12, hp: 500 }, flavor: 'Pulses with dawnlight.',
+        cost: c(50, 20, 15000) },
+    ],
+    bonuses: [
+      { atPieces: 2, stats: { hp: 1500 }, description: '+1500 HP' },
+      { atPieces: 3, stats: { atk: 200, crit: 0.10 }, description: '+200 ATK · +10% CRIT' },
+      { atPieces: 5, stats: { atk: 400, hp: 3000, crit: 0.15, spd: 30 },
+        description: 'Full set: massive all-stat boost; passive healing on ultimate cast' },
+    ],
+  },
+
+  // AELIA — Mage / Water
+  {
+    id: 'aelia_frost',
+    name: 'Frostwhisper',
+    heroId: 'aelia',
+    description: "Crystal forged in midnight ice. The cold remembers your name.",
+    pieces: [
+      { id: 'aelia_frost_crystal', setId: 'aelia_frost', name: 'Frostwhisper Crystal', slot: 'weapon', emoji: '❄️',
+        stats: { atk: 360, crit: 0.20 }, flavor: 'Sings when winter walks.',
+        isUltimateWeapon: true, cost: c(120, 60, 40000) },
+      { id: 'aelia_frost_robe', setId: 'aelia_frost', name: 'Frostwhisper Robe', slot: 'armor', emoji: '🥋',
+        stats: { def: 90, hp: 1400, atk: 100 }, flavor: 'Cold to the touch.',
+        cost: c(60, 25, 18000) },
+      { id: 'aelia_frost_hood', setId: 'aelia_frost', name: 'Frostwhisper Hood', slot: 'helm', emoji: '🧊',
+        stats: { hp: 700, crit: 0.08, atk: 80 }, flavor: 'Veil of permafrost.',
+        cost: c(50, 20, 15000) },
+      { id: 'aelia_frost_boots', setId: 'aelia_frost', name: 'Frostwhisper Boots', slot: 'boots', emoji: '🥾',
+        stats: { spd: 60, def: 50 }, flavor: 'Walk where rivers freeze.',
+        cost: c(40, 15, 12000) },
+      { id: 'aelia_frost_talisman', setId: 'aelia_frost', name: 'Frost Talisman', slot: 'accessory', emoji: '💧',
+        stats: { atk: 120, crit: 0.15 }, flavor: 'A frozen tear.',
+        cost: c(50, 20, 15000) },
+    ],
+    bonuses: [
+      { atPieces: 2, stats: { atk: 200 }, description: '+200 ATK' },
+      { atPieces: 3, stats: { crit: 0.15, atk: 150 }, description: '+150 ATK · +15% CRIT' },
+      { atPieces: 5, stats: { atk: 500, crit: 0.20, hp: 1500 },
+        description: 'Full set: spells slow targets; ultimate damage +40%' },
+    ],
+  },
+
+  // KAIUS — Tank / Light
+  {
+    id: 'kaius_aegis',
+    name: 'Aegis of Dawn',
+    heroId: 'kaius',
+    description: "An unyielding wall of light. The Cross stands.",
+    pieces: [
+      { id: 'kaius_aegis_blade', setId: 'kaius_aegis', name: 'Aegis Blade', slot: 'weapon', emoji: '🗡️',
+        stats: { atk: 240, def: 80, hp: 1500 }, flavor: 'Reflects what strikes it.',
+        isUltimateWeapon: true, cost: c(120, 60, 40000) },
+      { id: 'kaius_aegis_plate', setId: 'kaius_aegis', name: 'Aegis Plate', slot: 'armor', emoji: '🛡️',
+        stats: { def: 220, hp: 3500 }, flavor: 'No blade pierces it.',
+        cost: c(60, 25, 18000) },
+      { id: 'kaius_aegis_helm', setId: 'kaius_aegis', name: 'Aegis Helm', slot: 'helm', emoji: '⛑️',
+        stats: { hp: 1800, def: 120 }, flavor: 'Eyes of the unbroken.',
+        cost: c(50, 20, 15000) },
+      { id: 'kaius_aegis_greaves', setId: 'kaius_aegis', name: 'Aegis Greaves', slot: 'boots', emoji: '🦶',
+        stats: { spd: 40, def: 100, hp: 800 }, flavor: 'Roots him to the earth.',
+        cost: c(40, 15, 12000) },
+      { id: 'kaius_aegis_seal', setId: 'kaius_aegis', name: 'Aegis Seal', slot: 'accessory', emoji: '✝️',
+        stats: { hp: 1200, def: 80, atk: 60 }, flavor: 'The Cross, bound in light.',
+        cost: c(50, 20, 15000) },
+    ],
+    bonuses: [
+      { atPieces: 2, stats: { hp: 2500 }, description: '+2500 HP' },
+      { atPieces: 3, stats: { def: 200, hp: 1500 }, description: '+200 DEF · +1500 HP' },
+      { atPieces: 5, stats: { hp: 5000, def: 250, atk: 200 },
+        description: 'Full set: damage reduction; taunt; passive shield each turn' },
+    ],
+  },
+
+  // ELARA — Assassin / Earth (archer)
+  {
+    id: 'elara_worldweave',
+    name: 'Worldweave',
+    heroId: 'elara',
+    description: "Bow of treelines and morning silence. Strikes from beyond sight.",
+    pieces: [
+      { id: 'elara_worldweave_bow', setId: 'elara_worldweave', name: 'Worldweave Bow', slot: 'weapon', emoji: '🏹',
+        stats: { atk: 340, spd: 50, crit: 0.22 }, flavor: 'Arrows that never miss.',
+        isUltimateWeapon: true, cost: c(120, 60, 40000) },
+      { id: 'elara_worldweave_vest', setId: 'elara_worldweave', name: 'Worldweave Vest', slot: 'armor', emoji: '🦺',
+        stats: { def: 100, hp: 1200, spd: 30 }, flavor: 'Bark-fiber weave.',
+        cost: c(60, 25, 18000) },
+      { id: 'elara_worldweave_hood', setId: 'elara_worldweave', name: 'Worldweave Hood', slot: 'helm', emoji: '🎩',
+        stats: { hp: 600, spd: 25, crit: 0.10 }, flavor: 'The forest closes around her.',
+        cost: c(50, 20, 15000) },
+      { id: 'elara_worldweave_boots', setId: 'elara_worldweave', name: 'Worldweave Boots', slot: 'boots', emoji: '🥾',
+        stats: { spd: 90, crit: 0.08 }, flavor: 'Silent over leaves.',
+        cost: c(40, 15, 12000) },
+      { id: 'elara_worldweave_quiver', setId: 'elara_worldweave', name: 'Worldweave Quiver', slot: 'accessory', emoji: '🪶',
+        stats: { atk: 130, crit: 0.15, spd: 25 }, flavor: 'Arrows that whisper.',
+        cost: c(50, 20, 15000) },
+    ],
+    bonuses: [
+      { atPieces: 2, stats: { spd: 30 }, description: '+30 SPD' },
+      { atPieces: 3, stats: { atk: 200, crit: 0.12 }, description: '+200 ATK · +12% CRIT' },
+      { atPieces: 5, stats: { atk: 400, spd: 60, crit: 0.20 },
+        description: 'Full set: crit chains; first strike each round; +50% ult dmg' },
+    ],
+  },
+
+  // KENGO — Warrior / Earth (monk)
+  {
+    id: 'kengo_iron',
+    name: 'Iron Mountain',
+    heroId: 'kengo',
+    description: "Robes worn through a thousand sunrises. The mountain teaches stillness, then fury.",
+    pieces: [
+      { id: 'kengo_iron_gauntlets', setId: 'kengo_iron', name: 'Iron Mountain Gauntlets', slot: 'weapon', emoji: '🥊',
+        stats: { atk: 320, hp: 1500, def: 80 }, flavor: 'Cracks bedrock.',
+        isUltimateWeapon: true, cost: c(120, 60, 40000) },
+      { id: 'kengo_iron_robes', setId: 'kengo_iron', name: 'Iron Mountain Robes', slot: 'armor', emoji: '🥋',
+        stats: { def: 160, hp: 2500 }, flavor: 'Patches of mountain shadow.',
+        cost: c(60, 25, 18000) },
+      { id: 'kengo_iron_band', setId: 'kengo_iron', name: 'Iron Mountain Band', slot: 'helm', emoji: '🧵',
+        stats: { hp: 1200, def: 90 }, flavor: 'Sashed across the brow.',
+        cost: c(50, 20, 15000) },
+      { id: 'kengo_iron_sandals', setId: 'kengo_iron', name: 'Iron Mountain Sandals', slot: 'boots', emoji: '👡',
+        stats: { spd: 35, def: 80, hp: 600 }, flavor: 'Worn through stone.',
+        cost: c(40, 15, 12000) },
+      { id: 'kengo_iron_beads', setId: 'kengo_iron', name: 'Prayer Beads of Iron', slot: 'accessory', emoji: '📿',
+        stats: { atk: 110, hp: 900 }, flavor: 'A thousand recitations.',
+        cost: c(50, 20, 15000) },
+    ],
+    bonuses: [
+      { atPieces: 2, stats: { hp: 2000 }, description: '+2000 HP' },
+      { atPieces: 3, stats: { atk: 200, def: 100 }, description: '+200 ATK · +100 DEF' },
+      { atPieces: 5, stats: { atk: 350, hp: 3500, def: 150 },
+        description: 'Full set: counter-attack when hit; iron-skin (10% dmg reduction)' },
+    ],
+  },
+
+  // LEN — Assassin / Dark
+  {
+    id: 'len_eclipse',
+    name: 'Eclipse Blades',
+    heroId: 'len',
+    description: "Twin daggers of moonless ink. She steps; you bleed.",
+    pieces: [
+      { id: 'len_eclipse_blades', setId: 'len_eclipse', name: 'Twin Eclipse Daggers', slot: 'weapon', emoji: '🗡️',
+        stats: { atk: 380, crit: 0.28, spd: 30 }, flavor: 'They drink the dark.',
+        isUltimateWeapon: true, cost: c(120, 60, 40000) },
+      { id: 'len_eclipse_cloak', setId: 'len_eclipse', name: 'Eclipse Cloak', slot: 'armor', emoji: '🧥',
+        stats: { def: 80, hp: 1100, spd: 40 }, flavor: 'Drinks the lamplight.',
+        cost: c(60, 25, 18000) },
+      { id: 'len_eclipse_mask', setId: 'len_eclipse', name: 'Eclipse Mask', slot: 'helm', emoji: '🎭',
+        stats: { hp: 500, crit: 0.12, spd: 20 }, flavor: 'No one sees her face.',
+        cost: c(50, 20, 15000) },
+      { id: 'len_eclipse_treads', setId: 'len_eclipse', name: 'Eclipse Treads', slot: 'boots', emoji: '🥾',
+        stats: { spd: 100, crit: 0.08 }, flavor: 'Soundless.',
+        cost: c(40, 15, 12000) },
+      { id: 'len_eclipse_charm', setId: 'len_eclipse', name: 'Eclipse Charm', slot: 'accessory', emoji: '🌒',
+        stats: { atk: 140, crit: 0.18 }, flavor: 'A sliver of the lost moon.',
+        cost: c(50, 20, 15000) },
+    ],
+    bonuses: [
+      { atPieces: 2, stats: { crit: 0.10 }, description: '+10% CRIT' },
+      { atPieces: 3, stats: { atk: 250, spd: 40 }, description: '+250 ATK · +40 SPD' },
+      { atPieces: 5, stats: { atk: 500, crit: 0.25, spd: 60 },
+        description: 'Full set: crits deal +30% dmg; assassinate low-HP targets' },
+    ],
+  },
+];
+
+export const SET_BY_ID = Object.fromEntries(ULTIMATE_SETS.map(s => [s.id, s]));
+export const PIECE_BY_ID: Record<string, SetPieceDef> = {};
+for (const s of ULTIMATE_SETS) for (const p of s.pieces) PIECE_BY_ID[p.id] = p;
+
+export const SET_BY_HERO: Record<string, UltimateSetDef> = Object.fromEntries(
+  ULTIMATE_SETS.map(s => [s.heroId, s])
+);
+
+// Materials
+export const MAT_SOULSHARD = 'mat_soulshard';
+export const MAT_ESSENCE_PREFIX = 'mat_essence_';
+export const essenceItemId = (heroId: string) => `${MAT_ESSENCE_PREFIX}${heroId}`;
+
+export const MATERIAL_META: Record<string, { name: string; emoji: string; description: string }> = {
+  [MAT_SOULSHARD]: {
+    name: 'Soulshard',
+    emoji: '💠',
+    description: '3-star clear drop. Used in every craft.',
+  },
+};
+
+export function essenceMeta(heroId: string) {
+  return {
+    id: essenceItemId(heroId),
+    name: `${heroId.charAt(0).toUpperCase() + heroId.slice(1)} Essence`,
+    emoji: '🔮',
+    description: `Rare 3-star drop. Crafts ${heroId}'s set.`,
+  };
+}
+
+// Mythic rarity color (above Legendary)
+export const MYTHIC_COLOR = '#fb7185'; // rose

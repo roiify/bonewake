@@ -1,0 +1,192 @@
+import { HERO_BY_ID } from '../data/heroes';
+import { ENEMY_TEMPLATES } from '../data/stages';
+import { EQUIP_BY_ID } from '../data/equipment';
+import { equipStats } from './loot';
+import { gemStats } from './gems';
+import { SET_BY_HERO } from '../data/ultimateGear';
+import { TALENT_BY_ID } from '../data/talents';
+import { bondBonusFor } from '../data/bonds';
+import type { OwnedHero, OwnedEquipment } from './db';
+import type { CombatUnit, Element, Archetype, Rarity } from '../types';
+
+export const STAR_MULT = [1.0, 1.0, 1.25, 1.55, 1.95, 2.45, 3.05];
+export const levelMult = (lvl: number) => 1 + (lvl - 1) * 0.05;
+
+export interface HeroStats {
+  hp: number; atk: number; def: number; spd: number; crit: number;
+  power: number;
+}
+
+// Look up a template — first heroes, then enemies. Returns null if unknown
+// so callers can skip orphaned save rows instead of crashing the UI.
+export function lookupTemplate(templateId: string) {
+  const hero = HERO_BY_ID[templateId];
+  if (hero) {
+    return {
+      baseStats: hero.baseStats,
+      name: hero.name, color: hero.color, element: hero.element,
+      archetype: hero.archetype, rarity: hero.rarity, emoji: hero.emoji,
+      ultimateId: hero.ultimateId,
+      isEnemy: false as const,
+    };
+  }
+  const enemy = ENEMY_TEMPLATES[templateId as keyof typeof ENEMY_TEMPLATES];
+  if (enemy) {
+    return {
+      baseStats: enemy.baseStats,
+      name: enemy.name, color: enemy.color, element: enemy.element,
+      archetype: enemy.archetype, rarity: 3 as Rarity, emoji: '💀',
+      ultimateId: enemy.ultimateId,
+      isEnemy: true as const,
+    };
+  }
+  return null;
+}
+
+export function calcHeroStats(
+  hero: OwnedHero | { templateId: string; level: number; star: number; equipped?: Partial<Record<string, string>> },
+  ownedEquipment: OwnedEquipment[] = [],
+  squadTemplateIds: string[] = []
+): HeroStats {
+  const tpl = lookupTemplate(hero.templateId);
+  if (!tpl) return { hp: 0, atk: 0, def: 0, spd: 0, crit: 0, power: 0 };
+  const sm = STAR_MULT[hero.star] ?? 1;
+  const lm = levelMult(hero.level);
+  let hp = tpl.baseStats.hp * sm * lm;
+  let atk = tpl.baseStats.atk * sm * lm;
+  let def = tpl.baseStats.def * sm * lm;
+  let spd = tpl.baseStats.spd;
+  let crit = tpl.baseStats.crit;
+
+  // Track set pieces equipped on this hero for set-bonus calculation
+  const setPieceIdsEquipped: string[] = [];
+  if (hero.equipped) {
+    for (const eqId of Object.values(hero.equipped)) {
+      if (!eqId) continue;
+      const own = ownedEquipment.find(e => e.id === eqId);
+      if (!own) continue;
+      if (own.craftedPieceId) setPieceIdsEquipped.push(own.craftedPieceId);
+      // Gem socket contributions (apply to any item with sockets)
+      if (own.sockets && own.sockets.some(g => !!g)) {
+        const gs = gemStats(own);
+        if (gs.hp) hp += gs.hp as number;
+        if (gs.atk) atk += gs.atk as number;
+        if (gs.def) def += gs.def as number;
+        if (gs.spd) spd += gs.spd as number;
+        if (gs.crit) crit += gs.crit as number;
+      }
+      // New ARPG-format items have primary/affixes — use them
+      if (own.primary || own.affixes) {
+        const s = equipStats(own);
+        if (s.hp) hp += s.hp;
+        if (s.atk) atk += s.atk;
+        if (s.def) def += s.def;
+        if (s.spd) spd += s.spd;
+        if (s.crit) crit += s.crit;
+        continue;
+      }
+      // Legacy fixed-stat templates
+      if (own.templateId) {
+        const et = EQUIP_BY_ID[own.templateId];
+        if (!et) continue;
+        const elm = 1 + ((own.level ?? 1) - 1) * 0.1;
+        if (et.stats.hp) hp += et.stats.hp * elm;
+        if (et.stats.atk) atk += et.stats.atk * elm;
+        if (et.stats.def) def += et.stats.def * elm;
+        if (et.stats.spd) spd += et.stats.spd * elm;
+        if (et.stats.crit) crit += et.stats.crit;
+      }
+    }
+  }
+
+  // Talent bonuses
+  if ('talents' in hero && Array.isArray((hero as any).talents)) {
+    for (const tid of (hero as any).talents as string[]) {
+      const node = TALENT_BY_ID[tid];
+      if (!node) continue;
+      if (node.bonus.hp) hp += node.bonus.hp;
+      if (node.bonus.atk) atk += node.bonus.atk;
+      if (node.bonus.def) def += node.bonus.def;
+      if (node.bonus.spd) spd += node.bonus.spd;
+      if (node.bonus.crit) crit += node.bonus.crit;
+    }
+  }
+
+  // Set bonuses: count how many of THIS hero's signature set pieces are equipped
+  const heroId = hero.templateId;
+  const set = SET_BY_HERO[heroId];
+  if (set && setPieceIdsEquipped.length > 0) {
+    const ownSetPieceIds = new Set(set.pieces.map(p => p.id));
+    const matching = setPieceIdsEquipped.filter(id => ownSetPieceIds.has(id)).length;
+    for (const bonus of set.bonuses) {
+      if (matching >= bonus.atPieces) {
+        if (bonus.stats.hp) hp += bonus.stats.hp;
+        if (bonus.stats.atk) atk += bonus.stats.atk;
+        if (bonus.stats.def) def += bonus.stats.def;
+        if (bonus.stats.spd) spd += bonus.stats.spd;
+        if (bonus.stats.crit) crit += bonus.stats.crit;
+      }
+    }
+  }
+  // Bond bonuses (active only when the hero is in a squad context)
+  if (squadTemplateIds.length > 0) {
+    const bonds = bondBonusFor(hero.templateId, squadTemplateIds);
+    if (bonds.hp) hp += bonds.hp;
+    if (bonds.atk) atk += bonds.atk;
+    if (bonds.def) def += bonds.def;
+    if (bonds.spd) spd += bonds.spd;
+    if (bonds.crit) crit += bonds.crit;
+  }
+
+  hp = Math.round(hp); atk = Math.round(atk); def = Math.round(def);
+  spd = Math.round(spd);
+  const power = Math.round(hp / 4 + atk * 3 + def * 2 + spd * 5 + crit * 800);
+  return { hp, atk, def, spd, crit, power };
+}
+
+export function toCombatUnit(
+  hero: OwnedHero,
+  ownedEquipment: OwnedEquipment[],
+  side: 'player' | 'enemy',
+  instanceId?: string,
+  squadTemplateIds: string[] = []
+): CombatUnit | null {
+  const tpl = lookupTemplate(hero.templateId);
+  if (!tpl) return null;
+  const s = calcHeroStats(hero, ownedEquipment, squadTemplateIds);
+  return {
+    id: instanceId ?? hero.id,
+    templateId: hero.templateId,
+    side,
+    name: tpl.name,
+    emoji: tpl.emoji,
+    color: tpl.color,
+    element: tpl.element as Element,
+    archetype: tpl.archetype as Archetype,
+    rarity: tpl.rarity,
+    level: hero.level,
+    star: hero.star,
+    hp: s.hp,
+    maxHp: s.hp,
+    atk: s.atk,
+    def: s.def,
+    spd: s.spd,
+    crit: s.crit,
+    energy: 0,
+    ultimateId: tpl.ultimateId,
+    alive: true,
+  };
+}
+
+export function buildEnemyUnit(templateId: string, level: number, star: number, instanceId: string): CombatUnit {
+  const fakeOwned: OwnedHero = {
+    id: instanceId, templateId, level, exp: 0, star, equipped: {}, obtainedAt: 0,
+  };
+  const u = toCombatUnit(fakeOwned, [], 'enemy', instanceId);
+  if (!u) throw new Error(`Cannot build enemy: unknown template ${templateId}`);
+  return u;
+}
+
+export const xpForLevel = (level: number) => Math.floor(50 * Math.pow(1.18, level - 1));
+export const goldToLevelUp = (level: number) => 50 + level * 30;
+export const maxLevelForStar = (star: number) => 10 * star;

@@ -1,0 +1,559 @@
+import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { STAGE_BY_ID, STAGES } from '../data/stages';
+import { useHeroes } from '../store/heroes';
+import { useProfile } from '../store/profile';
+import { buildEnemyUnit, toCombatUnit, xpForLevel } from '../lib/stats';
+import { resolveBattle } from '../lib/combat';
+import { db } from '../lib/db';
+import { incrementTask } from '../lib/tasks';
+import type { CombatUnit, BattleResult } from '../types';
+import type { OwnedEquipment } from '../lib/db';
+import { CHAPTER_BG, ELEMENT_AURA } from '../data/auraMap';
+import { HERO_SPRITES, ENEMY_SPRITES } from '../data/heroes';
+import SpriteAnimator from '../components/SpriteAnimator';
+import { genLoot } from '../lib/loot';
+import { LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/loot';
+import { rollClearDrops, addMaterial } from '../lib/crafting';
+import { MAT_SOULSHARD, essenceItemId, MATERIAL_META, essenceMeta } from '../data/ultimateGear';
+import { useItems } from '../store/items';
+import { recordEvent } from '../lib/lifetime';
+import { maybeRollGem, addGemToInventory } from '../lib/gems';
+import { GEM_TIER_COLOR, GEM_TIER_NAME } from '../data/gems';
+import type { GemDef } from '../data/gems';
+import { sound } from '../lib/audio';
+
+const SQUAD_KEY = 'pf_squad';
+
+function loadSquad(): string[] {
+  try { return JSON.parse(localStorage.getItem(SQUAD_KEY) ?? '[]'); } catch { return []; }
+}
+
+interface FloatingNumber {
+  id: number; x: number; y: number; value: string; color: string;
+}
+
+export default function BattlePlayPage() {
+  const { stageId } = useParams();
+  const navigate = useNavigate();
+  const stage = stageId ? STAGE_BY_ID[stageId] : null;
+  const heroes = useHeroes(s => s.heroes);
+  const equipment = useHeroes(s => s.equipment);
+  const updateHero = useHeroes(s => s.updateHero);
+  const addEquipment = useHeroes(s => s.addEquipment);
+  const profile = useProfile(s => s.profile);
+
+  const battle: BattleResult | null = useMemo(() => {
+    if (!stage) return null;
+    const squad = loadSquad()
+      .map(id => heroes.find(h => h.id === id))
+      .filter((h): h is NonNullable<typeof h> => !!h);
+    if (squad.length === 0) return null;
+    const playerUnits = squad
+      .map((h, i, arr) => toCombatUnit(h, equipment, 'player', `p${i}`, arr.map(x => x.templateId)))
+      .filter((u): u is NonNullable<typeof u> => !!u);
+    const enemyUnits = stage.enemyTeam.map((e, i) => buildEnemyUnit(e.templateId, e.level, e.star, `e${i}`));
+    return resolveBattle(playerUnits, enemyUnits);
+  }, [stageId]);
+
+  const [tick, setTick] = useState(0);
+  const [units, setUnits] = useState<Record<string, CombatUnit>>(() => {
+    if (!battle) return {};
+    return Object.fromEntries([...battle.initial.player, ...battle.initial.enemy].map(u => [u.id, { ...u }]));
+  });
+  const [attacker, setAttacker] = useState<string | null>(null);
+  const [hit, setHit] = useState<string | null>(null);
+  const [floats, setFloats] = useState<FloatingNumber[]>([]);
+  const [ultFlash, setUltFlash] = useState<CombatUnit | null>(null);
+  const [done, setDone] = useState(false);
+  const [speed, setSpeed] = useState<1 | 2 | 4 | 8>(2);
+  const [energyDeducted, setEnergyDeducted] = useState(false);
+  const [lootDrops, setLootDrops] = useState<OwnedEquipment[]>([]);
+  const [matDrops, setMatDrops] = useState<{ kind: 'soulshard' | 'essence'; heroId?: string; count: number }[]>([]);
+  const [gemDrops, setGemDrops] = useState<GemDef[]>([]);
+  const floatId = useRef(0);
+
+  useEffect(() => {
+    if (!stage || !battle) return;
+    if (energyDeducted) return;
+    (async () => {
+      await useProfile.getState().spendEnergy(stage.energyCost);
+      setEnergyDeducted(true);
+    })();
+  }, [stage, battle, energyDeducted]);
+
+  useEffect(() => {
+    if (!battle || done) return;
+    if (tick >= battle.log.length) {
+      // finish: short pause then end
+      const t = setTimeout(() => endBattle(), 600 / speed);
+      return () => clearTimeout(t);
+    }
+    const action = battle.log[tick];
+    setAttacker(action.src);
+    if (action.ult) {
+      const u = units[action.src];
+      setUltFlash(u);
+      const t = setTimeout(() => setUltFlash(null), 500 / speed);
+      return () => clearTimeout(t);
+    }
+    return;
+  }, [tick, battle, done]);
+
+  useEffect(() => {
+    if (!battle || done) return;
+    if (tick >= battle.log.length) return;
+    const baseDuration = battle.log[tick].ult ? 900 : 500;
+    const t = setTimeout(() => applyAction(), baseDuration / speed);
+    return () => clearTimeout(t);
+  }, [tick, battle, done, speed]);
+
+  function applyAction() {
+    if (!battle) return;
+    const action = battle.log[tick];
+    // SFX
+    if (action.ult) sound.playSfx('ult');
+    else if (action.crit) sound.playSfx('hit');
+    else if (action.dmg > 0) sound.playSfx('hit');
+    setUnits(prev => {
+      const next = { ...prev };
+      const dst = { ...next[action.dst] };
+      if (action.heal) dst.hp = Math.min(dst.maxHp, dst.hp + action.heal);
+      if (action.dmg > 0) {
+        dst.hp = Math.max(0, dst.hp - action.dmg);
+        if (dst.hp <= 0) dst.alive = false;
+      }
+      next[action.dst] = dst;
+      return next;
+    });
+    setHit(action.dst);
+    setAttacker(null);
+    const dstUnit = units[action.dst];
+    if (dstUnit) {
+      const id = ++floatId.current;
+      const isHeal = action.heal != null && action.heal > 0;
+      setFloats(f => [...f, {
+        id,
+        x: 0, y: 0,
+        value: isHeal ? `+${action.heal}` : action.dmg.toString(),
+        color: isHeal ? '#22c55e' : action.crit ? '#fde047' : action.ult ? '#fb923c' : '#fca5a5',
+      }]);
+      setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 900);
+    }
+    setTimeout(() => setHit(null), 200 / speed);
+    setTick(t => t + 1);
+  }
+
+  async function endBattle() {
+    if (done || !battle || !stage) return;
+    setDone(true);
+    const won = battle.winner === 'player';
+    sound.playSfx(won ? 'victory' : 'defeat');
+    if (won) {
+      // count alive
+      const alive = battle.initial.player.filter(u => units[u.id]?.alive).length;
+      const stars = alive === battle.initial.player.length ? 3 : alive >= 2 ? 2 : 1;
+      // grant rewards
+      await useProfile.getState().addGold(stage.rewards.gold);
+      // distribute exp to squad heroes
+      const squad = loadSquad();
+      for (const id of squad) {
+        const h = heroes.find(x => x.id === id);
+        if (!h) continue;
+        let lvl = h.level;
+        let exp = h.exp + stage.rewards.exp;
+        while (exp >= xpForLevel(lvl) && lvl < 100) {
+          exp -= xpForLevel(lvl);
+          lvl++;
+        }
+        await updateHero(h.id, { level: lvl, exp });
+      }
+      // stage clear record
+      const existing = await db.stageClears.get(stage.id);
+      const newStars = Math.max(stars, existing?.stars ?? 0);
+      await db.stageClears.put({
+        stageId: stage.id,
+        stars: newStars,
+        clears: (existing?.clears ?? 0) + 1,
+        lastClearedAt: Date.now(),
+      });
+      // first clear bonus
+      if (!existing && stage.firstClearBonus.gems) {
+        await useProfile.getState().addGems(stage.firstClearBonus.gems);
+      }
+      // ARPG-style loot drops — every battle drops something.
+      // Boss stages (every 5th) drop more items and at higher minimum rarity.
+      const isBoss = stage.num === 5;
+      const itemLevel = Math.max(1, (stage.chapter - 1) * 10 + stage.num * 2);
+      const dropCount = isBoss ? 3 : (stars === 3 ? 2 : 1);
+      const drops: OwnedEquipment[] = [];
+      for (let i = 0; i < dropCount; i++) {
+        const minRarity: LootRarity = isBoss
+          ? (i === 0 ? 3 : 2)            // boss: first guaranteed Rare+, rest Magic+
+          : (stars === 3 && i === 0 ? 2 : 1);  // perfect clear bumps first drop to Magic+
+        const luckBoost = stage.chapter * 0.08; // later chapters give better rarity odds
+        const item = genLoot({ itemLevel, minRarity, luckBoost });
+        await addEquipment(item);
+        drops.push(item);
+      }
+      setLootDrops(drops);
+
+      // Gem drops: small chance per battle, higher on boss
+      const gems: GemDef[] = [];
+      for (let i = 0; i < (isBoss ? 2 : 1); i++) {
+        const g = maybeRollGem(itemLevel, isBoss);
+        if (g) {
+          await addGemToInventory(g.id, 1);
+          gems.push(g);
+        }
+      }
+      if (gems.length > 0) {
+        await useItems.getState().refresh();
+        setGemDrops(gems);
+      }
+
+      // Crafting materials: only on a 3-star clear (perfect clear)
+      if (stars === 3) {
+        const mats = rollClearDrops(stage.chapter, isBoss);
+        const summary: { kind: 'soulshard' | 'essence'; heroId?: string; count: number }[] = [];
+        if (mats.soulshards > 0) {
+          await addMaterial(MAT_SOULSHARD, mats.soulshards);
+          summary.push({ kind: 'soulshard', count: mats.soulshards });
+        }
+        for (const ess of mats.essences) {
+          await addMaterial(essenceItemId(ess.heroId), ess.count);
+          summary.push({ kind: 'essence', heroId: ess.heroId, count: ess.count });
+        }
+        await useItems.getState().refresh();
+        setMatDrops(summary);
+      }
+      // gain player exp
+      await useProfile.getState().gainExp(stage.rewards.exp);
+      await incrementTask('daily_battles', 1);
+      if (newStars === 3) await incrementTask('daily_threestar', 1);
+      // Lifetime tracking
+      await recordEvent({ kind: 'battleWon' });
+      await recordEvent({ kind: 'stageCleared', stars: newStars });
+      await recordEvent({ kind: 'goldEarned', amount: stage.rewards.gold });
+      // Count legendary drops
+      for (const d of drops) {
+        if (d.rarity === 5) await recordEvent({ kind: 'legendaryDropped' });
+      }
+    } else {
+      await recordEvent({ kind: 'battleLost' });
+    }
+  }
+
+  if (!stage) return <div className="p-6 text-center">Stage not found.</div>;
+  if (!battle) return <div className="p-6 text-center">No squad! <button className="btn-pixel mt-3" onClick={() => navigate(-1)}>Back</button></div>;
+
+  const playerSlots = battle.initial.player.map(u => units[u.id]);
+  const enemySlots = battle.initial.enemy.map(u => units[u.id]);
+
+  const bgUrl = CHAPTER_BG[stage.chapter] ?? CHAPTER_BG[1];
+
+  return (
+    <div
+      className="relative h-full overflow-hidden"
+      style={{
+        backgroundImage: `linear-gradient(rgba(9,9,11,0.55), rgba(9,9,11,0.85)), url(${bgUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      {/* Speed controls */}
+      <div className="absolute top-2 right-2 flex gap-1 z-20">
+        {([1, 2, 4, 8] as const).map(s => (
+          <button
+            key={s}
+            onClick={() => setSpeed(s)}
+            className={`text-[10px] font-pixel px-2 py-1 rounded border ${speed === s ? 'border-amber-400 bg-amber-400/20' : 'border-zinc-700 bg-zinc-900'}`}
+          >×{s}</button>
+        ))}
+      </div>
+
+      {/* Ult flash with aura */}
+      <AnimatePresence>
+        {ultFlash && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
+            style={{ background: `radial-gradient(circle, ${ultFlash.color}90, #000000d0)` }}
+          >
+            <motion.img
+              src={ELEMENT_AURA[ultFlash.element]}
+              alt=""
+              initial={{ scale: 0.4, opacity: 0 }}
+              animate={{ scale: [0.4, 1.4, 1.2], opacity: [0, 1, 0.9], rotate: [0, 8, -4] }}
+              exit={{ scale: 1.8, opacity: 0 }}
+              transition={{ duration: 0.6 / speed }}
+              className="absolute w-72 h-72 mix-blend-screen pointer-events-none"
+            />
+            {HERO_SPRITES[ultFlash.templateId]?.skill ? (
+              <motion.div
+                initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1.6, opacity: 1 }} exit={{ scale: 2.2, opacity: 0 }}
+                transition={{ duration: 0.5 / speed }}
+                className="relative"
+              >
+                <SpriteAnimator
+                  src={HERO_SPRITES[ultFlash.templateId].skill}
+                  cols={4} rows={4} fps={16} loop={false} size={200}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 1.6, opacity: 0 }}
+                transition={{ duration: 0.4 / speed }}
+                className="text-8xl relative drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]"
+              >
+                {ultFlash.emoji}
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="absolute inset-0 flex flex-col justify-between p-4 pt-12 pb-6">
+        {/* Enemy row */}
+        <div className="grid grid-cols-3 gap-2">
+          {enemySlots.map(u => (
+            <UnitCard key={u.id} unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} side="enemy" floats={floats.filter(() => attacker === u.id || hit === u.id)} />
+          ))}
+        </div>
+
+        {/* Mid divider */}
+        <div className="text-center text-[10px] font-pixel text-zinc-600 my-2">— VS —</div>
+
+        {/* Player row */}
+        <div className="grid grid-cols-3 gap-2">
+          {playerSlots.map(u => (
+            <UnitCard key={u.id} unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} side="player" floats={floats.filter(() => attacker === u.id || hit === u.id)} />
+          ))}
+        </div>
+      </div>
+
+      {/* End screen */}
+      <AnimatePresence>
+        {done && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="absolute inset-0 bg-black/85 z-40 flex flex-col items-center justify-center p-6 text-center"
+          >
+            <motion.div
+              initial={{ scale: 0 }} animate={{ scale: 1 }}
+              transition={{ type: 'spring' }}
+              className="font-pixel text-3xl mb-4"
+              style={{ color: battle.winner === 'player' ? '#fbbf24' : '#f87171' }}
+            >
+              {battle.winner === 'player' ? 'VICTORY!' : 'DEFEAT'}
+            </motion.div>
+            {battle.winner === 'player' && (
+              <div className="space-y-2 mb-4 w-full max-w-sm">
+                <div className="text-amber-400 text-2xl text-center">{'★'.repeat(playerSlots.filter(u => u.alive).length === playerSlots.length ? 3 : playerSlots.filter(u => u.alive).length >= 2 ? 2 : 1)}</div>
+                <div className="text-zinc-300 text-sm text-center">+{stage.rewards.gold} 🪙 · +{stage.rewards.exp} xp</div>
+                {gemDrops.length > 0 && (
+                  <div className="mt-3 space-y-1">
+                    <div className="text-[10px] font-pixel text-cyan-300 text-center">GEMS</div>
+                    {gemDrops.map((g, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 + i * 0.08 }}
+                        className="flex items-center gap-2 rounded border-2 bg-zinc-950 px-2 py-1.5 text-left"
+                        style={{ borderColor: GEM_TIER_COLOR[g.tier] }}
+                      >
+                        <span className="text-2xl">{g.emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[11px] font-pixel" style={{ color: GEM_TIER_COLOR[g.tier] }}>
+                            {g.name}
+                          </div>
+                          <div className="text-[9px] text-zinc-500">
+                            {GEM_TIER_NAME[g.tier]} · +{g.stat === 'crit' ? `${(g.value * 100).toFixed(1)}%` : g.value} {g.stat.toUpperCase()}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+                {matDrops.length > 0 && (
+                  <div className="mt-3 space-y-1">
+                    <div className="text-[10px] font-pixel text-rose-300 text-center">3★ MATERIALS</div>
+                    {matDrops.map((m, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 + i * 0.08 }}
+                        className="flex items-center gap-2 rounded border-2 bg-zinc-950 px-2 py-1.5 text-left"
+                        style={{ borderColor: '#fb7185' }}
+                      >
+                        <span className="text-2xl">{m.kind === 'soulshard' ? MATERIAL_META[MAT_SOULSHARD].emoji : essenceMeta(m.heroId!).emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[11px] font-pixel text-rose-300">
+                            +{m.count} {m.kind === 'soulshard' ? 'Soulshard' : essenceMeta(m.heroId!).name}
+                          </div>
+                          <div className="text-[9px] text-zinc-500">
+                            {m.kind === 'soulshard' ? 'Crafts any ultimate piece' : `Crafts ${m.heroId}'s set`}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+                {lootDrops.length > 0 && (
+                  <div className="mt-3 space-y-1">
+                    <div className="text-[10px] font-pixel text-zinc-400 text-center">LOOT DROPPED</div>
+                    {lootDrops.map(item => {
+                      const color = LOOT_RARITY_COLOR[item.rarity as LootRarity];
+                      return (
+                        <motion.div
+                          key={item.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.15 }}
+                          className="flex items-center gap-2 rounded border-2 bg-zinc-950 px-2 py-1.5 text-left"
+                          style={{ borderColor: color, boxShadow: item.rarity && item.rarity >= 4 ? `0 0 12px ${color}` : undefined }}
+                        >
+                          <span className="text-2xl">{item.primary?.stat === 'crit' || item.affixes?.some(a => a.stat === 'crit') ? '✨' : '⚔️'}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[11px] truncate font-pixel" style={{ color }}>{item.name}</div>
+                            <div className="text-[9px] text-zinc-400">
+                              {LOOT_RARITY_NAME[item.rarity as LootRarity]} · iL{item.itemLevel}
+                              {item.affixes && item.affixes.length > 0 && <span> · {item.affixes.length} affix{item.affixes.length > 1 ? 'es' : ''}</span>}
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+            {(() => {
+              const idx = STAGES.findIndex(s => s.id === stage.id);
+              const next = idx >= 0 ? STAGES[idx + 1] : undefined;
+              const won = battle.winner === 'player';
+              return (
+                <div className="flex gap-2 flex-wrap justify-center">
+                  <button className="btn-pixel" onClick={() => navigate('/battle')}>Back</button>
+                  <button className="btn-pixel" onClick={() => navigate(`/battle/stage/${stage.id}`)}>Retry</button>
+                  {won && next && (
+                    <button className="btn-pixel primary" onClick={() => navigate(`/battle/stage/${next.id}`)}>
+                      Next → {next.chapter}-{next.num}
+                    </button>
+                  )}
+                  {won && !next && (
+                    <div className="text-[10px] text-amber-300 font-pixel mt-2 w-full">All stages cleared!</div>
+                  )}
+                </div>
+              );
+            })()}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function UnitCard({ unit, attacker, hit, side, floats, isUlt }: {
+  unit: CombatUnit; attacker: boolean; hit: boolean; side: 'player' | 'enemy'; floats: FloatingNumber[]; isUlt: boolean;
+}) {
+  // Resolve sprite set
+  const heroSprites = HERO_SPRITES[unit.templateId];
+  const enemySprites = ENEMY_SPRITES[unit.templateId as keyof typeof ENEMY_SPRITES];
+  const sprites = heroSprites ?? enemySprites;
+
+  // Pick the right animation for current state
+  let animSrc: string | null = null;
+  if (sprites) {
+    if (!unit.alive) animSrc = (heroSprites?.death ?? enemySprites?.death) ?? null;
+    else if (hit) animSrc = (heroSprites?.hit ?? enemySprites?.hit) ?? null;
+    else if (attacker && isUlt && (heroSprites?.skill || enemySprites?.skill)) animSrc = heroSprites?.skill ?? enemySprites?.skill ?? null;
+    else if (attacker) animSrc = (heroSprites?.attack ?? enemySprites?.attack) ?? null;
+  }
+  // Idle fallback as still image
+  const idleSrc = sprites?.idle ?? null;
+
+  return (
+    <motion.div
+      animate={{
+        x: attacker ? (side === 'player' ? 20 : -20) : 0,
+        scale: attacker ? 1.1 : 1,
+      }}
+      transition={{ duration: 0.18 }}
+      className="relative"
+    >
+      <div
+        className={`relative rounded-md border-2 p-1.5 text-center transition-all ${hit ? 'animate-shake' : ''} ${unit.alive ? '' : 'grayscale opacity-50'}`}
+        style={{
+          borderColor: unit.color,
+          background: hit ? '#7f1d1d50' : '#18181b',
+          boxShadow: attacker ? `0 0 28px ${unit.color}` : 'none',
+        }}
+      >
+        {/* Status effect icons */}
+        {unit.effects && unit.effects.length > 0 && (
+          <div className="absolute -top-1 left-1 right-1 flex gap-0.5 z-10 justify-center flex-wrap">
+            {unit.effects.map((ef, i) => (
+              <span
+                key={i}
+                className="text-[10px] leading-none px-0.5"
+                title={`${ef.kind} ${ef.value} (${ef.remaining})`}
+              >
+                {ef.kind === 'burn' ? '🔥' : ef.kind === 'shield' ? '🛡' : ef.kind === 'buff_atk' ? '⚡' : '⏱'}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="relative aspect-square mb-1 flex items-center justify-center overflow-hidden rounded">
+          {animSrc ? (
+            <SpriteAnimator
+              src={animSrc}
+              cols={sprites!.cols}
+              rows={sprites!.rows}
+              fps={hit ? 18 : 14}
+              loop={unit.alive && !hit}
+              size={88}
+              className={side === 'enemy' ? 'scale-x-[-1]' : ''}
+            />
+          ) : idleSrc ? (
+            <img src={idleSrc} alt="" className={`w-full h-full object-contain ${side === 'enemy' ? 'scale-x-[-1]' : ''}`} style={{ imageRendering: 'pixelated' }} />
+          ) : (
+            <div className="text-3xl">{unit.emoji}</div>
+          )}
+        </div>
+        <div className="text-[9px] truncate" style={{ color: unit.color }}>{unit.name}</div>
+        <div className="h-1.5 bg-zinc-800 rounded mt-1 overflow-hidden">
+          <motion.div
+            className="h-full bg-emerald-500"
+            initial={false}
+            animate={{ width: `${(unit.hp / unit.maxHp) * 100}%` }}
+            transition={{ duration: 0.25 }}
+            style={{ background: unit.hp / unit.maxHp > 0.5 ? '#22c55e' : unit.hp / unit.maxHp > 0.25 ? '#f59e0b' : '#ef4444' }}
+          />
+        </div>
+        <div className="h-0.5 bg-zinc-800 rounded mt-0.5 overflow-hidden">
+          <div className="h-full bg-cyan-400" style={{ width: `${unit.energy}%` }} />
+        </div>
+        <div className="text-[8px] text-zinc-500 mt-0.5">{unit.hp}/{unit.maxHp}</div>
+      </div>
+      <AnimatePresence>
+        {floats.map(f => (
+          <motion.div
+            key={f.id}
+            initial={{ y: 0, opacity: 1, scale: 0.6 }}
+            animate={{ y: -40, opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="absolute top-0 left-1/2 -translate-x-1/2 font-pixel text-sm pointer-events-none"
+            style={{ color: f.color, textShadow: '0 1px 0 #000' }}
+          >
+            {f.value}
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </motion.div>
+  );
+}

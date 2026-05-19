@@ -1,0 +1,247 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useProfile } from '../store/profile';
+import { useHeroes } from '../store/heroes';
+import { useItems } from '../store/items';
+import {
+  TOWER_MAX_FLOOR,
+  TOWER_DAILY_ATTEMPTS,
+  TOWER_REFILL_GEM_COST,
+  TOWER_REFILL_MAX_PER_DAY,
+  generateFloor,
+  isBossFloor,
+  isMegaBossFloor,
+  isoWeek,
+} from '../data/tower';
+import { resolveBattle } from '../lib/combat';
+import { toCombatUnit } from '../lib/stats';
+import { recordEvent } from '../lib/lifetime';
+import { addMaterial } from '../lib/crafting';
+import { MAT_SOULSHARD } from '../data/ultimateGear';
+import { HERO_BY_ID, HERO_SPRITES, ENEMY_SPRITES } from '../data/heroes';
+import { StaticSprite } from '../components/SpriteAnimator';
+
+const SQUAD_KEY = 'pf_squad';
+function loadSquad(): string[] {
+  try { return JSON.parse(localStorage.getItem(SQUAD_KEY) ?? '[]'); } catch { return []; }
+}
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+export default function TowerPage() {
+  const navigate = useNavigate();
+  const profile = useProfile(s => s.profile);
+  const patch = useProfile(s => s.patch);
+  const heroes = useHeroes(s => s.heroes);
+  const equipment = useHeroes(s => s.equipment);
+  const refreshItems = useItems(s => s.refresh);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ won: boolean; floor: number; rewards: any } | null>(null);
+
+  // Weekly reset detection
+  const currentWeek = isoWeek();
+  const weekChanged = profile.towerWeekStart !== currentWeek;
+  const highestFloor = weekChanged ? 0 : (profile.towerHighestFloor ?? 0);
+  const nextFloor = Math.min(TOWER_MAX_FLOOR, highestFloor + 1);
+
+  // Daily attempts
+  const today = todayStr();
+  const attemptsToday = profile.towerAttemptsDate === today ? (profile.towerAttemptsToday ?? 0) : 0;
+  const freeAttemptsLeft = Math.max(0, TOWER_DAILY_ATTEMPTS - attemptsToday);
+  const refillsToday = Math.max(0, attemptsToday - TOWER_DAILY_ATTEMPTS);
+  const refillsAvailable = TOWER_REFILL_MAX_PER_DAY - refillsToday;
+  const canAttempt = freeAttemptsLeft > 0 || (refillsAvailable > 0 && profile.gems >= TOWER_REFILL_GEM_COST);
+
+  useEffect(() => {
+    if (weekChanged) {
+      patch({ towerWeekStart: currentWeek, towerHighestFloor: 0 });
+    }
+  }, [weekChanged, currentWeek]);
+
+  const floorDef = generateFloor(nextFloor);
+  const allTimeMax = profile.lifetime?.towerMaxFloor ?? 0;
+
+  async function climb() {
+    if (busy || !canAttempt) return;
+    setBusy(true);
+    // Spend attempt or refill
+    if (freeAttemptsLeft <= 0) {
+      const ok = await useProfile.getState().spendGems(TOWER_REFILL_GEM_COST);
+      if (!ok) { setBusy(false); return; }
+    }
+    await patch({
+      towerAttemptsDate: today,
+      towerAttemptsToday: attemptsToday + 1,
+    });
+    // Build player squad
+    const squad = loadSquad()
+      .map(id => heroes.find(h => h.id === id))
+      .filter((h): h is NonNullable<typeof h> => !!h);
+    if (squad.length === 0) {
+      alert('Set a squad first (Battle → any stage → Auto/Edit).');
+      setBusy(false);
+      return;
+    }
+    const playerUnits = squad
+      .map((h, i) => toCombatUnit(h, equipment, 'player', `p${i}`))
+      .filter((u): u is NonNullable<typeof u> => !!u);
+    const battle = resolveBattle(playerUnits, floorDef.enemyTeam);
+    const won = battle.winner === 'player';
+    if (won) {
+      const r = floorDef.rewards;
+      await useProfile.getState().addGold(r.gold);
+      if (r.gems > 0) await useProfile.getState().addGems(r.gems);
+      if (r.soulshards > 0) await addMaterial(MAT_SOULSHARD, r.soulshards);
+      const newHigh = Math.max(highestFloor, nextFloor);
+      await patch({ towerHighestFloor: newHigh });
+      await recordEvent({ kind: 'towerFloor', floor: newHigh });
+      await recordEvent({ kind: 'goldEarned', amount: r.gold });
+      await refreshItems();
+      setResult({ won: true, floor: nextFloor, rewards: r });
+    } else {
+      setResult({ won: false, floor: nextFloor, rewards: null });
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className="p-3 space-y-3">
+      <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
+
+      {/* Header banner */}
+      <div
+        className="relative rounded-lg overflow-hidden h-32 flex items-end justify-center"
+        style={{ backgroundImage: 'url(/sprites/echoes/tiles/grave_rising.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-zinc-950/20" />
+        <div className="relative z-10 text-center pb-3">
+          <h2 className="font-pixel text-base text-rose-300">🗼 Tower of Trials</h2>
+          <p className="text-[10px] text-zinc-300 mt-1">Climb. Resets every Monday.</p>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="rounded-md border border-zinc-800 bg-zinc-900 p-2 text-center">
+          <div className="text-[9px] text-zinc-500">This week</div>
+          <div className="text-lg font-pixel text-amber-400">{highestFloor}</div>
+        </div>
+        <div className="rounded-md border border-zinc-800 bg-zinc-900 p-2 text-center">
+          <div className="text-[9px] text-zinc-500">All-time</div>
+          <div className="text-lg font-pixel text-emerald-400">{allTimeMax}</div>
+        </div>
+        <div className="rounded-md border border-zinc-800 bg-zinc-900 p-2 text-center">
+          <div className="text-[9px] text-zinc-500">Attempts</div>
+          <div className="text-lg font-pixel text-cyan-400">{freeAttemptsLeft}/{TOWER_DAILY_ATTEMPTS}</div>
+        </div>
+      </div>
+
+      {/* Next floor preview */}
+      {highestFloor >= TOWER_MAX_FLOOR ? (
+        <div className="rounded-md border-2 border-amber-700 bg-amber-900/30 p-6 text-center">
+          <div className="text-3xl mb-2">👑</div>
+          <div className="font-pixel text-sm text-amber-300">APEX REACHED</div>
+          <div className="text-[10px] text-zinc-400 mt-1">All 100 floors cleared this week. Resets Monday.</div>
+        </div>
+      ) : (
+        <div
+          className={`rounded-md border-2 p-3 ${
+            isMegaBossFloor(nextFloor) ? 'border-rose-600 bg-gradient-to-b from-rose-950/40 to-zinc-900'
+              : isBossFloor(nextFloor) ? 'border-amber-600 bg-gradient-to-b from-amber-950/30 to-zinc-900'
+              : 'border-zinc-700 bg-zinc-900'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-pixel text-xs">
+              Floor {nextFloor}
+              {isMegaBossFloor(nextFloor) && <span className="text-rose-400 ml-2">★ MEGA BOSS</span>}
+              {!isMegaBossFloor(nextFloor) && isBossFloor(nextFloor) && <span className="text-amber-400 ml-2">★ BOSS</span>}
+            </div>
+            <div className="text-[10px] text-zinc-500">+{floorDef.rewards.gold} 🪙 · +{floorDef.rewards.gems} 💎{floorDef.rewards.soulshards ? ` · +${floorDef.rewards.soulshards} 💠` : ''}</div>
+          </div>
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${floorDef.enemyTeam.length}, minmax(0, 1fr))` }}>
+            {floorDef.enemyTeam.map(e => {
+              const sprite = ENEMY_SPRITES[e.templateId as keyof typeof ENEMY_SPRITES];
+              return (
+                <div key={e.id} className="rounded border bg-zinc-950 p-1.5 text-center" style={{ borderColor: e.color }}>
+                  <div className="aspect-square flex items-center justify-center overflow-hidden">
+                    {sprite ? <StaticSprite src={sprite.idle} size={50} className="scale-x-[-1]" /> : <div className="text-2xl">{e.emoji}</div>}
+                  </div>
+                  <div className="text-[9px] truncate" style={{ color: e.color }}>{e.name}</div>
+                  <div className="text-[8px] text-zinc-500">L{e.level}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Squad preview */}
+      <div className="rounded-md border border-emerald-900/50 bg-emerald-950/20 p-3">
+        <div className="font-pixel text-[10px] text-emerald-300 mb-2">Your Squad</div>
+        <div className="grid grid-cols-3 gap-2">
+          {loadSquad().map(id => {
+            const h = heroes.find(x => x.id === id);
+            if (!h) return null;
+            const tpl = HERO_BY_ID[h.templateId];
+            return (
+              <div key={id} className="rounded border bg-zinc-950 p-1.5 text-center" style={{ borderColor: tpl.color }}>
+                <div className="aspect-square flex items-center justify-center overflow-hidden">
+                  {HERO_SPRITES[tpl.id] ? <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={50} /> : <div className="text-2xl">{tpl.emoji}</div>}
+                </div>
+                <div className="text-[9px] truncate" style={{ color: tpl.color }}>{tpl.name}</div>
+                <div className="text-[8px] text-zinc-500">L{h.level}</div>
+              </div>
+            );
+          })}
+          {loadSquad().length === 0 && (
+            <div className="col-span-3 text-[10px] text-zinc-500 text-center">No squad set. Visit Battle to set one.</div>
+          )}
+        </div>
+      </div>
+
+      {/* Climb button */}
+      {highestFloor < TOWER_MAX_FLOOR && (
+        <button
+          className="btn-pixel primary w-full text-base"
+          disabled={!canAttempt || busy}
+          onClick={climb}
+        >
+          {busy
+            ? 'Climbing…'
+            : freeAttemptsLeft > 0
+              ? `Climb Floor ${nextFloor}`
+              : refillsAvailable > 0
+                ? `Refill Attempt (${TOWER_REFILL_GEM_COST} 💎)`
+                : 'Out of attempts — come back tomorrow'}
+        </button>
+      )}
+
+      {/* Result modal */}
+      {result && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setResult(null)}>
+          <div className="bg-zinc-900 border-2 rounded-lg p-6 text-center max-w-xs"
+            style={{ borderColor: result.won ? '#22c55e' : '#ef4444' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-3xl mb-2">{result.won ? '🗼' : '💀'}</div>
+            <div className="font-pixel text-lg mb-2" style={{ color: result.won ? '#86efac' : '#f87171' }}>
+              {result.won ? `FLOOR ${result.floor} CLEARED` : `STOPPED AT ${result.floor}`}
+            </div>
+            {result.won && result.rewards && (
+              <div className="text-xs text-zinc-300 space-y-1 mb-3">
+                <div>+{result.rewards.gold} 🪙</div>
+                {result.rewards.gems > 0 && <div>+{result.rewards.gems} 💎</div>}
+                {result.rewards.soulshards > 0 && <div>+{result.rewards.soulshards} 💠</div>}
+              </div>
+            )}
+            {!result.won && (
+              <div className="text-[11px] text-zinc-400 mb-3">Your squad couldn't break through. Try again with stronger gear.</div>
+            )}
+            <button className="btn-pixel primary w-full" onClick={() => setResult(null)}>OK</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

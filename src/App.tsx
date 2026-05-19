@@ -1,0 +1,110 @@
+import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { initSave, DEFAULT_SETTINGS } from './lib/db';
+import { useProfile } from './store/profile';
+import { ensureAudioInit, sound } from './lib/audio';
+import { useHeroes } from './store/heroes';
+import { useItems } from './store/items';
+import { Shell } from './components/Shell';
+import HomePage from './pages/HomePage';
+import HeroesPage from './pages/HeroesPage';
+import HeroDetailPage from './pages/HeroDetailPage';
+import SummonPage from './pages/SummonPage';
+import BattlePage from './pages/BattlePage';
+import StagePrebattlePage from './pages/StagePrebattlePage';
+import BattlePlayPage from './pages/BattlePlayPage';
+import MorePage from './pages/MorePage';
+import TasksPage from './pages/TasksPage';
+import BagPage from './pages/BagPage';
+import DebugPage from './pages/DebugPage';
+import FragmentsPage from './pages/FragmentsPage';
+import CraftPage from './pages/CraftPage';
+import TowerPage from './pages/TowerPage';
+import TrainingPage from './pages/TrainingPage';
+import AchievementsPage from './pages/AchievementsPage';
+import MailPage from './pages/MailPage';
+import ShopPage from './pages/ShopPage';
+import DungeonsPage from './pages/DungeonsPage';
+import WorldBossPage from './pages/WorldBossPage';
+import TalentsPage from './pages/TalentsPage';
+import { BgmRouter } from './components/BgmRouter';
+import ResetPage from './pages/ResetPage';
+
+export default function App() {
+  const [ready, setReady] = useState(false);
+  const loadProfile = useProfile(s => s.load);
+  const loadHeroes = useHeroes(s => s.load);
+  const loadItems = useItems(s => s.load);
+
+  useEffect(() => {
+    (async () => {
+      await initSave();
+      await loadProfile();
+      await loadHeroes();
+      await loadItems();
+      // Apply audio settings from profile
+      const s = useProfile.getState().profile.settings ?? DEFAULT_SETTINGS;
+      sound.applySettings(s);
+      // Audio inits on first user gesture
+      const unlock = () => { ensureAudioInit(); sound.applySettings(s); window.removeEventListener('pointerdown', unlock); };
+      window.addEventListener('pointerdown', unlock, { once: true });
+      setReady(true);
+    })();
+  }, [loadProfile, loadHeroes, loadItems]);
+
+  // Track last-closed-at via visibilitychange instead of beforeunload — the
+  // latter raced with /reset and rewrote the wiped profile from memory.
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === 'hidden' && !(window as any).__resetting) {
+        useProfile.getState().patch({ lastClosedAt: Date.now() }).catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', onHide);
+    return () => document.removeEventListener('visibilitychange', onHide);
+  }, []);
+
+  if (!ready) {
+    return (
+      <div className="h-full flex items-center justify-center bg-zinc-950">
+        <div className="font-pixel text-amber-400 text-xs animate-pulse">LOADING…</div>
+      </div>
+    );
+  }
+
+  return (
+    <BrowserRouter>
+      <BgmRouter />
+      <Routes>
+        <Route element={<Shell />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/heroes" element={<HeroesPage />} />
+          <Route path="/heroes/:id" element={<HeroDetailPage />} />
+          <Route path="/summon" element={<SummonPage />} />
+          <Route path="/battle" element={<BattlePage />} />
+          <Route path="/battle/stage/:stageId" element={<StagePrebattlePage />} />
+          <Route path="/more" element={<MorePage />} />
+          <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/bag" element={<BagPage />} />
+          <Route path="/fragments" element={<FragmentsPage />} />
+          <Route path="/craft" element={<CraftPage />} />
+          <Route path="/tower" element={<TowerPage />} />
+          <Route path="/training" element={<TrainingPage />} />
+          <Route path="/achievements" element={<AchievementsPage />} />
+          <Route path="/mail" element={<MailPage />} />
+          <Route path="/shop" element={<ShopPage />} />
+          <Route path="/dungeons" element={<DungeonsPage />} />
+          <Route path="/worldboss" element={<WorldBossPage />} />
+          <Route path="/heroes/:heroId/talents" element={<TalentsPage />} />
+          <Route path="/debug" element={<DebugPage />} />
+        </Route>
+        <Route path="/battle/play/:stageId" element={
+          <div className="h-full max-w-[420px] mx-auto bg-zinc-950">
+            <BattlePlayPage />
+          </div>
+        } />
+        <Route path="/reset" element={<ResetPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
