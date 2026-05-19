@@ -38,6 +38,22 @@ export interface Profile {
   // Tutorial
   tutorialStep?: number;
   welcomeMailSent?: boolean;
+  // Active cosmetic title id (or null)
+  activeTitle?: string | null;
+  // Mystery box claim tracking
+  mysteryBoxLastClaim?: string;  // YYYY-MM-DD
+  // Mission Pass
+  passSeasonStart?: string;       // YYYY-MM-DD (season start date)
+  passXp?: number;
+  passClaimedTiers?: number[];
+  // Spirit Bomb
+  spiritBossWeek?: string;
+  spiritBossDamage?: number;
+  spiritBossAttemptsUsed?: number;
+  spiritBossClaimedTier?: number;
+  // Soul Compass
+  compassWeek?: string;
+  compassFound?: string[];        // stage IDs where the hidden cache was already claimed this week
 }
 
 export interface GameSettings {
@@ -148,6 +164,19 @@ export interface MailMessage {
   sentAt: number;
 }
 
+export interface BattleLogEntry {
+  id?: number;
+  source: 'stage' | 'tower' | 'worldboss' | 'spirit' | 'dungeon' | 'trial';
+  sourceId?: string;           // stageId / floor# / etc.
+  won: boolean;
+  stars?: number;
+  damageDealt?: number;        // total dmg from player units
+  squadIds: string[];
+  enemyTemplates: string[];
+  durationTicks: number;
+  finishedAt: number;
+}
+
 export interface SaveBackup {
   id?: number;
   createdAt: number;
@@ -170,6 +199,7 @@ export class GameDB extends Dexie {
   tasks!: EntityTable<TaskProgress, 'taskId'>;
   mail!: EntityTable<MailMessage, 'id'>;
   backups!: EntityTable<SaveBackup, 'id'>;
+  battleLogs!: EntityTable<BattleLogEntry, 'id'>;
 
   constructor() {
     super('pixel-fighter-save');
@@ -190,6 +220,9 @@ export class GameDB extends Dexie {
     });
     this.version(4).stores({
       backups: '++id, createdAt, source',
+    });
+    this.version(5).stores({
+      battleLogs: '++id, source, finishedAt',
     });
   }
 }
@@ -230,6 +263,17 @@ export const DEFAULT_PROFILE: Profile = {
   settings: { ...DEFAULT_SETTINGS },
   tutorialStep: 0,
   welcomeMailSent: false,
+  activeTitle: null,
+  mysteryBoxLastClaim: '',
+  passSeasonStart: '',
+  passXp: 0,
+  passClaimedTiers: [],
+  spiritBossWeek: '',
+  spiritBossDamage: 0,
+  spiritBossAttemptsUsed: 0,
+  spiritBossClaimedTier: -1,
+  compassWeek: '',
+  compassFound: [],
 };
 
 // Energy regenerates 1 unit every 3 minutes, capped at 100.

@@ -18,6 +18,10 @@ import { LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/lo
 import { rollClearDrops, addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD, essenceItemId, MATERIAL_META, essenceMeta } from '../data/ultimateGear';
 import { useItems } from '../store/items';
+import { logBattle } from '../lib/battleLog';
+import { pickHotStages, COMPASS_REWARD } from '../data/compass';
+import { isoWeek } from '../data/tower';
+import { awardPassXp, PASS_XP_PER_WIN, PASS_XP_PER_3STAR, PASS_XP_PER_BOSS } from '../lib/missionPass';
 import { recordEvent } from '../lib/lifetime';
 import { maybeRollGem, addGemToInventory } from '../lib/gems';
 import { GEM_TIER_COLOR, GEM_TIER_NAME } from '../data/gems';
@@ -239,8 +243,51 @@ export default function BattlePlayPage() {
       for (const d of drops) {
         if (d.rarity === 5) await recordEvent({ kind: 'legendaryDropped' });
       }
+      // Mission Pass XP
+      const isBossClear = stage.num === 5;
+      let passXp = PASS_XP_PER_WIN;
+      if (newStars === 3) passXp += PASS_XP_PER_3STAR;
+      if (isBossClear) passXp += PASS_XP_PER_BOSS;
+      await awardPassXp(passXp);
+      // Soul Compass — bonus chest on 3-star clear of a hot stage this week
+      if (newStars === 3) {
+        const week = isoWeek();
+        const hot = pickHotStages(week);
+        const compassFound = useProfile.getState().profile.compassFound ?? [];
+        const compassWeek = useProfile.getState().profile.compassWeek;
+        const freshWeek = compassWeek !== week;
+        const found = freshWeek ? [] : compassFound;
+        if (hot.includes(stage.id) && !found.includes(stage.id)) {
+          await useProfile.getState().addGold(COMPASS_REWARD.gold);
+          await useProfile.getState().addGems(COMPASS_REWARD.gems);
+          await addMaterial(MAT_SOULSHARD, COMPASS_REWARD.soulshard);
+          await useProfile.getState().patch({
+            compassWeek: week,
+            compassFound: [...found, stage.id],
+          });
+        }
+      }
+      // Battle log
+      await logBattle({
+        source: 'stage',
+        sourceId: stage.id,
+        won: true,
+        stars: newStars,
+        damageDealt: battle.log.filter(a => playerSlots.some(u => u.id === a.src)).reduce((s, a) => s + a.dmg, 0),
+        squadIds: playerSlots.map(u => u.templateId),
+        enemyTemplates: stage.enemyTeam.map(e => e.templateId),
+        durationTicks: battle.log.length,
+      });
     } else {
       await recordEvent({ kind: 'battleLost' });
+      await logBattle({
+        source: 'stage',
+        sourceId: stage.id,
+        won: false,
+        squadIds: playerSlots.map(u => u.templateId),
+        enemyTemplates: stage.enemyTeam.map(e => e.templateId),
+        durationTicks: battle.log.length,
+      });
     }
   }
 

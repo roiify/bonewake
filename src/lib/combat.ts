@@ -1,6 +1,95 @@
 import seedrandom from 'seedrandom';
 import { SKILL_BY_ID } from '../data/skills';
+import { skillsForHero } from '../data/heroSkills';
 import type { CombatUnit, BattleAction, BattleResult, Element } from '../types';
+
+interface DamageMods {
+  damageMultiplier: number;  // applied to outgoing damage
+  critBonus: number;          // added to crit chance
+}
+
+function getDamageMods(unit: CombatUnit): DamageMods {
+  let damageMultiplier = 1.0;
+  let critBonus = 0;
+  const skills = skillsForHero(unit.templateId);
+  for (const sk of skills) {
+    if (sk.trigger === 'on_attack' && sk.effect.kind === 'damage_mult') damageMultiplier *= sk.effect.value;
+    if (sk.trigger === 'on_attack' && sk.effect.kind === 'crit_chance') critBonus += sk.effect.value;
+    if (sk.trigger === 'on_low_hp' && unit.hp / unit.maxHp < 0.3) {
+      if (sk.effect.kind === 'damage_mult') damageMultiplier *= sk.effect.value;
+    }
+  }
+  return { damageMultiplier, critBonus };
+}
+
+// Modify incoming damage based on target's on_hit passives. Returns the dmg actually dealt
+// and (optionally) reflected damage back to the attacker.
+function applyOnHit(target: CombatUnit, dmg: number, rng: () => number): { dmg: number; reflect: number } {
+  let actual = dmg;
+  let reflect = 0;
+  const skills = skillsForHero(target.templateId);
+  for (const sk of skills) {
+    if (sk.trigger !== 'on_hit') continue;
+    if (sk.effect.kind === 'dodge' && rng() < sk.effect.value) {
+      actual = Math.floor(actual * 0.5);  // dodge halves damage
+    }
+    if (sk.effect.kind === 'reflect' && rng() < 0.30) {
+      reflect = Math.floor(dmg * sk.effect.value);
+    }
+  }
+  return { dmg: actual, reflect };
+}
+
+// On kill — attacker gets lifesteal if they have that passive.
+function applyOnKill(attacker: CombatUnit) {
+  const skills = skillsForHero(attacker.templateId);
+  for (const sk of skills) {
+    if (sk.trigger === 'on_kill' && sk.effect.kind === 'lifesteal') {
+      const heal = Math.floor(attacker.maxHp * sk.effect.value);
+      attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal);
+    }
+  }
+}
+
+// First turn — apply once. Returns log entries to push (e.g. team_heal events).
+function applyFirstTurn(unit: CombatUnit, allies: CombatUnit[]): { healLogs: { dst: string; heal: number }[]; ranTeamHeal: boolean } {
+  const out: { dst: string; heal: number }[] = [];
+  let ranTeamHeal = false;
+  const skills = skillsForHero(unit.templateId);
+  for (const sk of skills) {
+    if (sk.trigger !== 'first_turn') continue;
+    if (sk.effect.kind === 'team_heal') {
+      for (const a of allies) {
+        if (!a.alive) continue;
+        const before = a.hp;
+        a.hp = Math.min(a.maxHp, a.hp + sk.effect.value);
+        out.push({ dst: a.id, heal: a.hp - before });
+      }
+      ranTeamHeal = true;
+    }
+    if (sk.effect.kind === 'self_def_buff') {
+      (unit.effects as any) ??= [];
+      (unit.effects as any).push({ kind: 'shield', value: sk.effect.value, remaining: sk.effect.duration });
+    }
+  }
+  return { healLogs: out, ranTeamHeal };
+}
+
+// On attack lifesteal (heal lowest-HP ally proportional to damage dealt)
+function applyOnAttackHeal(attacker: CombatUnit, allies: CombatUnit[], dmg: number): { dst: string; heal: number } | null {
+  const skills = skillsForHero(attacker.templateId);
+  for (const sk of skills) {
+    if (sk.trigger === 'on_attack' && sk.effect.kind === 'lifesteal') {
+      const target = [...allies].filter(a => a.alive).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+      if (!target) return null;
+      const before = target.hp;
+      const amount = Math.floor(dmg * sk.effect.value);
+      target.hp = Math.min(target.maxHp, target.hp + amount);
+      return { dst: target.id, heal: target.hp - before };
+    }
+  }
+  return null;
+}
 
 function elementAdvantage(a: Element, b: Element): number {
   const triangle: Record<Element, Element> = {
@@ -48,6 +137,19 @@ export function resolveBattle(
   const log: BattleAction[] = [];
   let tick = 0;
   let round = 0;
+  const firstTurnDone = new Set<string>();
+
+  // Apply first-turn passives at round 0 for everyone
+  for (const unit of [...p, ...e]) {
+    if (!firstTurnDone.has(unit.id)) {
+      firstTurnDone.add(unit.id);
+      const allies = unit.side === 'player' ? p : e;
+      const ft = applyFirstTurn(unit, allies);
+      for (const h of ft.healLogs) {
+        log.push({ tick: ++tick, src: unit.id, dst: h.dst, dmg: 0, crit: false, ult: false, heal: h.heal });
+      }
+    }
+  }
 
   while (p.some(u => u.alive) && e.some(u => u.alive) && round < 30) {
     const order = [...p, ...e].filter(u => u.alive).sort((a, b) => b.spd - a.spd);
@@ -127,12 +229,28 @@ export function resolveBattle(
         const target = pickEnemyTarget(enemies, rng);
         if (!target) continue;
         const eAdv = elementAdvantage(unit.element, target.element);
-        const isCrit = rng() < unit.crit;
+        const mods = getDamageMods(unit);
+        const isCrit = rng() < (unit.crit + mods.critBonus);
         let dmg = Math.max(1, unit.atk - target.def);
-        dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv);
+        dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv * mods.damageMultiplier);
+        // on_hit dodge/reflect
+        const hit = applyOnHit(target, dmg, rng);
+        dmg = hit.dmg;
         target.hp = Math.max(0, target.hp - dmg);
         log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: false });
-        if (target.hp <= 0) target.alive = false;
+        // Reflect damage back
+        if (hit.reflect > 0) {
+          unit.hp = Math.max(0, unit.hp - hit.reflect);
+          log.push({ tick: ++tick, src: target.id, dst: unit.id, dmg: hit.reflect, crit: false, ult: false });
+          if (unit.hp <= 0) unit.alive = false;
+        }
+        // On-attack lifesteal
+        const lifesteal = applyOnAttackHeal(unit, allies, dmg);
+        if (lifesteal) log.push({ tick: ++tick, src: unit.id, dst: lifesteal.dst, dmg: 0, crit: false, ult: false, heal: lifesteal.heal });
+        if (target.hp <= 0) {
+          target.alive = false;
+          applyOnKill(unit);
+        }
         unit.energy = Math.min(100, unit.energy + 20);
         target.energy = Math.min(100, target.energy + 30);
       }

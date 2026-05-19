@@ -6,6 +6,12 @@ import { ensureAudioInit, sound } from './lib/audio';
 import { sendMail } from './lib/mail';
 import { maybeAutoBackup } from './lib/backup';
 import SettingsPage from './pages/SettingsPage';
+import MissionPassPage from './pages/MissionPassPage';
+import SpiritBombPage from './pages/SpiritBombPage';
+import BattleLogPage from './pages/BattleLogPage';
+import TrialsPage from './pages/TrialsPage';
+import CompassPage from './pages/CompassPage';
+import ChapterMapPage from './pages/ChapterMapPage';
 import { useHeroes } from './store/heroes';
 import { useItems } from './store/items';
 import { Shell } from './components/Shell';
@@ -116,6 +122,12 @@ export default function App() {
           <Route path="/heroes/:heroId/talents" element={<TalentsPage />} />
           <Route path="/debug" element={<DebugPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/pass" element={<MissionPassPage />} />
+          <Route path="/spirit" element={<SpiritBombPage />} />
+          <Route path="/log" element={<BattleLogPage />} />
+          <Route path="/trials" element={<TrialsPage />} />
+          <Route path="/compass" element={<CompassPage />} />
+          <Route path="/map" element={<ChapterMapPage />} />
         </Route>
         <Route path="/battle/play/:stageId" element={
           <div className="h-full max-w-[420px] mx-auto bg-zinc-950">

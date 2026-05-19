@@ -6,6 +6,8 @@ import { DAILY_SIGNIN } from '../data/dailySignin';
 import { TASKS } from '../data/tasks';
 import { useHeroes } from '../store/heroes';
 import { motion } from 'framer-motion';
+import { canClaimMysteryBox, claimMysteryBox } from '../lib/mysteryBox';
+import ChestOpen, { type ChestReward } from '../components/ChestOpen';
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
@@ -16,6 +18,13 @@ export default function HomePage() {
   const patch = useProfile(s => s.patch);
   const heroes = useHeroes(s => s.heroes);
   const [taskCount, setTaskCount] = useState({ done: 0, total: TASKS.length });
+  const [chestRewards, setChestRewards] = useState<ChestReward[] | null>(null);
+  const mysteryAvailable = canClaimMysteryBox(profile.mysteryBoxLastClaim);
+
+  async function openMysteryBox() {
+    const rewards = await claimMysteryBox();
+    if (rewards.length > 0) setChestRewards(rewards);
+  }
 
   useEffect(() => {
     (async () => {
@@ -94,6 +103,31 @@ export default function HomePage() {
         </button>
       </div>
 
+      {/* Daily mystery box */}
+      <button
+        disabled={!mysteryAvailable}
+        onClick={openMysteryBox}
+        className={`w-full rounded-lg border-2 p-3 flex items-center gap-3 transition-all ${
+          mysteryAvailable
+            ? 'border-amber-500 bg-gradient-to-r from-amber-900/30 to-rose-900/20 hover:scale-[1.02]'
+            : 'border-zinc-800 bg-zinc-900/40 opacity-50 cursor-not-allowed'
+        }`}
+      >
+        <motion.div
+          animate={mysteryAvailable ? { rotate: [0, -8, 8, -4, 4, 0], y: [0, -2, 0] } : {}}
+          transition={mysteryAvailable ? { duration: 1.8, repeat: Infinity, repeatDelay: 1 } : {}}
+          className="text-4xl"
+        >
+          📦
+        </motion.div>
+        <div className="flex-1 text-left">
+          <div className="font-pixel text-xs text-amber-300">Daily Mystery Box</div>
+          <div className="text-[10px] text-zinc-400">
+            {mysteryAvailable ? 'Tap to open today\'s box (3 random rewards)' : 'Already opened today — comes back tomorrow'}
+          </div>
+        </div>
+      </button>
+
       {/* Quick actions */}
       <div className="grid grid-cols-2 gap-2.5">
         <Link to="/battle" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-rose-900/40 to-zinc-900 p-3 min-h-24 hover:border-rose-700 transition-colors">
@@ -127,6 +161,13 @@ export default function HomePage() {
           <Link to="/summon" className="inline-block mt-2 btn-pixel primary">Go to Summon</Link>
         </motion.div>
       )}
+
+      <ChestOpen
+        open={chestRewards !== null}
+        rewards={chestRewards ?? []}
+        rarity="epic"
+        onClose={() => setChestRewards(null)}
+      />
     </div>
   );
 }
