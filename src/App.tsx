@@ -12,6 +12,7 @@ import BattleLogPage from './pages/BattleLogPage';
 import TrialsPage from './pages/TrialsPage';
 import CompassPage from './pages/CompassPage';
 import ChapterMapPage from './pages/ChapterMapPage';
+import ProfilePage from './pages/ProfilePage';
 import { useHeroes } from './store/heroes';
 import { useItems } from './store/items';
 import { Shell } from './components/Shell';
@@ -128,6 +129,7 @@ export default function App() {
           <Route path="/trials" element={<TrialsPage />} />
           <Route path="/compass" element={<CompassPage />} />
           <Route path="/map" element={<ChapterMapPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
         <Route path="/battle/play/:stageId" element={
           <div className="h-full max-w-[420px] mx-auto bg-zinc-950">

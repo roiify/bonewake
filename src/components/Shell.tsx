@@ -1,9 +1,10 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useProfile } from '../store/profile';
 import { Home, Swords, Users, Sparkles, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EnergyModal from './EnergyModal';
+import { TITLE_BY_ID } from '../data/titles';
 
 function CurrencyChip({ icon, value, color, onClick }: { icon: string; value: number; color: string; onClick?: () => void }) {
   const inner = (
@@ -44,12 +45,17 @@ export function Shell() {
     <div className="h-full flex flex-col max-w-[420px] mx-auto bg-zinc-950 relative">
       {/* Top bar */}
       <header className="px-2.5 py-2 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur z-10 sticky top-0">
-        <div className="flex items-center gap-2">
+        <Link to="/profile" className="flex items-center gap-2 hover:bg-zinc-900/40 rounded -m-1 p-1 transition-colors">
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-base font-pixel text-zinc-900">
             {profile.level}
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="text-xs font-pixel text-zinc-100 truncate">{profile.displayName}</div>
+            {profile.activeTitle && TITLE_BY_ID[profile.activeTitle] && (
+              <div className="text-[9px] font-pixel truncate" style={{ color: TITLE_BY_ID[profile.activeTitle].color }}>
+                {TITLE_BY_ID[profile.activeTitle].label}
+              </div>
+            )}
             <div className="h-1 bg-zinc-800 rounded mt-0.5 overflow-hidden">
               <div
                 className="h-full bg-amber-400"
@@ -57,7 +63,7 @@ export function Shell() {
               />
             </div>
           </div>
-        </div>
+        </Link>
         <div className="grid grid-cols-4 gap-1.5 mt-2">
           <CurrencyChip icon="🪙" value={profile.gold} color="#fbbf24" />
           <CurrencyChip icon="💎" value={profile.gems} color="#a78bfa" />

@@ -15,6 +15,7 @@ import { incrementTask } from '../lib/tasks';
 import { rollClearDrops, addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD, essenceItemId } from '../data/ultimateGear';
 import { activeBonds } from '../data/bonds';
+import { loadPresets } from '../lib/squadPresets';
 
 const SQUAD_KEY = 'pf_squad';
 
@@ -69,6 +70,19 @@ export default function StagePrebattlePage() {
   function toggleHeroInSquad(heroId: string) {
     if (squad.includes(heroId)) setSquad(squad.filter(id => id !== heroId));
     else if (squad.length < 3) setSquad([...squad, heroId]);
+  }
+
+  function loadPresetSquad(heroIds: string[]) {
+    const valid = heroIds.filter(id => heroes.some(h => h.id === id));
+    setSquad(valid);
+  }
+
+  async function savePresetSquad() {
+    const name = prompt('Preset name (max 16 chars):', `Squad ${new Date().toLocaleDateString()}`);
+    if (!name || squad.length === 0) return;
+    const { upsertPreset } = await import('../lib/squadPresets');
+    upsertPreset(name.trim().slice(0, 16), squad);
+    alert(`Saved "${name}"`);
   }
 
   async function startBattle() {
@@ -170,11 +184,28 @@ export default function StagePrebattlePage() {
       <div className="rounded-lg border border-emerald-900/50 bg-gradient-to-b from-emerald-950/30 to-zinc-900 p-3">
         <div className="flex items-center justify-between mb-2">
           <div className="font-pixel text-[10px] text-emerald-300">Your Squad ({squad.length}/3)</div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 flex-wrap">
             <button className="btn-pixel" onClick={autoFormation}>Auto</button>
             <button className="btn-pixel" onClick={() => setPicker(true)}>Edit</button>
+            <button className="btn-pixel" onClick={savePresetSquad} disabled={squad.length === 0}>💾</button>
           </div>
         </div>
+        {/* Preset chips */}
+        {(() => {
+          const presets = loadPresets();
+          if (presets.length === 0) return null;
+          return (
+            <div className="flex gap-1 mb-2 overflow-x-auto pb-1">
+              {presets.map(p => (
+                <button
+                  key={p.name}
+                  onClick={() => loadPresetSquad(p.heroIds)}
+                  className="text-[10px] font-pixel px-2 py-1 rounded border border-zinc-700 bg-zinc-900 hover:border-emerald-500 whitespace-nowrap shrink-0"
+                >📋 {p.name}</button>
+              ))}
+            </div>
+          );
+        })()}
         <div className="grid grid-cols-3 gap-2">
           {[0, 1, 2].map(i => {
             const u = playerUnits[i];
