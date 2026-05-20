@@ -390,21 +390,22 @@ export default function BattlePlayPage() {
         )}
       </AnimatePresence>
 
-      <div className="absolute inset-0 flex flex-col justify-between p-4 pt-12 pb-6">
-        {/* Enemy row */}
-        <div className="grid grid-cols-3 gap-2">
-          {enemySlots.map(u => (
-            <UnitCard key={u.id} unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} side="enemy" floats={floats.filter(() => attacker === u.id || hit === u.id)} />
+      {/* Battlefield: heroes on left facing right, enemies on right facing left */}
+      <div className="absolute inset-0 flex flex-row p-3 pt-12 pb-28 gap-2">
+        {/* Player column (left) */}
+        <div className="flex-1 flex flex-col justify-around items-start">
+          {playerSlots.map((u, i) => (
+            <div key={u.id} style={{ marginLeft: `${i % 2 === 0 ? 0 : 18}px` }}>
+              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} side="player" floats={floats.filter(() => attacker === u.id || hit === u.id)} />
+            </div>
           ))}
         </div>
-
-        {/* Mid divider */}
-        <div className="text-center text-[10px] font-pixel text-zinc-600 my-2">— VS —</div>
-
-        {/* Player row */}
-        <div className="grid grid-cols-3 gap-2">
-          {playerSlots.map(u => (
-            <UnitCard key={u.id} unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} side="player" floats={floats.filter(() => attacker === u.id || hit === u.id)} />
+        {/* Enemy column (right) */}
+        <div className="flex-1 flex flex-col justify-around items-end">
+          {enemySlots.map((u, i) => (
+            <div key={u.id} style={{ marginRight: `${i % 2 === 0 ? 0 : 18}px` }}>
+              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} side="enemy" floats={floats.filter(() => attacker === u.id || hit === u.id)} />
+            </div>
           ))}
         </div>
       </div>
@@ -589,79 +590,91 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt }: {
   // Idle fallback as still image
   const idleSrc = sprites?.idle ?? null;
 
+  const hpPct = (unit.hp / unit.maxHp) * 100;
+  const hpColor = hpPct > 50 ? '#22c55e' : hpPct > 25 ? '#f59e0b' : '#ef4444';
+
   return (
     <motion.div
       animate={{
-        x: attacker ? (side === 'player' ? 20 : -20) : 0,
-        scale: attacker ? 1.1 : 1,
+        x: attacker ? (side === 'player' ? 24 : -24) : 0,
+        scale: attacker ? 1.15 : 1,
       }}
       transition={{ duration: 0.18 }}
-      className="relative"
+      className={`relative ${hit ? 'animate-shake' : ''} ${unit.alive ? '' : 'grayscale opacity-60'}`}
     >
-      <div
-        className={`relative rounded-md border-2 p-1.5 text-center transition-all ${hit ? 'animate-shake' : ''} ${unit.alive ? '' : 'grayscale opacity-50'}`}
-        style={{
-          borderColor: unit.color,
-          background: hit ? '#7f1d1d50' : '#18181b',
-          boxShadow: attacker ? `0 0 28px ${unit.color}` : 'none',
-        }}
-      >
-        {/* Status effect icons */}
-        {unit.effects && unit.effects.length > 0 && (
-          <div className="absolute -top-1 left-1 right-1 flex gap-0.5 z-10 justify-center flex-wrap">
-            {unit.effects.map((ef, i) => (
-              <span
-                key={i}
-                className="text-[10px] leading-none px-0.5"
-                title={`${ef.kind} ${ef.value} (${ef.remaining})`}
-              >
-                {ef.kind === 'burn' ? '🔥' : ef.kind === 'shield' ? '🛡' : ef.kind === 'buff_atk' ? '⚡' : '⏱'}
-              </span>
-            ))}
-          </div>
-        )}
-        <div className="relative aspect-square mb-1 flex items-center justify-center overflow-hidden rounded">
-          {animSrc ? (
-            <SpriteAnimator
-              src={animSrc}
-              cols={sprites!.cols}
-              rows={sprites!.rows}
-              fps={hit ? 18 : 14}
-              loop={unit.alive && !hit}
-              size={88}
-              className={side === 'enemy' ? 'scale-x-[-1]' : ''}
-            />
-          ) : idleSrc ? (
-            <img src={idleSrc} alt="" className={`w-full h-full object-contain ${side === 'enemy' ? 'scale-x-[-1]' : ''}`} style={{ imageRendering: 'pixelated' }} />
-          ) : (
-            <div className="text-3xl">{unit.emoji}</div>
-          )}
-        </div>
-        <div className="text-[9px] truncate" style={{ color: unit.color }}>{unit.name}</div>
-        <div className="h-1.5 bg-zinc-800 rounded mt-1 overflow-hidden">
+      {/* Floating HP bar + name above the unit */}
+      <div className="absolute -top-9 left-1/2 -translate-x-1/2 w-24 z-10 pointer-events-none">
+        <div className="text-[9px] font-pixel truncate text-center" style={{ color: unit.color, textShadow: '0 1px 0 #000' }}>{unit.name}</div>
+        <div className="h-1.5 bg-zinc-900/80 rounded border border-zinc-700 overflow-hidden mt-0.5">
           <motion.div
-            className="h-full bg-emerald-500"
             initial={false}
-            animate={{ width: `${(unit.hp / unit.maxHp) * 100}%` }}
+            animate={{ width: `${hpPct}%` }}
             transition={{ duration: 0.25 }}
-            style={{ background: unit.hp / unit.maxHp > 0.5 ? '#22c55e' : unit.hp / unit.maxHp > 0.25 ? '#f59e0b' : '#ef4444' }}
+            style={{ background: hpColor, height: '100%' }}
           />
         </div>
-        <div className="h-0.5 bg-zinc-800 rounded mt-0.5 overflow-hidden">
+        <div className="h-0.5 bg-zinc-900/80 rounded overflow-hidden mt-0.5">
           <div className="h-full bg-cyan-400" style={{ width: `${unit.energy}%` }} />
         </div>
-        <div className="text-[8px] text-zinc-500 mt-0.5">{unit.hp}/{unit.maxHp}</div>
       </div>
+
+      {/* Status effect icons floating above HP */}
+      {unit.effects && unit.effects.length > 0 && (
+        <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex gap-0.5 z-20 justify-center">
+          {unit.effects.map((ef, i) => (
+            <span key={i} className="text-[10px] leading-none" title={`${ef.kind} ${ef.value} (${ef.remaining})`}>
+              {ef.kind === 'burn' ? '🔥' : ef.kind === 'shield' ? '🛡' : ef.kind === 'buff_atk' ? '⚡' : '⏱'}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Active-attacker ground ring */}
+      {attacker && unit.alive && (
+        <div
+          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-20 h-3 rounded-[50%] pointer-events-none"
+          style={{ background: `radial-gradient(ellipse, ${unit.color}aa 0%, transparent 70%)`, animation: 'mvp-star-spin 1.6s ease-in-out infinite' }}
+        />
+      )}
+
+      {/* Character sprite — heroes face right naturally, enemies mirrored */}
+      <div className="relative w-24 h-24 flex items-end justify-center">
+        {animSrc ? (
+          <SpriteAnimator
+            src={animSrc}
+            cols={sprites!.cols}
+            rows={sprites!.rows}
+            fps={hit ? 18 : 14}
+            loop={unit.alive && !hit}
+            size={96}
+            className={side === 'enemy' ? 'scale-x-[-1]' : ''}
+          />
+        ) : idleSrc ? (
+          <img
+            src={idleSrc}
+            alt=""
+            className={`w-full h-full object-contain ${side === 'enemy' ? 'scale-x-[-1]' : ''}`}
+            style={{
+              imageRendering: 'pixelated',
+              filter: attacker ? `drop-shadow(0 0 12px ${unit.color})` : 'drop-shadow(0 2px 3px rgba(0,0,0,0.7))',
+            }}
+          />
+        ) : (
+          <div className="text-3xl">{unit.emoji}</div>
+        )}
+      </div>
+
+      {/* Floating damage numbers */}
       <AnimatePresence>
         {floats.map(f => (
           <motion.div
             key={f.id}
             initial={{ y: 0, opacity: 1, scale: 0.6 }}
-            animate={{ y: -40, opacity: 1, scale: 1 }}
+            animate={{ y: -40, opacity: 1, scale: 1.2 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
-            className="absolute top-0 left-1/2 -translate-x-1/2 font-pixel text-sm pointer-events-none"
-            style={{ color: f.color, textShadow: '0 1px 0 #000' }}
+            className="absolute top-0 left-1/2 -translate-x-1/2 font-pixel text-base pointer-events-none z-20"
+            style={{ color: f.color, textShadow: '0 1px 0 #000, 0 0 6px rgba(0,0,0,0.8)' }}
           >
             {f.value}
           </motion.div>
