@@ -1,7 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useHeroes } from '../store/heroes';
 import { useItems } from '../store/items';
-import { HERO_TEMPLATES, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
+import { HERO_TEMPLATES, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { fragmentItemId, STAR_UP_COST, MAX_STAR } from '../lib/fragments';
 import { tierLabel, tierColor, nextTierLabel } from '../lib/tier';

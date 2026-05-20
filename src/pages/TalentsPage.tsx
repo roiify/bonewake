@@ -1,7 +1,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useHeroes } from '../store/heroes';
-import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
+import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { TALENT_TREE, BRANCH_COLOR, BRANCH_NAME, nodesForHeroBranch, talentPointsForLevel, type TalentBranch } from '../data/talents';
 

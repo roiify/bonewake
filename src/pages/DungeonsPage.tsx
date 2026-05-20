@@ -7,7 +7,7 @@ import { resolveBattle } from '../lib/combat';
 import { toCombatUnit, xpForLevel } from '../lib/stats';
 import { recordEvent } from '../lib/lifetime';
 import { genLoot } from '../lib/loot';
-import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
+import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 
 const SQUAD_KEY = 'pf_squad';

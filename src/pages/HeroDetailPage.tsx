@@ -2,7 +2,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
-import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
+import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { SKILL_BY_ID } from '../data/skills';
 import { EQUIP_BY_ID } from '../data/equipment';

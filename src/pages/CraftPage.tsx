@@ -12,7 +12,7 @@ import {
   MYTHIC_COLOR,
   type SetPieceDef,
 } from '../data/ultimateGear';
-import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
+import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { craftSetPiece } from '../lib/crafting';
 

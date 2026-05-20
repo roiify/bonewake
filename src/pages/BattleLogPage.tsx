@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { recentBattles } from '../lib/battleLog';
 import type { BattleLogEntry } from '../lib/db';
-import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS, ENEMY_SPRITES } from '../data/heroes';
+import { HERO_BY_ID, HERO_PORTRAITS, ENEMY_SPRITES } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 
 function timeAgo(ms: number): string {

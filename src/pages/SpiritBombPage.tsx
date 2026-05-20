@@ -15,7 +15,7 @@ import { toCombatUnit } from '../lib/stats';
 import { recordEvent } from '../lib/lifetime';
 import { addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD } from '../data/ultimateGear';
-import { ENEMY_SPRITES, HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
+import { ENEMY_SPRITES, HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 
 const SQUAD_KEY = 'pf_squad';

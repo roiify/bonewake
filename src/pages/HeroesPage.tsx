@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useHeroes } from '../store/heroes';
-import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
+import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { calcHeroStats } from '../lib/stats';
 import { Link } from 'react-router-dom';
 import type { Rarity } from '../types';
