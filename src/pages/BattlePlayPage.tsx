@@ -380,7 +380,9 @@ export default function BattlePlayPage() {
               >
                 <SpriteAnimator
                   src={HERO_SPRITES[ultFlash.templateId].skill}
-                  cols={4} rows={4} fps={16} loop={false} size={200}
+                  cols={HERO_SPRITES[ultFlash.templateId].cols}
+                  rows={HERO_SPRITES[ultFlash.templateId].rows}
+                  fps={16} loop={false} size={200}
                 />
               </motion.div>
             ) : (
