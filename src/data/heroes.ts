@@ -104,12 +104,12 @@ export const HERO_SPRITES: Record<string, {
   cols: number;
   rows: number;
 }> = {
-  luna:   { idle: A('sprites/echoes/heroes/luna_idle.png'),   attack: A('sprites/echoes/heroes/luna_attack.png'),   skill: A('sprites/echoes/heroes/luna_skill.png'),   hit: A('sprites/echoes/heroes/luna_hit.png'),   death: A('sprites/echoes/heroes/luna_death.png'),   cols: 4, rows: 4 },
-  elara:  { idle: A('sprites/echoes/heroes/elara_idle.png'),  attack: A('sprites/echoes/heroes/elara_attack.png'),  skill: A('sprites/echoes/heroes/elara_skill.png'),  hit: A('sprites/echoes/heroes/elara_hit.png'),  death: A('sprites/echoes/heroes/elara_death.png'),  cols: 4, rows: 4 },
-  aelia:  { idle: A('sprites/echoes/heroes/aelia_idle.png'),  attack: A('sprites/echoes/heroes/aelia_attack.png'),  skill: A('sprites/echoes/heroes/aelia_skill.png'),  hit: A('sprites/echoes/heroes/aelia_hit.png'),  death: A('sprites/echoes/heroes/aelia_death.png'),  cols: 4, rows: 4 },
-  kengo:  { idle: A('sprites/echoes/heroes/kengo_idle.png'),  attack: A('sprites/echoes/heroes/kengo_attack.png'),  skill: A('sprites/echoes/heroes/kengo_skill.png'),  hit: A('sprites/echoes/heroes/kengo_hit.png'),  death: A('sprites/echoes/heroes/kengo_death.png'),  cols: 4, rows: 4 },
-  len:    { idle: A('sprites/echoes/heroes/len_idle.png'),    attack: A('sprites/echoes/heroes/len_attack.png'),    skill: A('sprites/echoes/heroes/len_skill.png'),    hit: A('sprites/echoes/heroes/len_hit.png'),    death: A('sprites/echoes/heroes/len_death.png'),    cols: 4, rows: 4 },
-  kaius:  { idle: A('sprites/echoes/heroes/kaius_idle.png'),  attack: A('sprites/echoes/heroes/kaius_attack.png'),  skill: A('sprites/echoes/heroes/kaius_skill.png'),  hit: A('sprites/echoes/heroes/kaius_hit.png'),  death: A('sprites/echoes/heroes/kaius_death.png'),  cols: 4, rows: 4 },
+  luna:   { idle: A('sprites/echoes/heroes/luna_idle.png'),   attack: A('sprites/echoes/heroes/luna_attack.png'),   skill: A('sprites/echoes/heroes/luna_skill.png'),   hit: A('sprites/echoes/heroes/luna_hit.png'),   death: A('sprites/echoes/heroes/luna_death.png'),   cols: 1, rows: 1 },
+  elara:  { idle: A('sprites/echoes/heroes/elara_idle.png'),  attack: A('sprites/echoes/heroes/elara_attack.png'),  skill: A('sprites/echoes/heroes/elara_skill.png'),  hit: A('sprites/echoes/heroes/elara_hit.png'),  death: A('sprites/echoes/heroes/elara_death.png'),  cols: 1, rows: 1 },
+  aelia:  { idle: A('sprites/echoes/heroes/aelia_idle.png'),  attack: A('sprites/echoes/heroes/aelia_attack.png'),  skill: A('sprites/echoes/heroes/aelia_skill.png'),  hit: A('sprites/echoes/heroes/aelia_hit.png'),  death: A('sprites/echoes/heroes/aelia_death.png'),  cols: 1, rows: 1 },
+  kengo:  { idle: A('sprites/echoes/heroes/kengo_idle.png'),  attack: A('sprites/echoes/heroes/kengo_attack.png'),  skill: A('sprites/echoes/heroes/kengo_skill.png'),  hit: A('sprites/echoes/heroes/kengo_hit.png'),  death: A('sprites/echoes/heroes/kengo_death.png'),  cols: 1, rows: 1 },
+  len:    { idle: A('sprites/echoes/heroes/len_idle.png'),    attack: A('sprites/echoes/heroes/len_attack.png'),    skill: A('sprites/echoes/heroes/len_skill.png'),    hit: A('sprites/echoes/heroes/len_hit.png'),    death: A('sprites/echoes/heroes/len_death.png'),    cols: 1, rows: 1 },
+  kaius:  { idle: A('sprites/echoes/heroes/kaius_idle.png'),  attack: A('sprites/echoes/heroes/kaius_attack.png'),  skill: A('sprites/echoes/heroes/kaius_skill.png'),  hit: A('sprites/echoes/heroes/kaius_hit.png'),  death: A('sprites/echoes/heroes/kaius_death.png'),  cols: 1, rows: 1 },
 };
 
 export const ENEMY_SPRITES: Record<string, {
@@ -121,10 +121,10 @@ export const ENEMY_SPRITES: Record<string, {
   cols: number;
   rows: number;
 }> = {
-  shambler:      { idle: A('sprites/echoes/enemies/shambler_idle.png'),      attack: A('sprites/echoes/enemies/shambler_attack.png'),      hit: A('sprites/echoes/enemies/shambler_hit.png'),      death: A('sprites/echoes/enemies/shambler_death.png'),      cols: 4, rows: 4 },
-  boneknight:    { idle: A('sprites/echoes/enemies/boneknight_idle.png'),    attack: A('sprites/echoes/enemies/boneknight_attack.png'),                                                                                                                  cols: 4, rows: 4 },
-  fastghoul:     { idle: A('sprites/echoes/enemies/fastghoul_idle.png'),     attack: A('sprites/echoes/enemies/fastghoul_attack.png'),                                                                                                                  cols: 4, rows: 4 },
-  graveyardlich: { idle: A('sprites/echoes/enemies/graveyardlich_idle.png'), skill:  A('sprites/echoes/enemies/graveyardlich_skill.png'), hit: A('sprites/echoes/enemies/graveyardlich_hit.png'), death: A('sprites/echoes/enemies/graveyardlich_death.png'), cols: 4, rows: 4 },
+  shambler:      { idle: A('sprites/echoes/enemies/shambler_idle.png'),      attack: A('sprites/echoes/enemies/shambler_attack.png'),      skill: A('sprites/echoes/enemies/shambler_skill.png'),      hit: A('sprites/echoes/enemies/shambler_hit.png'),      death: A('sprites/echoes/enemies/shambler_death.png'),      cols: 1, rows: 1 },
+  boneknight:    { idle: A('sprites/echoes/enemies/boneknight_idle.png'),    attack: A('sprites/echoes/enemies/boneknight_attack.png'),    skill: A('sprites/echoes/enemies/boneknight_skill.png'),    hit: A('sprites/echoes/enemies/boneknight_hit.png'),    death: A('sprites/echoes/enemies/boneknight_death.png'),    cols: 1, rows: 1 },
+  fastghoul:     { idle: A('sprites/echoes/enemies/fastghoul_idle.png'),     attack: A('sprites/echoes/enemies/fastghoul_attack.png'),     skill: A('sprites/echoes/enemies/fastghoul_skill.png'),     hit: A('sprites/echoes/enemies/fastghoul_hit.png'),     death: A('sprites/echoes/enemies/fastghoul_death.png'),     cols: 1, rows: 1 },
+  graveyardlich: { idle: A('sprites/echoes/enemies/graveyardlich_idle.png'), attack: A('sprites/echoes/enemies/graveyardlich_attack.png'), skill: A('sprites/echoes/enemies/graveyardlich_skill.png'), hit: A('sprites/echoes/enemies/graveyardlich_hit.png'), death: A('sprites/echoes/enemies/graveyardlich_death.png'), cols: 1, rows: 1 },
   // Chapter 7 enemies are single-frame portraits (cols:1 rows:1) — each pose
   // is one full 1024x1024 image, not a 4x4 atlas like the original cast.
   undead_archer:     { idle: A('sprites/echoes/enemies/undead_archer_idle.png'),     attack: A('sprites/echoes/enemies/undead_archer_attack.png'),     skill: A('sprites/echoes/enemies/undead_archer_skill.png'),     hit: A('sprites/echoes/enemies/undead_archer_hit.png'),     death: A('sprites/echoes/enemies/undead_archer_death.png'),     cols: 1, rows: 1 },
