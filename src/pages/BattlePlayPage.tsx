@@ -585,16 +585,16 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt }: {
   const enemySprites = ENEMY_SPRITES[unit.templateId as keyof typeof ENEMY_SPRITES];
   const sprites = heroSprites ?? enemySprites;
 
-  // Pick the right animation for current state
-  let animSrc: string | null = null;
+  // Pick the right animation for current state — falls through to idle so
+  // SpriteAnimator handles multi-frame strips correctly even when the unit is
+  // just standing around.
+  let animSrc: string | null = sprites?.idle ?? null;
   if (sprites) {
-    if (!unit.alive) animSrc = (heroSprites?.death ?? enemySprites?.death) ?? null;
-    else if (hit) animSrc = (heroSprites?.hit ?? enemySprites?.hit) ?? null;
-    else if (attacker && isUlt && (heroSprites?.skill || enemySprites?.skill)) animSrc = heroSprites?.skill ?? enemySprites?.skill ?? null;
-    else if (attacker) animSrc = (heroSprites?.attack ?? enemySprites?.attack) ?? null;
+    if (!unit.alive) animSrc = (heroSprites?.death ?? enemySprites?.death) ?? animSrc;
+    else if (hit) animSrc = (heroSprites?.hit ?? enemySprites?.hit) ?? animSrc;
+    else if (attacker && isUlt && (heroSprites?.skill || enemySprites?.skill)) animSrc = heroSprites?.skill ?? enemySprites?.skill ?? animSrc;
+    else if (attacker) animSrc = (heroSprites?.attack ?? enemySprites?.attack) ?? animSrc;
   }
-  // Idle fallback as still image
-  const idleSrc = sprites?.idle ?? null;
 
   const hpPct = (unit.hp / unit.maxHp) * 100;
   const hpColor = hpPct > 50 ? '#22c55e' : hpPct > 25 ? '#f59e0b' : '#ef4444';
@@ -654,16 +654,6 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt }: {
             loop={unit.alive && !hit}
             size={112}
             className={side === 'enemy' ? 'scale-x-[-1]' : ''}
-          />
-        ) : idleSrc ? (
-          <img
-            src={idleSrc}
-            alt=""
-            className={`w-full h-full object-contain ${side === 'enemy' ? 'scale-x-[-1]' : ''}`}
-            style={{
-              imageRendering: 'pixelated',
-              filter: attacker ? `drop-shadow(0 0 12px ${unit.color})` : 'drop-shadow(0 2px 3px rgba(0,0,0,0.7))',
-            }}
           />
         ) : (
           <div className="text-3xl">{unit.emoji}</div>
