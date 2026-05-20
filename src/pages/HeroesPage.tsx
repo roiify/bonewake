@@ -5,7 +5,6 @@ import { calcHeroStats } from '../lib/stats';
 import { Link } from 'react-router-dom';
 import type { Rarity } from '../types';
 import { ELEMENT_AURA } from '../data/auraMap';
-import { StaticSprite } from '../components/SpriteAnimator';
 import { tierLabel, tierColor } from '../lib/tier';
 import { useItems } from '../store/items';
 import { fragmentItemId, STAR_UP_COST } from '../lib/fragments';
