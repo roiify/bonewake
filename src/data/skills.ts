@@ -8,6 +8,7 @@ export const SKILLS: Skill[] = [
   { id: 'frost_crystal', name: 'Frost Crystal', description: 'Crystalline blast on all enemies.', damageMultiplier: 2.2, targeting: 'all' },
   { id: 'aegis_judgment', name: 'Aegis Judgment', description: 'Massive single hit + ally shield.', damageMultiplier: 3.6, targeting: 'single', effect: { type: 'shield', value: 400, duration: 2 } },
   { id: 'infernal_cataclysm', name: 'Infernal Cataclysm', description: 'Volcanic blast across all enemies + burn DoT.', damageMultiplier: 2.4, targeting: 'all', effect: { type: 'burn', value: 200, duration: 3 } },
+  { id: 'soul_harvest', name: 'Soul Harvest', description: 'Spinning scythe sweeps all enemies in a brutal arc.', damageMultiplier: 3.6, targeting: 'all' },
 ];
 
 export const SKILL_BY_ID = Object.fromEntries(SKILLS.map(s => [s.id, s]));

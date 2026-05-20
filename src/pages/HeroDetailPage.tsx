@@ -8,10 +8,10 @@ import { SKILL_BY_ID } from '../data/skills';
 import { EQUIP_BY_ID } from '../data/equipment';
 import { BASE_BY_ID, LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/loot';
 import { equipPower, equipStats } from '../lib/loot';
-import type { OwnedEquipment } from '../lib/db';
+import { db, type OwnedEquipment } from '../lib/db';
 import { MYTHIC_COLOR, SET_BY_HERO } from '../data/ultimateGear';
 import { GEMS, GEM_BY_ID, GEM_TIER_COLOR, gemInventoryKey } from '../data/gems';
-import { socketGem, unsocketGem, socketsAvailableFor, ensureSockets } from '../lib/gems';
+import { socketGem, unsocketGem, socketsAvailableFor, ensureSockets, getGemInventoryMap, removeGemFromInventory } from '../lib/gems';
 import { calcHeroStats, goldToLevelUp, maxLevelForStar, xpForLevel } from '../lib/stats';
 import type { EquipSlot } from '../types';
 import { ELEMENT_AURA } from '../data/auraMap';
@@ -157,10 +157,45 @@ export default function HeroDetailPage() {
       newEquipped[slot] = best.id;
       changed++;
     }
-    if (changed === 0) return;
-    for (const eqId of toFree) await updateEquipment(eqId, { equippedTo: null });
-    for (const eqId of toAttach) await updateEquipment(eqId, { equippedTo: hero.id });
-    await updateHero(hero.id, { equipped: newEquipped });
+    if (changed > 0) {
+      for (const eqId of toFree) await updateEquipment(eqId, { equippedTo: null });
+      for (const eqId of toAttach) await updateEquipment(eqId, { equippedTo: hero.id });
+      await updateHero(hero.id, { equipped: newEquipped });
+    }
+
+    // Auto-fill any empty sockets on currently equipped items with best matching gems
+    const gemInv = await getGemInventoryMap();
+    for (const slot of slots) {
+      const eqId = newEquipped[slot];
+      if (!eqId) continue;
+      const eq = (await db.equipment.get(eqId));
+      if (!eq) continue;
+      const totalSockets = socketsAvailableFor(eq);
+      if (totalSockets === 0) continue;
+      const withSockets = ensureSockets(eq);
+      const sockets = [...(withSockets.sockets ?? Array(totalSockets).fill(null))];
+      let mutated = false;
+      for (let i = 0; i < totalSockets; i++) {
+        if (sockets[i]) continue;
+        const primaryStat = eq.primary?.stat;
+        const available = Object.entries(gemInv).filter(([gid, c]) => GEM_BY_ID[gid] && c > 0);
+        if (available.length === 0) break;
+        // Prefer matching primary stat, then highest tier, then any
+        available.sort((a, b) => {
+          const ga = GEM_BY_ID[a[0]], gb = GEM_BY_ID[b[0]];
+          const aMatch = primaryStat && ga.stat === primaryStat ? 1 : 0;
+          const bMatch = primaryStat && gb.stat === primaryStat ? 1 : 0;
+          if (aMatch !== bMatch) return bMatch - aMatch;
+          return gb.tier - ga.tier;
+        });
+        const [pickedId] = available[0];
+        gemInv[pickedId] = (gemInv[pickedId] ?? 0) - 1;
+        await removeGemFromInventory(pickedId, 1);
+        sockets[i] = pickedId;
+        mutated = true;
+      }
+      if (mutated) await updateEquipment(eqId, { sockets });
+    }
   };
 
   return (

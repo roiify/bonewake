@@ -92,6 +92,16 @@ export const HERO_SKILLS: HeroSkillDef[] = [
     description: 'On hit, 25% chance to reflect 25% damage back as fire.',
     trigger: 'on_hit',
     effect: { kind: 'reflect', value: 0.25 } },
+
+  // ===== KORVAN — Soul Reaper =====
+  { id: 'korvan_p1', heroId: 'korvan', name: 'Crimson Frenzy',
+    description: 'Each attack has +25% crit chance — every cut is precise.',
+    trigger: 'on_attack',
+    effect: { kind: 'crit_chance', value: 0.25 } },
+  { id: 'korvan_p2', heroId: 'korvan', name: 'Soul Drink',
+    description: 'On kill, heal for 35% of max HP — the blade feeds him.',
+    trigger: 'on_kill',
+    effect: { kind: 'lifesteal', value: 0.35 } },
 ];
 
 export const HERO_SKILL_BY_ID = Object.fromEntries(HERO_SKILLS.map(s => [s.id, s]));

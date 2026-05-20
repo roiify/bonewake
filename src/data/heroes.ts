@@ -104,6 +104,19 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     flavor: 'Pyromancer of the Burning Court. Embers ride her breath.',
     pullWeight: 6,
   },
+  {
+    id: 'korvan',
+    name: 'Korvan',
+    rarity: 3,
+    element: 'dark',
+    archetype: 'warrior',
+    baseStats: stat(1000, 165, 65, 70, 0.25),
+    ultimateId: 'soul_harvest',
+    emoji: '🌑',
+    color: '#9f1239',
+    flavor: 'Soul-Reaper of the Black Harvest. Each kill feeds his blade.',
+    pullWeight: 5,
+  },
 ];
 
 export const HERO_BY_ID = Object.fromEntries(HERO_TEMPLATES.map(h => [h.id, h]));
@@ -127,6 +140,7 @@ export const HERO_SPRITES: Record<string, {
   len:    { idle: A('sprites/pixellab/heroes/len.png'),    attack: A('sprites/pixellab/heroes/len.png'),    skill: A('sprites/pixellab/heroes/len.png'),    hit: A('sprites/pixellab/heroes/len.png'),    death: A('sprites/pixellab/heroes/len.png'),    cols: 1, rows: 1 },
   kaius:  { idle: A('sprites/pixellab/heroes/kaius.png'),  attack: A('sprites/pixellab/heroes/kaius.png'),  skill: A('sprites/pixellab/heroes/kaius.png'),  hit: A('sprites/pixellab/heroes/kaius.png'),  death: A('sprites/pixellab/heroes/kaius.png'),  cols: 1, rows: 1 },
   pyra:   { idle: A('sprites/pixellab/heroes/pyra.png'),   attack: A('sprites/pixellab/heroes/pyra.png'),   skill: A('sprites/pixellab/heroes/pyra.png'),   hit: A('sprites/pixellab/heroes/pyra.png'),   death: A('sprites/pixellab/heroes/pyra.png'),   cols: 1, rows: 1 },
+  korvan: { idle: A('sprites/pixellab/heroes/korvan.png'), attack: A('sprites/pixellab/heroes/korvan.png'), skill: A('sprites/pixellab/heroes/korvan.png'), hit: A('sprites/pixellab/heroes/korvan.png'), death: A('sprites/pixellab/heroes/korvan.png'), cols: 1, rows: 1 },
 };
 
 export const ENEMY_SPRITES: Record<string, {
