@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { STAGE_BY_ID } from '../data/stages';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
-import { HERO_BY_ID, HERO_SPRITES, ENEMY_SPRITES } from '../data/heroes';
+import { HERO_BY_ID, HERO_PORTRAITS, ENEMY_SPRITES } from '../data/heroes';
 import { buildEnemyUnit, calcHeroStats, toCombatUnit, xpForLevel } from '../lib/stats';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { tierLabel } from '../lib/tier';
@@ -230,11 +230,11 @@ export default function StagePrebattlePage() {
                 <span className="text-[10px] text-zinc-600">empty</span>
               </div>
             );
-            const sprite = HERO_SPRITES[u.templateId];
+            const portrait = HERO_PORTRAITS[u.templateId];
             return (
               <div key={u.id} className="rounded border-2 p-2 text-center bg-zinc-950" style={{ borderColor: u.color }}>
                 <div className="aspect-square flex items-center justify-center overflow-hidden">
-                  {sprite ? <StaticSprite src={sprite.idle} size={70} /> : <div className="text-3xl">{u.emoji}</div>}
+                  {portrait ? <StaticSprite src={portrait} size={70} /> : <div className="text-3xl">{u.emoji}</div>}
                 </div>
                 <div className="text-[10px] mt-1 truncate" style={{ color: u.color }}>{u.name}</div>
                 <div className="text-[9px] text-zinc-400">LVL:{u.level} {tierLabel(u.star)}</div>
@@ -298,7 +298,7 @@ export default function StagePrebattlePage() {
                     style={{ borderColor: tpl.color }}
                   >
                     <div className="aspect-square flex items-center justify-center overflow-hidden">
-                      {HERO_SPRITES[tpl.id] ? <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={60} /> : <div className="text-3xl">{tpl.emoji}</div>}
+                      {HERO_PORTRAITS[tpl.id] ? <StaticSprite src={HERO_PORTRAITS[tpl.id]} size={60} /> : <div className="text-3xl">{tpl.emoji}</div>}
                     </div>
                     <div className="text-[10px] mt-1 truncate" style={{ color: tpl.color }}>{tpl.name}</div>
                     <div className="text-[9px] text-zinc-400">LVL:{h.level} ⚔{stats.power}</div>
