@@ -16,14 +16,14 @@ export default function BattlePage() {
     });
   }, []);
 
-  // Scroll the next-uncleared stage into the middle of the viewport after clears load
+  // Snap the next-stage into the middle of the viewport as soon as it renders,
+  // so the page appears to LOAD at the right scroll position (no visible scroll
+  // animation). Use behavior: 'instant' and run synchronously after first paint.
   useEffect(() => {
     if (!clearsLoaded) return;
-    // Wait one frame so the ref is attached after render
-    const t = setTimeout(() => {
-      nextStageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 50);
-    return () => clearTimeout(t);
+    requestAnimationFrame(() => {
+      nextStageRef.current?.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'center' });
+    });
   }, [clearsLoaded]);
 
   // Where to scroll the user back to:
