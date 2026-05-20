@@ -66,7 +66,7 @@ export default function HomePage() {
       >
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
         <div className="relative z-10 text-center pb-3">
-          <h1 className="font-pixel text-xl text-amber-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Pixel Fighter</h1>
+          <h1 className="font-pixel text-xl text-rose-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">BoneWake</h1>
           <p className="text-xs text-zinc-300 mt-1 drop-shadow">Welcome back, {profile.displayName}.</p>
         </div>
       </div>

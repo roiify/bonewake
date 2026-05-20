@@ -87,7 +87,7 @@ export default function DebugPage() {
     const blob = new Blob([json], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `pixel-fighter-save-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `bonewake-save-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
   }
 

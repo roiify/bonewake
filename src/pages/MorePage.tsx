@@ -55,7 +55,7 @@ export default function MorePage() {
         );
       })}
       <div className="pt-6 text-center text-[10px] text-zinc-600">
-        Pixel Fighter · all save data stored locally
+        BoneWake · all save data stored locally
       </div>
     </div>
   );

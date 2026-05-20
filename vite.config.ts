@@ -49,9 +49,9 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: 'Pixel Fighter',
-        short_name: 'PF',
-        description: 'A pixel-art auto-battler RPG. Offline-first, single-player.',
+        name: 'BoneWake',
+        short_name: 'BoneWake',
+        description: 'A dark-fantasy pixel-art auto-battler RPG. Offline-first, single-player.',
         theme_color: '#09090b',
         background_color: '#09090b',
         display: 'standalone',

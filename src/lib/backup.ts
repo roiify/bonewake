@@ -272,7 +272,7 @@ export function downloadBackup(b: SaveBackup) {
   const blob = new Blob([b.payload], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `pixel-fighter-${b.label || new Date(b.createdAt).toISOString().slice(0, 10)}.json`;
+  a.download = `bonewake-${b.label || new Date(b.createdAt).toISOString().slice(0, 10)}.json`;
   a.click();
 }
 
