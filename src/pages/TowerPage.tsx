@@ -29,6 +29,24 @@ function loadSquad(): string[] {
 
 function todayStr() { return new Date().toISOString().slice(0, 10); }
 
+const TOWER_HISTORY_KEY = 'pf_tower_weekly_history_v1';
+type WeekRecord = { week: string; highest: number };
+function loadTowerHistory(): WeekRecord[] {
+  try { return JSON.parse(localStorage.getItem(TOWER_HISTORY_KEY) ?? '[]'); } catch { return []; }
+}
+function recordWeeklyTowerHigh(week: string, highest: number) {
+  try {
+    const list = loadTowerHistory();
+    const i = list.findIndex(r => r.week === week);
+    if (i >= 0) {
+      if (highest > list[i].highest) list[i].highest = highest;
+    } else {
+      list.unshift({ week, highest });
+    }
+    localStorage.setItem(TOWER_HISTORY_KEY, JSON.stringify(list.slice(0, 12)));
+  } catch {}
+}
+
 export default function TowerPage() {
   const navigate = useNavigate();
   const profile = useProfile(s => s.profile);
@@ -101,6 +119,7 @@ export default function TowerPage() {
       const newHigh = Math.max(highestFloor, nextFloor);
       // weeklyHighest is capped at MAX so endless climbing doesn't get wiped by reset
       await patch({ towerHighestFloor: Math.min(TOWER_MAX_FLOOR, newHigh) });
+      recordWeeklyTowerHigh(currentWeek, newHigh);
       await recordEvent({ kind: 'towerFloor', floor: newHigh });
       await recordEvent({ kind: 'goldEarned', amount: r.gold });
       await refreshItems();
@@ -225,6 +244,40 @@ export default function TowerPage() {
                 : 'Out of attempts — come back tomorrow'}
         </button>
       )}
+
+      {/* Weekly history (personal leaderboard) */}
+      {(() => {
+        const hist = loadTowerHistory();
+        if (hist.length === 0) return null;
+        const max = Math.max(...hist.map(h => h.highest), 1);
+        return (
+          <div className="rounded-md border border-zinc-800 bg-zinc-900 p-3">
+            <div className="font-pixel text-[10px] text-cyan-300 mb-2">📈 Your Weekly Bests</div>
+            <div className="space-y-1.5">
+              {hist.slice(0, 8).map(r => {
+                const pct = (r.highest / max) * 100;
+                const isCurrent = r.week === currentWeek;
+                return (
+                  <div key={r.week}>
+                    <div className="flex items-center justify-between text-[10px] mb-0.5">
+                      <span className={isCurrent ? 'text-amber-300 font-pixel' : 'text-zinc-400'}>
+                        {isCurrent ? '★ ' : ''}{r.week}
+                      </span>
+                      <span className={isCurrent ? 'text-amber-300' : 'text-zinc-400'}>F{r.highest}</span>
+                    </div>
+                    <div className="h-1.5 bg-zinc-800 rounded overflow-hidden">
+                      <div
+                        className="h-full transition-all"
+                        style={{ width: `${pct}%`, background: isCurrent ? '#fbbf24' : '#22d3ee' }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Result modal */}
       {result && (

@@ -14,9 +14,14 @@ import { db, type SaveBackup } from './db';
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import { useItems } from '../store/items';
+import { sendMail } from './mail';
 
 const MAX_AUTO_BACKUPS = 7;            // keep the last 7 daily auto-backups
 const AUTO_INTERVAL_MS = 22 * 60 * 60 * 1000; // run again at least 22h after the last auto-backup
+const LS_MIRROR_KEY = 'pf_backup_mirror_v1';   // localStorage mirror of the last 3 auto-backups
+const LS_MIRROR_KEEP = 3;
+const LS_EXPORT_NAG_KEY = 'pf_last_export_nag';
+const EXPORT_NAG_INTERVAL_MS = 3 * 24 * 60 * 60 * 1000; // nag every 3 days
 
 async function gatherSnapshot(): Promise<Omit<SaveBackup, 'id' | 'createdAt' | 'source' | 'label'>> {
   const profile = await db.profile.toArray();
@@ -57,7 +62,110 @@ export async function createBackup(source: SaveBackup['source'] = 'manual', labe
     label: label ?? (source === 'auto' ? `auto-${date}` : source === 'pre-restore' ? `pre-restore-${date}` : `manual-${date}`),
     ...snap,
   });
+  // Mirror auto backups to localStorage too — survives IndexedDB wipe.
+  if (source === 'auto') mirrorAutoBackupToLocalStorage(snap.payload, date);
   return id as number;
+}
+
+// Keep the last N auto-backup payloads in localStorage. localStorage uses a
+// different storage layer than IndexedDB, so it survives Dexie corruption,
+// schema-rebuild bugs, and accidental wipeSave() calls.
+function mirrorAutoBackupToLocalStorage(payload: string, date: string) {
+  try {
+    const raw = localStorage.getItem(LS_MIRROR_KEY);
+    const list: { createdAt: number; date: string; payload: string }[] = raw ? JSON.parse(raw) : [];
+    list.unshift({ createdAt: Date.now(), date, payload });
+    const trimmed = list.slice(0, LS_MIRROR_KEEP);
+    localStorage.setItem(LS_MIRROR_KEY, JSON.stringify(trimmed));
+  } catch (e) {
+    // quota exceeded etc — non-fatal
+    console.warn('localStorage mirror failed', e);
+  }
+}
+
+// Read the localStorage-mirrored backups (most recent first). For disaster recovery.
+export function listMirroredBackups(): { createdAt: number; date: string; payload: string }[] {
+  try {
+    const raw = localStorage.getItem(LS_MIRROR_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+// Heuristic: detect a "ghost wipe" — profile exists but everything else is empty
+// AND we have a meatier mirrored backup in localStorage we can restore from.
+export async function maybeOfferGhostWipeRescue(): Promise<{ found: boolean; mirrorDate?: string; heroCount?: number }> {
+  try {
+    const heroCount = await db.heroes.count();
+    const eqCount = await db.equipment.count();
+    const stageClearCount = await db.stageClears.count();
+    if (heroCount > 0 || eqCount > 0 || stageClearCount > 0) return { found: false };
+    const profile = await db.profile.get('me');
+    if (!profile) return { found: false };
+    const mirrors = listMirroredBackups();
+    if (mirrors.length === 0) return { found: false };
+    // Parse the most recent mirror's heroCount; if it had heroes, it's worth offering.
+    try {
+      const data = JSON.parse(mirrors[0].payload);
+      const hc = data.heroes?.length ?? 0;
+      if (hc === 0) return { found: false };
+      return { found: true, mirrorDate: mirrors[0].date, heroCount: hc };
+    } catch { return { found: false }; }
+  } catch { return { found: false }; }
+}
+
+// Restore the most recent localStorage-mirrored backup.
+export async function restoreFromMirror(): Promise<{ ok: boolean; error?: string }> {
+  const mirrors = listMirroredBackups();
+  if (mirrors.length === 0) return { ok: false, error: 'No mirrored backups found' };
+  const m = mirrors[0];
+  let data: any;
+  try { data = JSON.parse(m.payload); } catch { return { ok: false, error: 'Mirror data corrupt' }; }
+
+  await db.transaction('rw', [db.profile, db.heroes, db.equipment, db.items, db.stageClears, db.pullLogs, db.tasks, db.mail], async () => {
+    await db.profile.clear();
+    await db.heroes.clear();
+    await db.equipment.clear();
+    await db.items.clear();
+    await db.stageClears.clear();
+    await db.pullLogs.clear();
+    await db.tasks.clear();
+    await db.mail.clear();
+    if (data.profile?.length) await db.profile.bulkAdd(data.profile);
+    if (data.heroes?.length) await db.heroes.bulkAdd(data.heroes);
+    if (data.equipment?.length) await db.equipment.bulkAdd(data.equipment);
+    if (data.items?.length) await db.items.bulkAdd(data.items);
+    if (data.stageClears?.length) await db.stageClears.bulkAdd(data.stageClears);
+    if (data.pullLogs?.length) await db.pullLogs.bulkAdd(data.pullLogs);
+    if (data.tasks?.length) await db.tasks.bulkAdd(data.tasks);
+    if (data.mail?.length) await db.mail.bulkAdd(data.mail);
+  });
+  await useProfile.getState().load();
+  await useHeroes.getState().load();
+  await useItems.getState().load();
+  return { ok: true };
+}
+
+// Drop a periodic mail nagging the user to download an off-device backup.
+// Triggers on boot, at most every EXPORT_NAG_INTERVAL_MS, and only if they
+// have meaningful progress to lose (level > 1 or any hero).
+export async function maybeNagToExportBackup() {
+  try {
+    const profile = await db.profile.get('me');
+    if (!profile) return;
+    const heroCount = await db.heroes.count();
+    if ((profile.level ?? 1) < 2 && heroCount === 0) return;
+    const lastRaw = localStorage.getItem(LS_EXPORT_NAG_KEY);
+    const last = lastRaw ? Number(lastRaw) : 0;
+    if (Date.now() - last < EXPORT_NAG_INTERVAL_MS) return;
+    localStorage.setItem(LS_EXPORT_NAG_KEY, String(Date.now()));
+    await sendMail({
+      subject: '📥 Backup reminder',
+      body: 'Quick safety check — your save lives in your browser, which can be cleared by the system. Tap More → 🛠️ Debug → Export Save to download a JSON file you can stash anywhere. You can re-import it on any device.\n\nThe game also keeps an automatic in-browser backup, but an off-device copy is your real insurance.',
+      rewards: { gold: 200, gems: 5 },
+    });
+  } catch (e) {
+    console.warn('export nag failed', e);
+  }
 }
 
 export async function listBackups(): Promise<SaveBackup[]> {

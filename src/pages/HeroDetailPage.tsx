@@ -253,7 +253,15 @@ export default function HeroDetailPage() {
                 title={slot}
               >
                 {eq ? itemEmoji(eq) : <span className="text-[9px] text-zinc-600 capitalize">{slot}</span>}
-                {eq?.craftedPieceId && <span className="absolute -top-1 -right-1 text-[8px]">⚒️</span>}
+                {eq?.craftedPieceId && (eq.upgradeLevel ?? 0) === 0 && (
+                  <span className="absolute -top-1 -right-1 text-[8px]">⚒️</span>
+                )}
+                {eq?.craftedPieceId && (eq.upgradeLevel ?? 0) > 0 && (
+                  <span
+                    className="mythic-plus-badge absolute -top-1.5 -right-1.5 text-[8px] font-pixel bg-fuchsia-900 text-fuchsia-100 rounded px-1 py-px"
+                    title={`Ascended +${eq.upgradeLevel}`}
+                  >+{eq.upgradeLevel}</span>
+                )}
               </button>
             );
           })}

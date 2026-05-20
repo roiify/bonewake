@@ -4,7 +4,8 @@ import { initSave, DEFAULT_SETTINGS } from './lib/db';
 import { useProfile } from './store/profile';
 import { ensureAudioInit, sound } from './lib/audio';
 import { sendMail } from './lib/mail';
-import { maybeAutoBackup } from './lib/backup';
+import { maybeAutoBackup, maybeNagToExportBackup, maybeOfferGhostWipeRescue, restoreFromMirror } from './lib/backup';
+import { maybeNotifyPatchNotes } from './lib/patchNotes';
 import SettingsPage from './pages/SettingsPage';
 import MissionPassPage from './pages/MissionPassPage';
 import SpiritBombPage from './pages/SpiritBombPage';
@@ -69,7 +70,24 @@ export default function App() {
         await useProfile.getState().patch({ welcomeMailSent: true });
       }
       // Rotating auto-backup (no-op if last backup is <22h old)
-      maybeAutoBackup();
+      await maybeAutoBackup();
+      // Patch-notes mail when build SHA changes
+      await maybeNotifyPatchNotes();
+      // Nag the user to download an off-device backup every 3 days
+      await maybeNagToExportBackup();
+      // Disaster recovery: profile exists but heroes/equipment all empty, AND we
+      // have a localStorage mirror with real data → offer one-tap restore.
+      const ghost = await maybeOfferGhostWipeRescue();
+      if (ghost.found && typeof window !== 'undefined') {
+        const yes = window.confirm(
+          `⚠ Save anomaly detected\n\nYour profile is here but heroes/items are empty.\nA localStorage backup from ${ghost.mirrorDate} has ${ghost.heroCount} hero(es).\n\nRestore from that mirror now?`
+        );
+        if (yes) {
+          const res = await restoreFromMirror();
+          if (res.ok) window.location.reload();
+          else alert('Restore failed: ' + res.error);
+        }
+      }
       setReady(true);
     })();
   }, [loadProfile, loadHeroes, loadItems]);

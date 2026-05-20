@@ -452,7 +452,7 @@ export default function BattlePlayPage() {
                           <div key={srcId} className="mb-1 last:mb-0">
                             <div className="flex items-center justify-between text-[10px] mb-0.5">
                               <span className="font-pixel" style={{ color: unit.color }}>
-                                {isMvp && '⭐ '}{unit.name}
+                                {isMvp && <span className="mvp-star mr-1">⭐</span>}{unit.name}
                               </span>
                               <span className="text-zinc-300">{dmg.toLocaleString()} dmg · {pct.toFixed(0)}%</span>
                             </div>

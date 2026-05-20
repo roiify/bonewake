@@ -1,6 +1,17 @@
 import { useProfile } from '../store/profile';
 import type { LifetimeStats } from './db';
 import { DEFAULT_LIFETIME } from './db';
+import { earnedTitles, TITLE_BY_ID } from '../data/titles';
+import { sendMail } from './mail';
+
+const TITLE_SEEN_KEY = 'pf_title_seen_v1';
+function loadSeenTitles(): Set<string> {
+  try { return new Set(JSON.parse(localStorage.getItem(TITLE_SEEN_KEY) ?? '[]')); }
+  catch { return new Set(); }
+}
+function saveSeenTitles(s: Set<string>) {
+  try { localStorage.setItem(TITLE_SEEN_KEY, JSON.stringify([...s])); } catch {}
+}
 
 // Persistent counters. Any in-game event that should contribute toward achievements
 // or long-term tracking funnels through here.
@@ -36,6 +47,32 @@ export async function recordEvent(event: LifetimeEvent) {
       break;
   }
   await useProfile.getState().patch({ lifetime: cur });
+  // Title unlock notifications — diff earnedTitles before/after.
+  try {
+    const earnedNow = new Set(earnedTitles(cur));
+    const seen = loadSeenTitles();
+    const newly = [...earnedNow].filter(id => !seen.has(id));
+    if (newly.length > 0) {
+      for (const id of newly) {
+        const def = TITLE_BY_ID[id];
+        if (!def) continue;
+        await sendMail({
+          subject: `🏆 Title earned: ${def.label}`,
+          body: `Congratulations! You unlocked the "${def.label}" title.\n\n${def.description}\n\nEquip it from your Profile page.`,
+          rewards: { gold: 500, gems: 10 },
+        });
+        seen.add(id);
+      }
+      saveSeenTitles(seen);
+      // Auto-equip first earned title if user has none active yet
+      const p = useProfile.getState().profile;
+      if (!p.activeTitle && newly.length > 0) {
+        await useProfile.getState().patch({ activeTitle: newly[0] });
+      }
+    }
+  } catch (e) {
+    console.warn('title-earned check failed', e);
+  }
 }
 
 export function getLifetime(): LifetimeStats {

@@ -64,3 +64,22 @@ a, button {
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+
+@keyframes mvp-star-spin {
+  0%   { transform: rotate(0deg)   scale(1);    filter: drop-shadow(0 0 4px rgba(251,191,36,0.0)); }
+  50%  { transform: rotate(180deg) scale(1.25); filter: drop-shadow(0 0 10px rgba(251,191,36,1)); }
+  100% { transform: rotate(360deg) scale(1);    filter: drop-shadow(0 0 4px rgba(251,191,36,0.0)); }
+}
+.mvp-star {
+  display: inline-block;
+  animation: mvp-star-spin 1.6s ease-in-out infinite;
+  color: #fbbf24;
+}
+
+@keyframes mythic-plus-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(236,72,153,0.6), 0 0 6px rgba(236,72,153,0.25); }
+  50%      { box-shadow: 0 0 0 1px rgba(236,72,153,1.0), 0 0 14px rgba(236,72,153,0.7); }
+}
+.mythic-plus-badge {
+  animation: mythic-plus-pulse 2.2s ease-in-out infinite;
+}
