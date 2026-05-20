@@ -84,7 +84,7 @@ export default function BackupsPanel() {
                 <div className="flex-1 min-w-0">
                   <div className="text-[11px] font-pixel truncate">{b.label}</div>
                   <div className="text-[9px] text-zinc-500">
-                    L{b.level} · {b.heroCount} heroes · {b.gold.toLocaleString()}🪙 · {b.gems}💎 · {formatBackupTime(b.createdAt)}
+                    LVL:{b.level} · {b.heroCount} heroes · {b.gold.toLocaleString()}🪙 · {b.gems}💎 · {formatBackupTime(b.createdAt)}
                   </div>
                 </div>
               </div>

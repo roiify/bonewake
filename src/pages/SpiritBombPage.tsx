@@ -120,7 +120,7 @@ export default function SpiritBombPage() {
           <div className="flex-1 min-w-0">
             <div className="font-pixel text-sm text-rose-200">{boss.name}</div>
             <div className="text-[10px] text-zinc-400 italic mt-0.5">"{boss.description}"</div>
-            <div className="text-[10px] text-zinc-500 mt-1">L{boss.level} · {boss.hp.toLocaleString()} HP max</div>
+            <div className="text-[10px] text-zinc-500 mt-1">LVL:{boss.level} · {boss.hp.toLocaleString()} HP max</div>
           </div>
         </div>
         <div className="mt-3">
@@ -177,7 +177,7 @@ export default function SpiritBombPage() {
                   {HERO_SPRITES[tpl.id] ? <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={50} /> : <div className="text-2xl">{tpl.emoji}</div>}
                 </div>
                 <div className="text-[9px] truncate" style={{ color: tpl.color }}>{tpl.name}</div>
-                <div className="text-[8px] text-zinc-500">L{h.level}</div>
+                <div className="text-[8px] text-zinc-500">LVL:{h.level}</div>
               </div>
             );
           })}

@@ -164,7 +164,7 @@ export default function HeroesPage() {
                 <div className="text-[10px] font-pixel text-zinc-200 truncate">{tpl.name}</div>
                 <div className="flex items-center justify-between mt-0.5">
                   <div className="text-[10px] font-pixel" style={{ color: tierColor(h.star) }}>{tierLabel(h.star)}</div>
-                  <div className="text-[8px] text-zinc-500">L{h.level}</div>
+                  <div className="text-[8px] text-zinc-500">LVL:{h.level}</div>
                 </div>
                 <div className="flex items-center justify-between mt-0.5">
                   <div className="text-[8px] text-zinc-600">⚔ {stats.power}</div>

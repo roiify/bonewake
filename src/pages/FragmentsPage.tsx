@@ -49,7 +49,7 @@ export default function FragmentsPage() {
                 <div className="text-sm font-pixel" style={{ color: tpl.color }}>{tpl.name}</div>
                 {owned ? (
                   <div className="text-[10px] font-pixel" style={{ color: tierColor(ownedStar) }}>
-                    {tierLabel(ownedStar)} · L{owned.level}
+                    {tierLabel(ownedStar)} · LVL:{owned.level}
                   </div>
                 ) : (
                   <div className="text-[10px] text-zinc-500">Not owned</div>
@@ -66,7 +66,7 @@ export default function FragmentsPage() {
                   <div className="text-[10px] text-zinc-400 mt-1">
                     🧩 {fragCount} / {cost} → <span style={{ color: tierColor(ownedStar + 1) }}>{nextTierLabel(ownedStar)}</span>
                     {levelGated && (
-                      <span className="text-amber-400 ml-1.5">need L{maxLevelForStar(ownedStar)}</span>
+                      <span className="text-amber-400 ml-1.5">need LVL:{maxLevelForStar(ownedStar)}</span>
                     )}
                   </div>
                 </>

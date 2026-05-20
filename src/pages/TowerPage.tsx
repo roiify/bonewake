@@ -196,7 +196,7 @@ export default function TowerPage() {
                     {sprite ? <StaticSprite src={sprite.idle} size={50} className="scale-x-[-1]" /> : <div className="text-2xl">{e.emoji}</div>}
                   </div>
                   <div className="text-[9px] truncate" style={{ color: e.color }}>{e.name}</div>
-                  <div className="text-[8px] text-zinc-500">L{e.level}</div>
+                  <div className="text-[8px] text-zinc-500">LVL:{e.level}</div>
                 </div>
               );
             })}
@@ -218,7 +218,7 @@ export default function TowerPage() {
                   {HERO_SPRITES[tpl.id] ? <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={50} /> : <div className="text-2xl">{tpl.emoji}</div>}
                 </div>
                 <div className="text-[9px] truncate" style={{ color: tpl.color }}>{tpl.name}</div>
-                <div className="text-[8px] text-zinc-500">L{h.level}</div>
+                <div className="text-[8px] text-zinc-500">LVL:{h.level}</div>
               </div>
             );
           })}

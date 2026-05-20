@@ -224,7 +224,7 @@ export default function HeroDetailPage() {
             </div>
             <div className="text-[10px] text-zinc-500 mb-2">
               {fragOwned}/{starUpCost} fragments to <span style={{ color: tierColor(hero.star + 1) }}>{nextTierLabel(hero.star)}</span>
-              {hero.level < maxLevel && <span className="text-amber-400 ml-2">(reach L{maxLevel} first)</span>}
+              {hero.level < maxLevel && <span className="text-amber-400 ml-2">(reach LVL:{maxLevel} first)</span>}
             </div>
             <button className="btn-pixel success w-full" disabled={!canStarUp} onClick={starUp}>
               {canStarUp ? `Promote to ${nextTierLabel(hero.star)}` : 'Locked'}

@@ -117,7 +117,7 @@ export default function TrainingPage() {
                   </div>
                   <div className="font-pixel text-sm" style={{ color: tpl.color }}>{tpl.name}</div>
                   <div className="text-[10px] font-pixel" style={{ color: tierColor(trainingHero.star) }}>
-                    {tierLabel(trainingHero.star)} · L{trainingHero.level}
+                    {tierLabel(trainingHero.star)} · LVL:{trainingHero.level}
                   </div>
                 </>
               );
@@ -172,7 +172,7 @@ export default function TrainingPage() {
                       {HERO_SPRITES[tpl.id] ? <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={56} /> : <div className="text-3xl">{tpl.emoji}</div>}
                     </div>
                     <div className="text-[10px] truncate" style={{ color: tpl.color }}>{tpl.name}</div>
-                    <div className="text-[9px] text-zinc-400">L{h.level}/{cap}</div>
+                    <div className="text-[9px] text-zinc-400">LVL:{h.level}/{cap}</div>
                     {atLvlCap && <div className="text-[8px] text-amber-400">MAX</div>}
                   </button>
                 );

@@ -57,7 +57,7 @@ export default function TalentsPage() {
         {HERO_SPRITES[tpl.id] ? <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={56} /> : <div className="text-3xl">{tpl.emoji}</div>}
         <div className="flex-1">
           <div className="font-pixel text-sm" style={{ color: tpl.color }}>{tpl.name}</div>
-          <div className="text-[10px] text-zinc-400">L{hero.level} · Talent points: <span className="font-pixel text-amber-400">{available}/{totalPoints}</span></div>
+          <div className="text-[10px] text-zinc-400">LVL:{hero.level} · Talent points: <span className="font-pixel text-amber-400">{available}/{totalPoints}</span></div>
         </div>
         {spent > 0 && (
           <button className="btn-pixel danger" onClick={resetTalents}>Reset</button>

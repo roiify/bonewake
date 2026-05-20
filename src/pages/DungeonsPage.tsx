@@ -138,7 +138,7 @@ export default function DungeonsPage() {
                       <div key={tier.tier} className="rounded border border-zinc-700 bg-zinc-950 p-2 flex items-center gap-2">
                         <div className="flex-1 min-w-0">
                           <div className="text-[11px] font-pixel">Tier {tier.tier}: {tier.name}</div>
-                          <div className="text-[9px] text-zinc-500">L{tier.enemyLevel} enemies · {'★'.repeat(tier.enemyStar)}</div>
+                          <div className="text-[9px] text-zinc-500">LVL:{tier.enemyLevel} enemies · {'★'.repeat(tier.enemyStar)}</div>
                           <div className="text-[10px] text-emerald-400 mt-0.5">{rewardLabel}</div>
                         </div>
                         <button
@@ -172,7 +172,7 @@ export default function DungeonsPage() {
                   {HERO_SPRITES[tpl.id] ? <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={50} /> : <div className="text-2xl">{tpl.emoji}</div>}
                 </div>
                 <div className="text-[9px] truncate" style={{ color: tpl.color }}>{tpl.name}</div>
-                <div className="text-[8px] text-zinc-500">L{h.level}</div>
+                <div className="text-[8px] text-zinc-500">LVL:{h.level}</div>
               </div>
             );
           })}

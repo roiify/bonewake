@@ -188,7 +188,7 @@ export default function StagePrebattlePage() {
                   {sprite ? <StaticSprite src={sprite.idle} size={70} className="scale-x-[-1]" /> : <div className="text-3xl">{e.emoji}</div>}
                 </div>
                 <div className="text-[10px] mt-1 truncate" style={{ color: e.color }}>{e.name}</div>
-                <div className="text-[9px] text-zinc-400">L{e.level} {tierLabel(e.star)}</div>
+                <div className="text-[9px] text-zinc-400">LVL:{e.level} {tierLabel(e.star)}</div>
                 <div className="text-[9px] text-rose-400 mt-0.5">HP {e.maxHp}</div>
               </div>
             );
@@ -237,7 +237,7 @@ export default function StagePrebattlePage() {
                   {sprite ? <StaticSprite src={sprite.idle} size={70} /> : <div className="text-3xl">{u.emoji}</div>}
                 </div>
                 <div className="text-[10px] mt-1 truncate" style={{ color: u.color }}>{u.name}</div>
-                <div className="text-[9px] text-zinc-400">L{u.level} {tierLabel(u.star)}</div>
+                <div className="text-[9px] text-zinc-400">LVL:{u.level} {tierLabel(u.star)}</div>
                 <div className="text-[9px] text-emerald-400 mt-0.5">HP {u.maxHp}</div>
               </div>
             );
@@ -301,7 +301,7 @@ export default function StagePrebattlePage() {
                       {HERO_SPRITES[tpl.id] ? <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={60} /> : <div className="text-3xl">{tpl.emoji}</div>}
                     </div>
                     <div className="text-[10px] mt-1 truncate" style={{ color: tpl.color }}>{tpl.name}</div>
-                    <div className="text-[9px] text-zinc-400">L{h.level} ⚔{stats.power}</div>
+                    <div className="text-[9px] text-zinc-400">LVL:{h.level} ⚔{stats.power}</div>
                   </button>
                 );
               })}
