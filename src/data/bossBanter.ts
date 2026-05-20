@@ -47,4 +47,9 @@ export const BOSS_BANTER: Record<string, BossBanterLine[]> = {
     { speaker: 'boss', line: 'Each life is a candle. Yours, I think, will burn warmly for me.' },
     { speaker: 'boss', line: 'Step closer. Let me taste it.' },
   ],
+  '9-5': [
+    { speaker: 'narrator', line: 'Two staffs. Two crystals. One hand for the dead, one for the dying.' },
+    { speaker: 'boss', line: 'I have raised armies. I have raised kings. I have raised the dead at every grave you crossed.' },
+    { speaker: 'boss', line: 'You are not the first to find me. You will be the last.' },
+  ],
 };

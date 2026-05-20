@@ -26,6 +26,11 @@ export const ENEMY_TEMPLATES = {
   soul_leech:        { name: 'Soul Leech',      element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 3600, atk: 210, def: 130, spd: 70, crit: 0.20 }, color: '#22d3ee', ultimateId: 'enemy_basic' },
   rotwolf:           { name: 'Rotwolf',         element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 1100, atk: 185, def: 50,  spd: 105, crit: 0.22 }, color: '#a8a29e', ultimateId: 'enemy_basic' },
   bone_bear:         { name: 'Bone Bear',       element: 'dark' as const, archetype: 'tank' as const,     baseStats: { hp: 3000, atk: 175, def: 140, spd: 40, crit: 0.10 }, color: '#92400e', ultimateId: 'enemy_basic' },
+  // Chapter 9 — Necromancer's Court
+  possessed_corpse:  { name: 'Possessed Corpse',element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1700, atk: 200, def: 75,  spd: 70, crit: 0.18 }, color: '#a855f7', ultimateId: 'enemy_basic' },
+  grave_digger:      { name: 'Grave Digger',    element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 2100, atk: 185, def: 95,  spd: 55, crit: 0.12 }, color: '#78350f', ultimateId: 'enemy_basic' },
+  plague_monk:       { name: 'Plague Monk',     element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1500, atk: 205, def: 60,  spd: 75, crit: 0.16 }, color: '#16a34a', ultimateId: 'enemy_basic' },
+  necromancer:       { name: 'Necromancer',     element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 4200, atk: 240, def: 130, spd: 80, crit: 0.22 }, color: '#7c3aed', ultimateId: 'enemy_basic' },
 };
 export type EnemyTemplateId = keyof typeof ENEMY_TEMPLATES;
 
@@ -168,6 +173,23 @@ export const STAGES: Stage[] = [
   { id: '8-5', chapter: 8, num: 5, name: 'Legion Boss: The Soul Leech', energyCost: 42,
     enemyTeam: [E('grave_channeler', 120, 5), E('soul_leech', 125, 6), E('zombie_knight', 120, 5)],
     rewards: { gold: 11000, exp: 5600, items: { armor_5: 1 } }, firstClearBonus: { gems: 1100 } },
+
+  // Chapter 9 — Necromancer's Court. The puppeteer behind the undead siege.
+  { id: '9-1', chapter: 9, num: 1, name: 'Open Graves', energyCost: 36,
+    enemyTeam: [E('grave_digger', 130, 5), E('grave_digger', 130, 5), E('grave_digger', 130, 5)],
+    rewards: { gold: 7000, exp: 4200 }, firstClearBonus: { gems: 600 } },
+  { id: '9-2', chapter: 9, num: 2, name: 'Shadow-Bound', energyCost: 36,
+    enemyTeam: [E('possessed_corpse', 133, 5), E('possessed_corpse', 133, 5), E('possessed_corpse', 133, 5)],
+    rewards: { gold: 7400, exp: 4400 }, firstClearBonus: { gems: 620 } },
+  { id: '9-3', chapter: 9, num: 3, name: 'Plague Sanctum', energyCost: 38,
+    enemyTeam: [E('plague_monk', 137, 5), E('plague_monk', 137, 5), E('plague_monk', 137, 5)],
+    rewards: { gold: 7800, exp: 4700 }, firstClearBonus: { gems: 660 } },
+  { id: '9-4', chapter: 9, num: 4, name: 'The Final Procession', energyCost: 38,
+    enemyTeam: [E('possessed_corpse', 140, 5), E('plague_monk', 140, 5), E('grave_digger', 140, 5)],
+    rewards: { gold: 8400, exp: 5100 }, firstClearBonus: { gems: 720 } },
+  { id: '9-5', chapter: 9, num: 5, name: 'Court Boss: The Necromancer', energyCost: 48,
+    enemyTeam: [E('plague_monk', 145, 5), E('necromancer', 150, 6), E('possessed_corpse', 145, 5)],
+    rewards: { gold: 14000, exp: 7200, items: { weapon_5: 1, armor_5: 1 } }, firstClearBonus: { gems: 1400 } },
 ];
 
 export const STAGE_BY_ID = Object.fromEntries(STAGES.map(s => [s.id, s]));
