@@ -27,16 +27,27 @@ export default function BattlePage() {
   }, [clearsLoaded]);
 
   // Where to scroll the user back to:
-  //   1. The last stage they actually played (saved to localStorage by the battle page)
-  //   2. Fallback: first uncleared stage
-  //   3. Fallback: last cleared stage (so they land on completed content, not top of ch1)
+  //   1. If they cleared the last stage they played, scroll to the NEXT stage
+  //      (progression UX — "what's next" instead of "where was I")
+  //   2. If they failed the last stage, scroll to the same stage (retry)
+  //   3. Fallback: first uncleared stage
+  //   4. Fallback: last cleared stage
   const lastPlayedStageId = typeof window !== 'undefined' ? localStorage.getItem('pf_last_stage') : null;
-  const firstUnclearedId = STAGES.find(s => !clears[s.id])?.id;
-  const lastClearedId = [...STAGES].reverse().find(s => clears[s.id])?.id;
-  const nextStageId = lastPlayedStageId
-    || firstUnclearedId
-    || lastClearedId
-    || null;
+  let nextStageId: string | null = null;
+  if (lastPlayedStageId) {
+    if (clears[lastPlayedStageId]) {
+      // Last stage was cleared — point to the NEXT stage in the list
+      const idx = STAGES.findIndex(s => s.id === lastPlayedStageId);
+      nextStageId = STAGES[idx + 1]?.id ?? lastPlayedStageId;
+    } else {
+      nextStageId = lastPlayedStageId;  // Retry the failed stage
+    }
+  }
+  if (!nextStageId) {
+    nextStageId = STAGES.find(s => !clears[s.id])?.id
+               || [...STAGES].reverse().find(s => clears[s.id])?.id
+               || null;
+  }
 
   const byChapter = STAGES.reduce<Record<number, typeof STAGES>>((m, s) => {
     (m[s.chapter] ??= []).push(s);
