@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { STAGES } from '../data/stages';
 import { db, type StageClear } from '../lib/db';
@@ -6,12 +6,28 @@ import { CHAPTER_BIOME } from '../data/auraMap';
 
 export default function BattlePage() {
   const [clears, setClears] = useState<Record<string, StageClear>>({});
+  const [clearsLoaded, setClearsLoaded] = useState(false);
+  const nextStageRef = useRef<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
     db.stageClears.toArray().then(arr => {
       setClears(Object.fromEntries(arr.map(c => [c.stageId, c])));
+      setClearsLoaded(true);
     });
   }, []);
+
+  // Scroll the next-uncleared stage into the middle of the viewport after clears load
+  useEffect(() => {
+    if (!clearsLoaded) return;
+    // Wait one frame so the ref is attached after render
+    const t = setTimeout(() => {
+      nextStageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+    return () => clearTimeout(t);
+  }, [clearsLoaded]);
+
+  // First stage with no clear record = where the player left off
+  const nextStageId = STAGES.find(s => !clears[s.id])?.id;
 
   const byChapter = STAGES.reduce<Record<number, typeof STAGES>>((m, s) => {
     (m[s.chapter] ??= []).push(s);
@@ -65,10 +81,13 @@ export default function BattlePage() {
                 <Link
                   to={locked ? '#' : `/battle/stage/${s.id}`}
                   key={s.id}
+                  ref={s.id === nextStageId ? nextStageRef : undefined}
                   className={`block rounded-md border p-3 transition-all ${
                     locked
                       ? 'border-zinc-800 bg-zinc-900/40 opacity-50 cursor-not-allowed'
-                      : 'border-zinc-700 bg-zinc-900 hover:border-amber-500'
+                      : s.id === nextStageId
+                        ? 'border-amber-500 bg-amber-950/30 ring-2 ring-amber-500/40'
+                        : 'border-zinc-700 bg-zinc-900 hover:border-amber-500'
                   } ${isBoss && !locked ? 'border-rose-600 bg-gradient-to-r from-rose-950/30 to-zinc-900' : ''}`}
                   onClick={e => locked && e.preventDefault()}
                 >
