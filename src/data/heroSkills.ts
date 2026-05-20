@@ -83,25 +83,6 @@ export const HERO_SKILLS: HeroSkillDef[] = [
     trigger: 'on_hit',
     effect: { kind: 'dodge', value: 0.20 } },
 
-  // ===== PHANTOM KNIGHT — Ethereal Warrior =====
-  { id: 'phantom_knight_p1', heroId: 'phantom_knight', name: 'Spectral Guard',
-    description: 'On hit, 25% chance to dodge — body is half-spirit.',
-    trigger: 'on_hit',
-    effect: { kind: 'dodge', value: 0.25 } },
-  { id: 'phantom_knight_p2', heroId: 'phantom_knight', name: 'Vow Eternal',
-    description: 'On first turn, gain +200 DEF for 3 turns.',
-    trigger: 'first_turn',
-    effect: { kind: 'self_def_buff', value: 200, duration: 3 } },
-
-  // ===== WAILING WRAITH — Despair Mage =====
-  { id: 'wailing_wraith_p1', heroId: 'wailing_wraith', name: 'Grief Resonance',
-    description: 'Each attack has +18% crit chance.',
-    trigger: 'on_attack',
-    effect: { kind: 'crit_chance', value: 0.18 } },
-  { id: 'wailing_wraith_p2', heroId: 'wailing_wraith', name: 'Mourner\'s Rite',
-    description: 'On kill, heal for 25% of max HP.',
-    trigger: 'on_kill',
-    effect: { kind: 'lifesteal', value: 0.25 } },
 ];
 
 export const HERO_SKILL_BY_ID = Object.fromEntries(HERO_SKILLS.map(s => [s.id, s]));
