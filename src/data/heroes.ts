@@ -146,7 +146,7 @@ export const HERO_SPRITES: Record<string, {
   // New PixelLab mature-fantasy sprites. Static for now (all 5 poses point to the
   // same base) — multi-frame animation strips will replace these per-pose as the
   // animate-with-text pipeline produces them.
-  luna:   { idle: A('sprites/pixellab/heroes/luna_idle.png'), attack: A('sprites/pixellab/heroes/luna_attack.png'), skill: A('sprites/pixellab/heroes/luna_skill.png'), hit: A('sprites/pixellab/heroes/luna_attack.png'), death: A('sprites/pixellab/heroes/luna_death.png'), cols: 7, rows: 1 },
+  luna:   { idle: A('sprites/pixellab/heroes/luna_idle.png'), attack: A('sprites/pixellab/heroes/luna_attack.png'), skill: A('sprites/pixellab/heroes/luna_skill.png'), hit: A('sprites/pixellab/heroes/luna_attack.png'), death: A('sprites/pixellab/heroes/luna_death.png'), cols: 13, rows: 1 },
   elara:  { idle: A('sprites/pixellab/heroes/elara.png'),  attack: A('sprites/pixellab/heroes/elara.png'),  skill: A('sprites/pixellab/heroes/elara.png'),  hit: A('sprites/pixellab/heroes/elara.png'),  death: A('sprites/pixellab/heroes/elara.png'),  cols: 1, rows: 1 },
   aelia:  { idle: A('sprites/pixellab/heroes/aelia.png'),  attack: A('sprites/pixellab/heroes/aelia.png'),  skill: A('sprites/pixellab/heroes/aelia.png'),  hit: A('sprites/pixellab/heroes/aelia.png'),  death: A('sprites/pixellab/heroes/aelia.png'),  cols: 1, rows: 1 },
   kengo:  { idle: A('sprites/pixellab/heroes/kengo.png'),  attack: A('sprites/pixellab/heroes/kengo.png'),  skill: A('sprites/pixellab/heroes/kengo.png'),  hit: A('sprites/pixellab/heroes/kengo.png'),  death: A('sprites/pixellab/heroes/kengo.png'),  cols: 1, rows: 1 },
