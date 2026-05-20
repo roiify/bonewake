@@ -37,9 +37,11 @@ export default function BattlePage() {
   const chapterNames: Record<number, string> = {
     1: 'Forsaken Fields', 2: 'Ashen Wastes', 3: 'Dread Court',
     4: 'Whispering Crypts', 5: 'Pale Cathedral', 6: "World's Edge",
+    7: 'Undead Vanguard', 8: 'Zombie Legion', 9: "Necromancer's Court",
   };
   const chapterEmoji: Record<number, string> = {
     1: '🌾', 2: '🔥', 3: '🌌', 4: '🪦', 5: '⛪', 6: '🌊',
+    7: '⚔️', 8: '🩸', 9: '☠️',
   };
 
   function isLocked(stageId: string) {
