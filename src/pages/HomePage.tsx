@@ -4,6 +4,8 @@ import { useProfile } from '../store/profile';
 import { db } from '../lib/db';
 import { DAILY_SIGNIN } from '../data/dailySignin';
 import { TASKS } from '../data/tasks';
+import { STAGES } from '../data/stages';
+import { SUMMON_POOLS } from '../data/summonPools';
 import { useHeroes } from '../store/heroes';
 import { motion } from 'framer-motion';
 import { canClaimMysteryBox, claimMysteryBox } from '../lib/mysteryBox';
@@ -133,12 +135,12 @@ export default function HomePage() {
         <Link to="/battle" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-rose-900/40 to-zinc-900 p-3 min-h-24 hover:border-rose-700 transition-colors">
           <div className="text-2xl">⚔️</div>
           <div className="font-pixel text-xs mt-2">Story</div>
-          <div className="text-[10px] text-zinc-500 mt-0.5">15 stages</div>
+          <div className="text-[10px] text-zinc-500 mt-0.5">{STAGES.length} stages</div>
         </Link>
         <Link to="/summon" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-violet-900/40 to-zinc-900 p-3 min-h-24 hover:border-violet-700 transition-colors">
           <div className="text-2xl">✨</div>
           <div className="font-pixel text-xs mt-2">Summon</div>
-          <div className="text-[10px] text-zinc-500 mt-0.5">3 banners</div>
+          <div className="text-[10px] text-zinc-500 mt-0.5">{SUMMON_POOLS.length} banners</div>
         </Link>
         <Link to="/heroes" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-amber-900/40 to-zinc-900 p-3 min-h-24 hover:border-amber-700 transition-colors">
           <div className="text-2xl">👥</div>
