@@ -114,7 +114,7 @@ export default function BattlePlayPage() {
   useEffect(() => {
     if (!battle || done || paused) return;
     if (tick >= battle.log.length) return;
-    const baseDuration = battle.log[tick].ult ? 6000 : 500;
+    const baseDuration = battle.log[tick].ult ? 6000 : 6000;
     const t = setTimeout(() => applyAction(), baseDuration / speed);
     return () => clearTimeout(t);
   }, [tick, battle, done, speed, paused]);
@@ -652,7 +652,7 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt }: {
             src={animSrc}
             cols={sprites!.cols}
             rows={sprites!.rows}
-            fps={hit ? 18 : (attacker && isUlt ? 7 : 14)}
+            fps={hit ? 18 : (attacker ? 7 : 14)}
             loop={unit.alive && !hit}
             size={112}
             className={side === 'enemy' ? 'scale-x-[-1]' : ''}
