@@ -117,13 +117,16 @@ export const HERO_SPRITES: Record<string, {
   cols: number;
   rows: number;
 }> = {
-  luna:   { idle: A('sprites/echoes/heroes/luna_idle.png'),   attack: A('sprites/echoes/heroes/luna_attack.png'),   skill: A('sprites/echoes/heroes/luna_skill.png'),   hit: A('sprites/echoes/heroes/luna_hit.png'),   death: A('sprites/echoes/heroes/luna_death.png'),   cols: 1, rows: 1 },
-  elara:  { idle: A('sprites/echoes/heroes/elara_idle.png'),  attack: A('sprites/echoes/heroes/elara_attack.png'),  skill: A('sprites/echoes/heroes/elara_skill.png'),  hit: A('sprites/echoes/heroes/elara_hit.png'),  death: A('sprites/echoes/heroes/elara_death.png'),  cols: 1, rows: 1 },
-  aelia:  { idle: A('sprites/echoes/heroes/aelia_idle.png'),  attack: A('sprites/echoes/heroes/aelia_attack.png'),  skill: A('sprites/echoes/heroes/aelia_skill.png'),  hit: A('sprites/echoes/heroes/aelia_hit.png'),  death: A('sprites/echoes/heroes/aelia_death.png'),  cols: 1, rows: 1 },
-  kengo:  { idle: A('sprites/echoes/heroes/kengo_idle.png'),  attack: A('sprites/echoes/heroes/kengo_attack.png'),  skill: A('sprites/echoes/heroes/kengo_skill.png'),  hit: A('sprites/echoes/heroes/kengo_hit.png'),  death: A('sprites/echoes/heroes/kengo_death.png'),  cols: 1, rows: 1 },
-  len:    { idle: A('sprites/echoes/heroes/len_idle.png'),    attack: A('sprites/echoes/heroes/len_attack.png'),    skill: A('sprites/echoes/heroes/len_skill.png'),    hit: A('sprites/echoes/heroes/len_hit.png'),    death: A('sprites/echoes/heroes/len_death.png'),    cols: 1, rows: 1 },
-  kaius:  { idle: A('sprites/echoes/heroes/kaius_idle.png'),  attack: A('sprites/echoes/heroes/kaius_attack.png'),  skill: A('sprites/echoes/heroes/kaius_skill.png'),  hit: A('sprites/echoes/heroes/kaius_hit.png'),  death: A('sprites/echoes/heroes/kaius_death.png'),  cols: 1, rows: 1 },
-  pyra:   { idle: A('sprites/echoes/heroes/pyra_idle.png'),   attack: A('sprites/echoes/heroes/pyra_attack.png'),   skill: A('sprites/echoes/heroes/pyra_skill.png'),   hit: A('sprites/echoes/heroes/pyra_hit.png'),   death: A('sprites/echoes/heroes/pyra_death.png'),   cols: 1, rows: 1 },
+  // New PixelLab mature-fantasy sprites. Static for now (all 5 poses point to the
+  // same base) — multi-frame animation strips will replace these per-pose as the
+  // animate-with-text pipeline produces them.
+  luna:   { idle: A('sprites/pixellab/heroes/luna.png'),   attack: A('sprites/pixellab/heroes/luna.png'),   skill: A('sprites/pixellab/heroes/luna.png'),   hit: A('sprites/pixellab/heroes/luna.png'),   death: A('sprites/pixellab/heroes/luna.png'),   cols: 1, rows: 1 },
+  elara:  { idle: A('sprites/pixellab/heroes/elara.png'),  attack: A('sprites/pixellab/heroes/elara.png'),  skill: A('sprites/pixellab/heroes/elara.png'),  hit: A('sprites/pixellab/heroes/elara.png'),  death: A('sprites/pixellab/heroes/elara.png'),  cols: 1, rows: 1 },
+  aelia:  { idle: A('sprites/pixellab/heroes/aelia.png'),  attack: A('sprites/pixellab/heroes/aelia.png'),  skill: A('sprites/pixellab/heroes/aelia.png'),  hit: A('sprites/pixellab/heroes/aelia.png'),  death: A('sprites/pixellab/heroes/aelia.png'),  cols: 1, rows: 1 },
+  kengo:  { idle: A('sprites/pixellab/heroes/kengo.png'),  attack: A('sprites/pixellab/heroes/kengo.png'),  skill: A('sprites/pixellab/heroes/kengo.png'),  hit: A('sprites/pixellab/heroes/kengo.png'),  death: A('sprites/pixellab/heroes/kengo.png'),  cols: 1, rows: 1 },
+  len:    { idle: A('sprites/pixellab/heroes/len.png'),    attack: A('sprites/pixellab/heroes/len.png'),    skill: A('sprites/pixellab/heroes/len.png'),    hit: A('sprites/pixellab/heroes/len.png'),    death: A('sprites/pixellab/heroes/len.png'),    cols: 1, rows: 1 },
+  kaius:  { idle: A('sprites/pixellab/heroes/kaius.png'),  attack: A('sprites/pixellab/heroes/kaius.png'),  skill: A('sprites/pixellab/heroes/kaius.png'),  hit: A('sprites/pixellab/heroes/kaius.png'),  death: A('sprites/pixellab/heroes/kaius.png'),  cols: 1, rows: 1 },
+  pyra:   { idle: A('sprites/pixellab/heroes/pyra.png'),   attack: A('sprites/pixellab/heroes/pyra.png'),   skill: A('sprites/pixellab/heroes/pyra.png'),   hit: A('sprites/pixellab/heroes/pyra.png'),   death: A('sprites/pixellab/heroes/pyra.png'),   cols: 1, rows: 1 },
 };
 
 export const ENEMY_SPRITES: Record<string, {
