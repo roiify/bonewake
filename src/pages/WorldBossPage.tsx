@@ -7,7 +7,7 @@ import { isoWeek } from '../data/tower';
 import { resolveBattle } from '../lib/combat';
 import { toCombatUnit } from '../lib/stats';
 import { recordEvent } from '../lib/lifetime';
-import { ENEMY_SPRITES, HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
+import { ENEMY_SPRITES, HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD } from '../data/ultimateGear';

@@ -5,7 +5,7 @@ import { useHeroes } from '../store/heroes';
 import { TRIALS, buildTrialEnemyTeam, type TrialDef } from '../data/trials';
 import { resolveBattle } from '../lib/combat';
 import { toCombatUnit } from '../lib/stats';
-import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
+import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { recordEvent } from '../lib/lifetime';
 import { addMaterial } from '../lib/crafting';
