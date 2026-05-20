@@ -23,6 +23,7 @@ export const CHAPTER_BG: Record<number, string> = {
   4: asset('sprites/bg/cosmic_fire.jpg'),
   5: asset('sprites/bg/sky_cliffs.jpg'),
   6: asset('sprites/bg/sky_clouds.jpg'),
+  7: asset('sprites/bg/cosmic_fire.jpg'),
 };
 
 export const CHAPTER_BIOME: Record<number, string> = {
@@ -32,4 +33,5 @@ export const CHAPTER_BIOME: Record<number, string> = {
   4: asset('sprites/biome/snow_tower.png'),
   5: asset('sprites/biome/desert.png'),
   6: asset('sprites/biome/snow.png'),
+  7: asset('sprites/biome/snow_tower.png'),
 };

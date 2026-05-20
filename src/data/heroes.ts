@@ -91,6 +91,32 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     flavor: 'Paladin of the Cross. Will not yield.',
     pullWeight: 4,
   },
+  {
+    id: 'phantom_knight',
+    name: 'Phantom Knight',
+    rarity: 3,
+    element: 'dark',
+    archetype: 'warrior',
+    baseStats: stat(1200, 135, 85, 60, 0.14),
+    ultimateId: 'phantom_charge',
+    emoji: '👻',
+    color: '#22d3ee',
+    flavor: 'Specter of Honor. His vow outlasts his flesh.',
+    pullWeight: 6,
+  },
+  {
+    id: 'wailing_wraith',
+    name: 'Wailing Wraith',
+    rarity: 3,
+    element: 'dark',
+    archetype: 'mage',
+    baseStats: stat(720, 165, 35, 75, 0.16),
+    ultimateId: 'wraiths_scream',
+    emoji: '🫥',
+    color: '#d4d4d8',
+    flavor: 'Phantom of Despair. Her grief is a weapon.',
+    pullWeight: 8,
+  },
 ];
 
 export const HERO_BY_ID = Object.fromEntries(HERO_TEMPLATES.map(h => [h.id, h]));
@@ -110,6 +136,8 @@ export const HERO_SPRITES: Record<string, {
   kengo:  { idle: A('sprites/echoes/heroes/kengo_idle.png'),  attack: A('sprites/echoes/heroes/kengo_attack.png'),  skill: A('sprites/echoes/heroes/kengo_skill.png'),  hit: A('sprites/echoes/heroes/kengo_hit.png'),  death: A('sprites/echoes/heroes/kengo_death.png'),  cols: 4, rows: 4 },
   len:    { idle: A('sprites/echoes/heroes/len_idle.png'),    attack: A('sprites/echoes/heroes/len_attack.png'),    skill: A('sprites/echoes/heroes/len_skill.png'),    hit: A('sprites/echoes/heroes/len_hit.png'),    death: A('sprites/echoes/heroes/len_death.png'),    cols: 4, rows: 4 },
   kaius:  { idle: A('sprites/echoes/heroes/kaius_idle.png'),  attack: A('sprites/echoes/heroes/kaius_attack.png'),  skill: A('sprites/echoes/heroes/kaius_skill.png'),  hit: A('sprites/echoes/heroes/kaius_hit.png'),  death: A('sprites/echoes/heroes/kaius_death.png'),  cols: 4, rows: 4 },
+  phantom_knight: { idle: A('sprites/echoes/heroes/phantom_knight_idle.png'), attack: A('sprites/echoes/heroes/phantom_knight_attack.png'), skill: A('sprites/echoes/heroes/phantom_knight_skill.png'), hit: A('sprites/echoes/heroes/phantom_knight_hit.png'), death: A('sprites/echoes/heroes/phantom_knight_death.png'), cols: 4, rows: 4 },
+  wailing_wraith: { idle: A('sprites/echoes/heroes/wailing_wraith_idle.png'), attack: A('sprites/echoes/heroes/wailing_wraith_attack.png'), skill: A('sprites/echoes/heroes/wailing_wraith_skill.png'), hit: A('sprites/echoes/heroes/wailing_wraith_hit.png'), death: A('sprites/echoes/heroes/wailing_wraith_death.png'), cols: 4, rows: 4 },
 };
 
 export const ENEMY_SPRITES: Record<string, {
@@ -125,4 +153,9 @@ export const ENEMY_SPRITES: Record<string, {
   boneknight:    { idle: A('sprites/echoes/enemies/boneknight_idle.png'),    attack: A('sprites/echoes/enemies/boneknight_attack.png'),                                                                                                                  cols: 4, rows: 4 },
   fastghoul:     { idle: A('sprites/echoes/enemies/fastghoul_idle.png'),     attack: A('sprites/echoes/enemies/fastghoul_attack.png'),                                                                                                                  cols: 4, rows: 4 },
   graveyardlich: { idle: A('sprites/echoes/enemies/graveyardlich_idle.png'), skill:  A('sprites/echoes/enemies/graveyardlich_skill.png'), hit: A('sprites/echoes/enemies/graveyardlich_hit.png'), death: A('sprites/echoes/enemies/graveyardlich_death.png'), cols: 4, rows: 4 },
+  undead_archer:     { idle: A('sprites/echoes/enemies/undead_archer_idle.png'),     attack: A('sprites/echoes/enemies/undead_archer_attack.png'),     skill: A('sprites/echoes/enemies/undead_archer_skill.png'),     hit: A('sprites/echoes/enemies/undead_archer_hit.png'),     death: A('sprites/echoes/enemies/undead_archer_death.png'),     cols: 4, rows: 4 },
+  plague_caster:     { idle: A('sprites/echoes/enemies/plague_caster_idle.png'),     attack: A('sprites/echoes/enemies/plague_caster_attack.png'),     skill: A('sprites/echoes/enemies/plague_caster_skill.png'),     hit: A('sprites/echoes/enemies/plague_caster_hit.png'),     death: A('sprites/echoes/enemies/plague_caster_death.png'),     cols: 4, rows: 4 },
+  fallen_captain:    { idle: A('sprites/echoes/enemies/fallen_captain_idle.png'),    attack: A('sprites/echoes/enemies/fallen_captain_attack.png'),    skill: A('sprites/echoes/enemies/fallen_captain_skill.png'),    hit: A('sprites/echoes/enemies/fallen_captain_hit.png'),    death: A('sprites/echoes/enemies/fallen_captain_death.png'),    cols: 4, rows: 4 },
+  skeletal_warhorse: { idle: A('sprites/echoes/enemies/skeletal_warhorse_idle.png'), attack: A('sprites/echoes/enemies/skeletal_warhorse_attack.png'), skill: A('sprites/echoes/enemies/skeletal_warhorse_skill.png'), hit: A('sprites/echoes/enemies/skeletal_warhorse_hit.png'), death: A('sprites/echoes/enemies/skeletal_warhorse_death.png'), cols: 4, rows: 4 },
+  carrion_spider:    { idle: A('sprites/echoes/enemies/carrion_spider_idle.png'),    attack: A('sprites/echoes/enemies/carrion_spider_attack.png'),    skill: A('sprites/echoes/enemies/carrion_spider_skill.png'),    hit: A('sprites/echoes/enemies/carrion_spider_hit.png'),    death: A('sprites/echoes/enemies/carrion_spider_death.png'),    cols: 4, rows: 4 },
 };

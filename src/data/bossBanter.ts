@@ -37,4 +37,9 @@ export const BOSS_BANTER: Record<string, BossBanterLine[]> = {
     { speaker: 'boss', line: 'You came all this way to die clean.' },
     { speaker: 'boss', line: 'I will not waste it.' },
   ],
+  '7-5': [
+    { speaker: 'narrator', line: 'A purple banner of ribbon and bone. A crown that never tarnished.' },
+    { speaker: 'boss', line: 'In life I led the king\'s vanguard. In death I lead them still.' },
+    { speaker: 'boss', line: 'Kneel, and I will spare your captains. Or do not. It changes nothing.' },
+  ],
 };

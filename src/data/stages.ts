@@ -5,10 +5,16 @@ import type { Stage } from '../types';
 // the ENEMY_BASE_STATS map below; the stage resolver will look these up.
 
 export const ENEMY_TEMPLATES = {
-  shambler:      { name: 'Shambler',       element: 'dark' as const,  archetype: 'tank' as const,    baseStats: { hp: 1400, atk: 90,  def: 70,  spd: 30, crit: 0.05 }, color: '#65a30d', ultimateId: 'enemy_basic' },
-  fastghoul:     { name: 'Fast Ghoul',     element: 'dark' as const,  archetype: 'assassin' as const, baseStats: { hp: 800,  atk: 130, def: 40,  spd: 90, crit: 0.20 }, color: '#a3a3a3', ultimateId: 'enemy_basic' },
-  boneknight:    { name: 'Bone Knight',    element: 'dark' as const,  archetype: 'warrior' as const, baseStats: { hp: 1600, atk: 140, def: 100, spd: 55, crit: 0.10 }, color: '#e7e5e4', ultimateId: 'enemy_basic' },
-  graveyardlich: { name: 'Graveyard Lich', element: 'dark' as const,  archetype: 'mage' as const,    baseStats: { hp: 2000, atk: 180, def: 80,  spd: 65, crit: 0.15 }, color: '#7c3aed', ultimateId: 'enemy_basic' },
+  shambler:          { name: 'Shambler',        element: 'dark' as const, archetype: 'tank' as const,     baseStats: { hp: 1400, atk: 90,  def: 70,  spd: 30, crit: 0.05 }, color: '#65a30d', ultimateId: 'enemy_basic' },
+  fastghoul:         { name: 'Fast Ghoul',      element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 800,  atk: 130, def: 40,  spd: 90, crit: 0.20 }, color: '#a3a3a3', ultimateId: 'enemy_basic' },
+  boneknight:        { name: 'Bone Knight',     element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 1600, atk: 140, def: 100, spd: 55, crit: 0.10 }, color: '#e7e5e4', ultimateId: 'enemy_basic' },
+  graveyardlich:     { name: 'Graveyard Lich',  element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 2000, atk: 180, def: 80,  spd: 65, crit: 0.15 }, color: '#7c3aed', ultimateId: 'enemy_basic' },
+  // Chapter 7 — Undead Vanguard
+  undead_archer:     { name: 'Undead Archer',   element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 900,  atk: 160, def: 35,  spd: 75, crit: 0.22 }, color: '#a8a29e', ultimateId: 'enemy_basic' },
+  plague_caster:     { name: 'Plague Caster',   element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1400, atk: 175, def: 65,  spd: 50, crit: 0.10 }, color: '#84cc16', ultimateId: 'enemy_basic' },
+  fallen_captain:    { name: 'Fallen Captain',  element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 3200, atk: 195, def: 130, spd: 60, crit: 0.18 }, color: '#a855f7', ultimateId: 'enemy_basic' },
+  skeletal_warhorse: { name: 'Skeletal Warhorse', element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 1200, atk: 175, def: 50,  spd: 100, crit: 0.20 }, color: '#67e8f9', ultimateId: 'enemy_basic' },
+  carrion_spider:    { name: 'Carrion Spider',  element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1100, atk: 155, def: 55,  spd: 70, crit: 0.15 }, color: '#22c55e', ultimateId: 'enemy_basic' },
 };
 export type EnemyTemplateId = keyof typeof ENEMY_TEMPLATES;
 
@@ -117,6 +123,23 @@ export const STAGES: Stage[] = [
   { id: '6-5', chapter: 6, num: 5, name: 'World End: The Quiet Crown', energyCost: 32,
     enemyTeam: [E('graveyardlich', 75, 5), E('graveyardlich', 75, 5), E('graveyardlich', 75, 5)],
     rewards: { gold: 7500, exp: 4000, items: { amulet_5: 1 } }, firstClearBonus: { gems: 800 } },
+
+  // Chapter 7 — Undead Vanguard. New enemy classes from the Crowned Revenant's army.
+  { id: '7-1', chapter: 7, num: 1, name: 'Vanguard Outpost', energyCost: 26,
+    enemyTeam: [E('undead_archer', 80, 5), E('skeletal_warhorse', 80, 5), E('undead_archer', 80, 5)],
+    rewards: { gold: 4400, exp: 2400 }, firstClearBonus: { gems: 320 } },
+  { id: '7-2', chapter: 7, num: 2, name: 'Plague Camp', energyCost: 26,
+    enemyTeam: [E('plague_caster', 83, 5), E('carrion_spider', 83, 5), E('plague_caster', 83, 5)],
+    rewards: { gold: 4700, exp: 2600 }, firstClearBonus: { gems: 340 } },
+  { id: '7-3', chapter: 7, num: 3, name: 'Webwood Crossing', energyCost: 28,
+    enemyTeam: [E('carrion_spider', 86, 5), E('carrion_spider', 86, 5), E('skeletal_warhorse', 86, 5)],
+    rewards: { gold: 5100, exp: 2900 }, firstClearBonus: { gems: 360 } },
+  { id: '7-4', chapter: 7, num: 4, name: "Captain's March", energyCost: 28,
+    enemyTeam: [E('undead_archer', 90, 5), E('plague_caster', 90, 5), E('skeletal_warhorse', 90, 5)],
+    rewards: { gold: 5500, exp: 3200 }, firstClearBonus: { gems: 400 } },
+  { id: '7-5', chapter: 7, num: 5, name: 'Vanguard Boss: The Fallen Captain', energyCost: 36,
+    enemyTeam: [E('skeletal_warhorse', 95, 5), E('fallen_captain', 100, 6), E('undead_archer', 95, 5)],
+    rewards: { gold: 9000, exp: 4800, items: { weapon_5: 1 } }, firstClearBonus: { gems: 900 } },
 ];
 
 export const STAGE_BY_ID = Object.fromEntries(STAGES.map(s => [s.id, s]));
