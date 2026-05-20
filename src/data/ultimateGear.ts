@@ -218,6 +218,68 @@ export const ULTIMATE_SETS: UltimateSetDef[] = [
         description: 'Full set: crits deal +30% dmg; assassinate low-HP targets' },
     ],
   },
+
+  // PYRA — Fire Mage
+  {
+    id: 'pyra_inferno',
+    name: 'Infernal Cataclysm',
+    heroId: 'pyra',
+    description: 'Robes forged in volcanic forge. Every breath rekindles the world-burn.',
+    pieces: [
+      { id: 'pyra_inferno_staff', setId: 'pyra_inferno', name: 'Infernal Staff', slot: 'weapon', emoji: '🔥',
+        stats: { atk: 360, crit: 0.20, hp: 600 }, flavor: 'Ember-crystal forever crackling.',
+        isUltimateWeapon: true, cost: c(120, 60, 40000) },
+      { id: 'pyra_inferno_robes', setId: 'pyra_inferno', name: 'Infernal Robes', slot: 'armor', emoji: '🧥',
+        stats: { def: 100, hp: 1500, atk: 100 }, flavor: 'Scorched silk of the burning court.',
+        cost: c(60, 25, 18000) },
+      { id: 'pyra_inferno_diadem', setId: 'pyra_inferno', name: 'Infernal Diadem', slot: 'helm', emoji: '👑',
+        stats: { hp: 700, crit: 0.10, atk: 80 }, flavor: 'Crown of living flame.',
+        cost: c(50, 20, 15000) },
+      { id: 'pyra_inferno_sandals', setId: 'pyra_inferno', name: 'Infernal Sandals', slot: 'boots', emoji: '🥿',
+        stats: { spd: 55, def: 40, atk: 60 }, flavor: 'Burning footprints linger.',
+        cost: c(40, 15, 12000) },
+      { id: 'pyra_inferno_ember', setId: 'pyra_inferno', name: 'Heart of Ember', slot: 'accessory', emoji: '💎',
+        stats: { atk: 140, crit: 0.15, hp: 400 }, flavor: 'A heart that never cools.',
+        cost: c(50, 20, 15000) },
+    ],
+    bonuses: [
+      { atPieces: 2, stats: { atk: 200 }, description: '+200 ATK' },
+      { atPieces: 3, stats: { crit: 0.15, atk: 200 }, description: '+200 ATK · +15% CRIT' },
+      { atPieces: 5, stats: { atk: 600, crit: 0.20, hp: 1500 },
+        description: 'Full set: ultimate burn DoT doubled; fire damage +50%' },
+    ],
+  },
+
+  // KORVAN — Soul Reaper
+  {
+    id: 'korvan_blackharvest',
+    name: 'Black Harvest',
+    heroId: 'korvan',
+    description: 'A scythe blessed in graveyard ichor. Each cut sips a soul.',
+    pieces: [
+      { id: 'korvan_blackharvest_scythe', setId: 'korvan_blackharvest', name: 'Black Harvest Scythe', slot: 'weapon', emoji: '⚔️',
+        stats: { atk: 340, crit: 0.25, hp: 800 }, flavor: 'The blade hums when blood is near.',
+        isUltimateWeapon: true, cost: c(120, 60, 40000) },
+      { id: 'korvan_blackharvest_cloak', setId: 'korvan_blackharvest', name: 'Reaper Cloak', slot: 'armor', emoji: '🧥',
+        stats: { def: 110, hp: 2000, atk: 80 }, flavor: 'Tattered like wings of crows.',
+        cost: c(60, 25, 18000) },
+      { id: 'korvan_blackharvest_hood', setId: 'korvan_blackharvest', name: 'Skull Hood', slot: 'helm', emoji: '💀',
+        stats: { hp: 800, crit: 0.10, def: 60 }, flavor: 'Bone trims darken every glance.',
+        cost: c(50, 20, 15000) },
+      { id: 'korvan_blackharvest_treads', setId: 'korvan_blackharvest', name: 'Grave Treads', slot: 'boots', emoji: '👢',
+        stats: { spd: 55, def: 50, atk: 50 }, flavor: 'Step without rustling the dead.',
+        cost: c(40, 15, 12000) },
+      { id: 'korvan_blackharvest_pendant', setId: 'korvan_blackharvest', name: 'Soul-Drink Pendant', slot: 'accessory', emoji: '🌑',
+        stats: { atk: 130, crit: 0.18, hp: 500 }, flavor: 'A small vial of the dying breath.',
+        cost: c(50, 20, 15000) },
+    ],
+    bonuses: [
+      { atPieces: 2, stats: { crit: 0.10 }, description: '+10% CRIT' },
+      { atPieces: 3, stats: { atk: 250, crit: 0.10 }, description: '+250 ATK · +10% CRIT' },
+      { atPieces: 5, stats: { atk: 500, crit: 0.30, hp: 2000 },
+        description: 'Full set: every crit lifesteals; ultimate +50% damage' },
+    ],
+  },
 ];
 
 export const SET_BY_ID = Object.fromEntries(ULTIMATE_SETS.map(s => [s.id, s]));
