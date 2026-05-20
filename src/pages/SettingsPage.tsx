@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProfile } from '../store/profile';
 import { DEFAULT_SETTINGS, type GameSettings } from '../lib/db';
 import { sound } from '../lib/audio';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import BackupsPanel from '../components/BackupsPanel';
 
 function Slider({ label, value, onChange, suffix }: { label: string; value: number; onChange: (n: number) => void; suffix?: string }) {
@@ -42,23 +42,31 @@ export default function SettingsPage() {
   const profile = useProfile(s => s.profile);
   const patch = useProfile(s => s.patch);
   const [s, setS] = useState<GameSettings>(profile.settings ?? DEFAULT_SETTINGS);
+  const latestRef = useRef(s);
+  latestRef.current = s;
 
-  // Persist + apply on change
+  // Persist + apply on change. Audio settings are debounced (sliders fire fast);
+  // everything else is written immediately so taps survive a fast nav-away.
   useEffect(() => {
-    const t = setTimeout(() => {
-      patch({ settings: s });
-      sound.applySettings({
-        master: s.master,
-        bgm: s.bgm,
-        sfx: s.sfx,
-        muted: s.muted,
-      });
-    }, 200);
+    sound.applySettings({ master: s.master, bgm: s.bgm, sfx: s.sfx, muted: s.muted });
+    const t = setTimeout(() => { patch({ settings: latestRef.current }); }, 200);
     return () => clearTimeout(t);
   }, [s]);
 
+  // Flush any pending write on unmount so quick taps + navigate-away still save.
+  useEffect(() => {
+    return () => { patch({ settings: latestRef.current }); };
+  }, []);
+
   function update<K extends keyof GameSettings>(key: K, value: GameSettings[K]) {
-    setS(prev => ({ ...prev, [key]: value }));
+    setS(prev => {
+      const next = { ...prev, [key]: value };
+      // Non-slider settings: write immediately, don't rely on debounce.
+      if (key !== 'master' && key !== 'bgm' && key !== 'sfx') {
+        patch({ settings: next });
+      }
+      return next;
+    });
   }
 
   return (
