@@ -105,7 +105,7 @@ export default function BattlePlayPage() {
     if (action.ult) {
       const u = units[action.src];
       setUltFlash(u);
-      const t = setTimeout(() => setUltFlash(null), 500 / speed);
+      const t = setTimeout(() => setUltFlash(null), 5000 / speed);
       return () => clearTimeout(t);
     }
     return;
@@ -114,7 +114,7 @@ export default function BattlePlayPage() {
   useEffect(() => {
     if (!battle || done || paused) return;
     if (tick >= battle.log.length) return;
-    const baseDuration = battle.log[tick].ult ? 900 : 500;
+    const baseDuration = battle.log[tick].ult ? 6000 : 500;
     const t = setTimeout(() => applyAction(), baseDuration / speed);
     return () => clearTimeout(t);
   }, [tick, battle, done, speed, paused]);
@@ -382,7 +382,7 @@ export default function BattlePlayPage() {
                   src={HERO_SPRITES[ultFlash.templateId].skill}
                   cols={HERO_SPRITES[ultFlash.templateId].cols}
                   rows={HERO_SPRITES[ultFlash.templateId].rows}
-                  fps={16} loop={false} size={200}
+                  fps={7} loop={false} size={200}
                 />
               </motion.div>
             ) : (
@@ -652,7 +652,7 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt }: {
             src={animSrc}
             cols={sprites!.cols}
             rows={sprites!.rows}
-            fps={hit ? 18 : 14}
+            fps={hit ? 18 : (attacker && isUlt ? 7 : 14)}
             loop={unit.alive && !hit}
             size={112}
             className={side === 'enemy' ? 'scale-x-[-1]' : ''}
