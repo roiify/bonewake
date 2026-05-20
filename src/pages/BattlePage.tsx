@@ -26,8 +26,17 @@ export default function BattlePage() {
     return () => clearTimeout(t);
   }, [clearsLoaded]);
 
-  // First stage with no clear record = where the player left off
-  const nextStageId = STAGES.find(s => !clears[s.id])?.id;
+  // Where to scroll the user back to:
+  //   1. The last stage they actually played (saved to localStorage by the battle page)
+  //   2. Fallback: first uncleared stage
+  //   3. Fallback: last cleared stage (so they land on completed content, not top of ch1)
+  const lastPlayedStageId = typeof window !== 'undefined' ? localStorage.getItem('pf_last_stage') : null;
+  const firstUnclearedId = STAGES.find(s => !clears[s.id])?.id;
+  const lastClearedId = [...STAGES].reverse().find(s => clears[s.id])?.id;
+  const nextStageId = lastPlayedStageId
+    || firstUnclearedId
+    || lastClearedId
+    || null;
 
   const byChapter = STAGES.reduce<Record<number, typeof STAGES>>((m, s) => {
     (m[s.chapter] ??= []).push(s);

@@ -42,6 +42,12 @@ export default function BattlePlayPage() {
   const { stageId } = useParams();
   const navigate = useNavigate();
   const stage = stageId ? STAGE_BY_ID[stageId] : null;
+
+  // Remember the last stage played so the Story page can scroll back here
+  // instead of resetting to chapter 1 every time.
+  useEffect(() => {
+    if (stageId) localStorage.setItem('pf_last_stage', stageId);
+  }, [stageId]);
   const heroes = useHeroes(s => s.heroes);
   const equipment = useHeroes(s => s.equipment);
   const updateHero = useHeroes(s => s.updateHero);
