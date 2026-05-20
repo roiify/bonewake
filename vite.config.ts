@@ -1,14 +1,25 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { execSync } from 'node:child_process';
 
 // GitHub Pages serves the app at https://<user>.github.io/pixel-fighter-game/
 // so the base path needs the repo name in production. Locally we serve from /.
 const isProd = process.env.NODE_ENV === 'production' || process.env.VITE_BUILD_TARGET === 'pages';
 const base = isProd ? '/pixel-fighter-game/' : '/';
 
+function safeExec(cmd: string, fallback = ''): string {
+  try { return execSync(cmd).toString().trim(); } catch { return fallback; }
+}
+const APP_VERSION = safeExec('git rev-parse --short HEAD', 'dev');
+const APP_COMMIT_MSG = safeExec('git log -1 --pretty=%s', 'Local build');
+
 export default defineConfig({
   base,
+  define: {
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
+    __APP_COMMIT_MSG__: JSON.stringify(APP_COMMIT_MSG),
+  },
   plugins: [
     react(),
     VitePWA({
