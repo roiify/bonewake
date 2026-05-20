@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useHeroes } from '../store/heroes';
-import { HERO_BY_ID, HERO_SPRITES } from '../data/heroes';
+import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
 import { calcHeroStats } from '../lib/stats';
 import { Link } from 'react-router-dom';
 import type { Rarity } from '../types';
@@ -155,8 +155,8 @@ export default function HeroesPage() {
                   style={{ background: `linear-gradient(135deg, ${tpl.color}30, transparent)` }}
                 >
                   <img src={ELEMENT_AURA[tpl.element]} alt="" className="absolute inset-0 w-full h-full object-contain opacity-40 mix-blend-screen pointer-events-none" />
-                  {HERO_SPRITES[tpl.id] ? (
-                    <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={86} className="relative drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]" />
+                  {HERO_PORTRAITS[tpl.id] ? (
+                    <StaticSprite src={HERO_PORTRAITS[tpl.id]} size={86} className="relative drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]" />
                   ) : (
                     <div className="relative text-4xl drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]">{tpl.emoji}</div>
                   )}

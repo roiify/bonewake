@@ -1,7 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useHeroes } from '../store/heroes';
 import { useItems } from '../store/items';
-import { HERO_TEMPLATES, HERO_SPRITES } from '../data/heroes';
+import { HERO_TEMPLATES, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { fragmentItemId, STAR_UP_COST, MAX_STAR } from '../lib/fragments';
 import { tierLabel, tierColor, nextTierLabel } from '../lib/tier';
@@ -38,8 +38,8 @@ export default function FragmentsPage() {
         <div key={tpl.id} className="rounded-md border border-zinc-800 bg-zinc-900 p-3">
           <div className="flex items-center gap-3">
             <Link to={owned ? `/heroes/${owned.id}` : '/summon'} className="shrink-0">
-              {HERO_SPRITES[tpl.id] ? (
-                <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={56} />
+              {HERO_PORTRAITS[tpl.id] ? (
+                <StaticSprite src={HERO_PORTRAITS[tpl.id]} size={56} />
               ) : (
                 <div className="text-3xl">{tpl.emoji}</div>
               )}

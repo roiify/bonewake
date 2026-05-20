@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
-import { HERO_BY_ID, HERO_SPRITES } from '../data/heroes';
+import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { xpForLevel, maxLevelForStar } from '../lib/stats';
 import { tierLabel, tierColor } from '../lib/tier';
@@ -107,8 +107,8 @@ export default function TrainingPage() {
               return (
                 <>
                   <div className="relative mx-auto w-24 h-24 mb-2">
-                    {HERO_SPRITES[tpl.id] ? (
-                      <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={96} />
+                    {HERO_PORTRAITS[tpl.id] ? (
+                      <StaticSprite src={HERO_PORTRAITS[tpl.id]} size={96} />
                     ) : (
                       <div className="text-5xl">{tpl.emoji}</div>
                     )}
@@ -169,7 +169,7 @@ export default function TrainingPage() {
                     title={atLvlCap ? `Maxed at ${tierLabel(h.star)} cap` : undefined}
                   >
                     <div className="aspect-square flex items-center justify-center overflow-hidden">
-                      {HERO_SPRITES[tpl.id] ? <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={56} /> : <div className="text-3xl">{tpl.emoji}</div>}
+                      {HERO_PORTRAITS[tpl.id] ? <StaticSprite src={HERO_PORTRAITS[tpl.id]} size={56} /> : <div className="text-3xl">{tpl.emoji}</div>}
                     </div>
                     <div className="text-[10px] truncate" style={{ color: tpl.color }}>{tpl.name}</div>
                     <div className="text-[9px] text-zinc-400">LVL:{h.level}/{cap}</div>

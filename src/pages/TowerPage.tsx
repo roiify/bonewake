@@ -19,7 +19,7 @@ import { toCombatUnit } from '../lib/stats';
 import { recordEvent } from '../lib/lifetime';
 import { addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD } from '../data/ultimateGear';
-import { HERO_BY_ID, HERO_SPRITES, ENEMY_SPRITES } from '../data/heroes';
+import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS, ENEMY_SPRITES } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 
 const SQUAD_KEY = 'pf_squad';
@@ -215,7 +215,7 @@ export default function TowerPage() {
             return (
               <div key={id} className="rounded border bg-zinc-950 p-1.5 text-center" style={{ borderColor: tpl.color }}>
                 <div className="aspect-square flex items-center justify-center overflow-hidden">
-                  {HERO_SPRITES[tpl.id] ? <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={50} /> : <div className="text-2xl">{tpl.emoji}</div>}
+                  {HERO_PORTRAITS[tpl.id] ? <StaticSprite src={HERO_PORTRAITS[tpl.id]} size={50} /> : <div className="text-2xl">{tpl.emoji}</div>}
                 </div>
                 <div className="text-[9px] truncate" style={{ color: tpl.color }}>{tpl.name}</div>
                 <div className="text-[8px] text-zinc-500">LVL:{h.level}</div>

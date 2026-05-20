@@ -121,6 +121,19 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
 
 export const HERO_BY_ID = Object.fromEntries(HERO_TEMPLATES.map(h => [h.id, h]));
 
+// Portrait sprites — south-facing (camera-facing), used in menus, rosters,
+// hero detail portrait card. Battle uses HERO_SPRITES (east-facing) instead.
+export const HERO_PORTRAITS: Record<string, string> = {
+  luna:   A('sprites/pixellab/heroes/portraits/luna.png'),
+  elara:  A('sprites/pixellab/heroes/portraits/elara.png'),
+  aelia:  A('sprites/pixellab/heroes/portraits/aelia.png'),
+  kengo:  A('sprites/pixellab/heroes/portraits/kengo.png'),
+  len:    A('sprites/pixellab/heroes/portraits/len.png'),
+  kaius:  A('sprites/pixellab/heroes/portraits/kaius.png'),
+  pyra:   A('sprites/pixellab/heroes/portraits/pyra.png'),
+  korvan: A('sprites/pixellab/heroes/portraits/korvan.png'),
+};
+
 export const HERO_SPRITES: Record<string, {
   idle: string;
   attack: string;

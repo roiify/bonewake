@@ -2,7 +2,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
-import { HERO_BY_ID, HERO_SPRITES } from '../data/heroes';
+import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { SKILL_BY_ID } from '../data/skills';
 import { EQUIP_BY_ID } from '../data/equipment';
@@ -208,8 +208,8 @@ export default function HeroDetailPage() {
           style={{ background: `radial-gradient(circle, ${tpl.color}40, transparent)` }}
         >
           <img src={ELEMENT_AURA[tpl.element]} alt="" className="absolute inset-0 w-full h-full object-contain opacity-50 mix-blend-screen animate-pulse-slow pointer-events-none" />
-          {HERO_SPRITES[tpl.id] ? (
-            <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={150} className="relative drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]" />
+          {HERO_PORTRAITS[tpl.id] ? (
+            <StaticSprite src={HERO_PORTRAITS[tpl.id]} size={150} className="relative drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]" />
           ) : (
             <div className="relative text-6xl drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]">{tpl.emoji}</div>
           )}

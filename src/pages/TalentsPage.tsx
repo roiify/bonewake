@@ -1,7 +1,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useHeroes } from '../store/heroes';
-import { HERO_BY_ID, HERO_SPRITES } from '../data/heroes';
+import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { TALENT_TREE, BRANCH_COLOR, BRANCH_NAME, nodesForHeroBranch, talentPointsForLevel, type TalentBranch } from '../data/talents';
 
@@ -54,7 +54,7 @@ export default function TalentsPage() {
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
 
       <div className="rounded-lg border-2 bg-zinc-900 p-3 flex items-center gap-3" style={{ borderColor: tpl.color }}>
-        {HERO_SPRITES[tpl.id] ? <StaticSprite src={HERO_SPRITES[tpl.id].idle} size={56} /> : <div className="text-3xl">{tpl.emoji}</div>}
+        {HERO_PORTRAITS[tpl.id] ? <StaticSprite src={HERO_PORTRAITS[tpl.id]} size={56} /> : <div className="text-3xl">{tpl.emoji}</div>}
         <div className="flex-1">
           <div className="font-pixel text-sm" style={{ color: tpl.color }}>{tpl.name}</div>
           <div className="text-[10px] text-zinc-400">LVL:{hero.level} · Talent points: <span className="font-pixel text-amber-400">{available}/{totalPoints}</span></div>

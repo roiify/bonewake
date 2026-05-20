@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { recentBattles } from '../lib/battleLog';
 import type { BattleLogEntry } from '../lib/db';
-import { HERO_BY_ID, HERO_SPRITES, ENEMY_SPRITES } from '../data/heroes';
+import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS, ENEMY_SPRITES } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 
 function timeAgo(ms: number): string {
@@ -68,7 +68,7 @@ export default function BattleLogPage() {
                     if (!tpl) return null;
                     return (
                       <div key={i} className="w-7 h-7 rounded bg-zinc-950 flex items-center justify-center overflow-hidden">
-                        {HERO_SPRITES[tid] ? <StaticSprite src={HERO_SPRITES[tid].idle} size={28} /> : <span className="text-sm">{tpl.emoji}</span>}
+                        {HERO_PORTRAITS[tid] ? <StaticSprite src={HERO_PORTRAITS[tid]} size={28} /> : <span className="text-sm">{tpl.emoji}</span>}
                       </div>
                     );
                   })}

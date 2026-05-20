@@ -12,7 +12,7 @@ import {
   MYTHIC_COLOR,
   type SetPieceDef,
 } from '../data/ultimateGear';
-import { HERO_BY_ID, HERO_SPRITES } from '../data/heroes';
+import { HERO_BY_ID, HERO_SPRITES, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { craftSetPiece } from '../lib/crafting';
 
@@ -94,8 +94,8 @@ export default function CraftPage() {
               className={`shrink-0 rounded border-2 p-1.5 text-center ${active ? 'ring-2 ring-amber-400' : ''}`}
               style={{ borderColor: h.color, background: active ? '#1f1d12' : '#09090b' }}
             >
-              {HERO_SPRITES[s.heroId] ? (
-                <StaticSprite src={HERO_SPRITES[s.heroId].idle} size={42} />
+              {HERO_PORTRAITS[s.heroId] ? (
+                <StaticSprite src={HERO_PORTRAITS[s.heroId]} size={42} />
               ) : (
                 <div className="text-2xl">{h.emoji}</div>
               )}
