@@ -91,6 +91,19 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     flavor: 'Paladin of the Cross. Will not yield.',
     pullWeight: 4,
   },
+  {
+    id: 'pyra',
+    name: 'Pyra',
+    rarity: 3,
+    element: 'fire',
+    archetype: 'mage',
+    baseStats: stat(750, 175, 40, 70, 0.18),
+    ultimateId: 'infernal_cataclysm',
+    emoji: '🔥',
+    color: '#f97316',
+    flavor: 'Pyromancer of the Burning Court. Embers ride her breath.',
+    pullWeight: 6,
+  },
 ];
 
 export const HERO_BY_ID = Object.fromEntries(HERO_TEMPLATES.map(h => [h.id, h]));
@@ -110,6 +123,7 @@ export const HERO_SPRITES: Record<string, {
   kengo:  { idle: A('sprites/echoes/heroes/kengo_idle.png'),  attack: A('sprites/echoes/heroes/kengo_attack.png'),  skill: A('sprites/echoes/heroes/kengo_skill.png'),  hit: A('sprites/echoes/heroes/kengo_hit.png'),  death: A('sprites/echoes/heroes/kengo_death.png'),  cols: 1, rows: 1 },
   len:    { idle: A('sprites/echoes/heroes/len_idle.png'),    attack: A('sprites/echoes/heroes/len_attack.png'),    skill: A('sprites/echoes/heroes/len_skill.png'),    hit: A('sprites/echoes/heroes/len_hit.png'),    death: A('sprites/echoes/heroes/len_death.png'),    cols: 1, rows: 1 },
   kaius:  { idle: A('sprites/echoes/heroes/kaius_idle.png'),  attack: A('sprites/echoes/heroes/kaius_attack.png'),  skill: A('sprites/echoes/heroes/kaius_skill.png'),  hit: A('sprites/echoes/heroes/kaius_hit.png'),  death: A('sprites/echoes/heroes/kaius_death.png'),  cols: 1, rows: 1 },
+  pyra:   { idle: A('sprites/echoes/heroes/pyra_idle.png'),   attack: A('sprites/echoes/heroes/pyra_attack.png'),   skill: A('sprites/echoes/heroes/pyra_skill.png'),   hit: A('sprites/echoes/heroes/pyra_hit.png'),   death: A('sprites/echoes/heroes/pyra_death.png'),   cols: 1, rows: 1 },
 };
 
 export const ENEMY_SPRITES: Record<string, {
@@ -134,4 +148,13 @@ export const ENEMY_SPRITES: Record<string, {
   carrion_spider:    { idle: A('sprites/echoes/enemies/carrion_spider_idle.png'),    attack: A('sprites/echoes/enemies/carrion_spider_attack.png'),    skill: A('sprites/echoes/enemies/carrion_spider_skill.png'),    hit: A('sprites/echoes/enemies/carrion_spider_hit.png'),    death: A('sprites/echoes/enemies/carrion_spider_death.png'),    cols: 1, rows: 1 },
   phantom_knight:    { idle: A('sprites/echoes/enemies/phantom_knight_idle.png'),    attack: A('sprites/echoes/enemies/phantom_knight_attack.png'),    skill: A('sprites/echoes/enemies/phantom_knight_skill.png'),    hit: A('sprites/echoes/enemies/phantom_knight_hit.png'),    death: A('sprites/echoes/enemies/phantom_knight_death.png'),    cols: 1, rows: 1 },
   wailing_wraith:    { idle: A('sprites/echoes/enemies/wailing_wraith_idle.png'),    attack: A('sprites/echoes/enemies/wailing_wraith_attack.png'),    skill: A('sprites/echoes/enemies/wailing_wraith_skill.png'),    hit: A('sprites/echoes/enemies/wailing_wraith_hit.png'),    death: A('sprites/echoes/enemies/wailing_wraith_death.png'),    cols: 1, rows: 1 },
+  // Chapter 8 — Zombie Legion + Necromancer's Court
+  zombie_knight:     { idle: A('sprites/echoes/enemies/zombie_knight_idle.png'),     attack: A('sprites/echoes/enemies/zombie_knight_attack.png'),     skill: A('sprites/echoes/enemies/zombie_knight_skill.png'),     hit: A('sprites/echoes/enemies/zombie_knight_hit.png'),     death: A('sprites/echoes/enemies/zombie_knight_death.png'),     cols: 1, rows: 1 },
+  zombie_berserker:  { idle: A('sprites/echoes/enemies/zombie_berserker_idle.png'),  attack: A('sprites/echoes/enemies/zombie_berserker_attack.png'),  skill: A('sprites/echoes/enemies/zombie_berserker_skill.png'),  hit: A('sprites/echoes/enemies/zombie_berserker_hit.png'),  death: A('sprites/echoes/enemies/zombie_berserker_death.png'),  cols: 1, rows: 1 },
+  shield_bearer:     { idle: A('sprites/echoes/enemies/shield_bearer_idle.png'),     attack: A('sprites/echoes/enemies/shield_bearer_attack.png'),     skill: A('sprites/echoes/enemies/shield_bearer_skill.png'),     hit: A('sprites/echoes/enemies/shield_bearer_hit.png'),     death: A('sprites/echoes/enemies/shield_bearer_death.png'),     cols: 1, rows: 1 },
+  zombie_mage:       { idle: A('sprites/echoes/enemies/zombie_mage_idle.png'),       attack: A('sprites/echoes/enemies/zombie_mage_attack.png'),       skill: A('sprites/echoes/enemies/zombie_mage_skill.png'),       hit: A('sprites/echoes/enemies/zombie_mage_hit.png'),       death: A('sprites/echoes/enemies/zombie_mage_death.png'),       cols: 1, rows: 1 },
+  grave_channeler:   { idle: A('sprites/echoes/enemies/grave_channeler_idle.png'),   attack: A('sprites/echoes/enemies/grave_channeler_attack.png'),   skill: A('sprites/echoes/enemies/grave_channeler_skill.png'),   hit: A('sprites/echoes/enemies/grave_channeler_hit.png'),   death: A('sprites/echoes/enemies/grave_channeler_death.png'),   cols: 1, rows: 1 },
+  soul_leech:        { idle: A('sprites/echoes/enemies/soul_leech_idle.png'),        attack: A('sprites/echoes/enemies/soul_leech_attack.png'),        skill: A('sprites/echoes/enemies/soul_leech_skill.png'),        hit: A('sprites/echoes/enemies/soul_leech_hit.png'),        death: A('sprites/echoes/enemies/soul_leech_death.png'),        cols: 1, rows: 1 },
+  rotwolf:           { idle: A('sprites/echoes/enemies/rotwolf_idle.png'),           attack: A('sprites/echoes/enemies/rotwolf_attack.png'),           skill: A('sprites/echoes/enemies/rotwolf_skill.png'),           hit: A('sprites/echoes/enemies/rotwolf_hit.png'),           death: A('sprites/echoes/enemies/rotwolf_death.png'),           cols: 1, rows: 1 },
+  bone_bear:         { idle: A('sprites/echoes/enemies/bone_bear_idle.png'),         attack: A('sprites/echoes/enemies/bone_bear_attack.png'),         skill: A('sprites/echoes/enemies/bone_bear_skill.png'),         hit: A('sprites/echoes/enemies/bone_bear_hit.png'),         death: A('sprites/echoes/enemies/bone_bear_death.png'),         cols: 1, rows: 1 },
 };

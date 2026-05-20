@@ -4,7 +4,7 @@ import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import { HERO_TEMPLATES } from '../data/heroes';
 import { EQUIPMENT_TEMPLATES } from '../data/equipment';
-import { db, exportSave, importSave, wipeSave } from '../lib/db';
+import { db, exportSave, importSave, wipeSave, summarizeImport } from '../lib/db';
 import { uid as genId } from '../lib/id';
 import { addFragments, DUP_FRAGMENT_VALUE } from '../lib/fragments';
 import { useItems } from '../store/items';
@@ -99,6 +99,29 @@ export default function DebugPage() {
       const file = input.files?.[0];
       if (!file) return;
       const text = await file.text();
+      // Validate + summarize before destroying current data.
+      let summary;
+      try {
+        summary = summarizeImport(text);
+      } catch (e) {
+        alert('Import refused — invalid backup file:\n\n' + (e as Error).message);
+        return;
+      }
+      const msg =
+        `Import will REPLACE all current data with:\n\n` +
+        `• ${summary.heroes} heroes\n` +
+        `• ${summary.equipment} equipment\n` +
+        `• ${summary.items} items\n` +
+        `• ${summary.stageClears} stage clears\n` +
+        `• ${summary.pullLogs} pull logs\n` +
+        `• ${summary.tasks} tasks\n` +
+        `• ${summary.mail} mail\n\n` +
+        (summary.heroes === 0
+          ? `⚠ WARNING: Backup has 0 heroes — your current heroes will be lost.\n\n`
+          : '') +
+        `A pre-import backup will be saved automatically so you can undo this.\n\n` +
+        `Proceed?`;
+      if (!confirm(msg)) return;
       try {
         await importSave(text);
         alert('Save imported! Reloading…');

@@ -336,6 +336,14 @@ async function pruneOrphanedSaveData() {
 }
 
 export async function wipeSave() {
+  // Force-mirror current state to localStorage BEFORE deleting IndexedDB so the
+  // user always has an undo path from browser storage that survives the delete.
+  try {
+    const { forceMirrorSnapshot } = await import('./backup');
+    await forceMirrorSnapshot('pre-wipe');
+  } catch (e) {
+    console.warn('pre-wipe mirror failed (continuing anyway)', e);
+  }
   await db.delete();
   await db.open();
   await db.profile.add({ ...DEFAULT_PROFILE });
@@ -343,31 +351,78 @@ export async function wipeSave() {
 
 export async function exportSave(): Promise<string> {
   const data = {
+    schemaVersion: 2,  // bumped — export now includes pullLogs + mail
     profile: await db.profile.toArray(),
     heroes: await db.heroes.toArray(),
     equipment: await db.equipment.toArray(),
     items: await db.items.toArray(),
     stageClears: await db.stageClears.toArray(),
+    pullLogs: await db.pullLogs.toArray(),
     tasks: await db.tasks.toArray(),
+    mail: await db.mail.toArray(),
     exportedAt: new Date().toISOString(),
   };
   return JSON.stringify(data, null, 2);
 }
 
+// Validate import payload before destroying current data. Returns a description
+// of what will be restored so callers can confirm with the user. Throws on
+// obviously broken payloads.
+export interface ImportSummary {
+  heroes: number; equipment: number; items: number; stageClears: number;
+  pullLogs: number; mail: number; tasks: number;
+  hasProfile: boolean;
+}
+
+export function summarizeImport(json: string): ImportSummary {
+  const data = JSON.parse(json);
+  if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
+  if (!Array.isArray(data.profile) || data.profile.length === 0) {
+    throw new Error('Backup is missing profile data');
+  }
+  return {
+    hasProfile: true,
+    heroes: data.heroes?.length ?? 0,
+    equipment: data.equipment?.length ?? 0,
+    items: data.items?.length ?? 0,
+    stageClears: data.stageClears?.length ?? 0,
+    pullLogs: data.pullLogs?.length ?? 0,
+    mail: data.mail?.length ?? 0,
+    tasks: data.tasks?.length ?? 0,
+  };
+}
+
 export async function importSave(json: string) {
   const data = JSON.parse(json);
-  await db.transaction('rw', [db.profile, db.heroes, db.equipment, db.items, db.stageClears, db.tasks], async () => {
+  // Validation — refuse to clear if the import doesn't look like a real save.
+  if (!Array.isArray(data.profile) || data.profile.length === 0) {
+    throw new Error('Import refused: backup file is missing profile data');
+  }
+  // Take pre-import safety net: in-DB pre-restore backup AND localStorage mirror
+  // (deferred require to avoid circular imports — backup.ts imports from this file).
+  try {
+    const { createBackup, forceMirrorSnapshot } = await import('./backup');
+    await createBackup('pre-restore', `pre-import-${new Date().toISOString().slice(0, 16)}`);
+    await forceMirrorSnapshot('pre-import');
+  } catch (e) {
+    console.warn('pre-import backup failed (continuing anyway)', e);
+  }
+  await db.transaction('rw', [db.profile, db.heroes, db.equipment, db.items, db.stageClears, db.pullLogs, db.tasks, db.mail], async () => {
     await db.profile.clear();
     await db.heroes.clear();
     await db.equipment.clear();
     await db.items.clear();
     await db.stageClears.clear();
+    await db.pullLogs.clear();
     await db.tasks.clear();
+    await db.mail.clear();
     if (data.profile?.length) await db.profile.bulkAdd(data.profile);
     if (data.heroes?.length) await db.heroes.bulkAdd(data.heroes);
     if (data.equipment?.length) await db.equipment.bulkAdd(data.equipment);
     if (data.items?.length) await db.items.bulkAdd(data.items);
     if (data.stageClears?.length) await db.stageClears.bulkAdd(data.stageClears);
+    if (data.pullLogs?.length) await db.pullLogs.bulkAdd(data.pullLogs);
     if (data.tasks?.length) await db.tasks.bulkAdd(data.tasks);
+    if (data.mail?.length) await db.mail.bulkAdd(data.mail);
   });
 }

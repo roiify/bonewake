@@ -42,4 +42,9 @@ export const BOSS_BANTER: Record<string, BossBanterLine[]> = {
     { speaker: 'boss', line: 'In life I led the king\'s vanguard. In death I lead them still.' },
     { speaker: 'boss', line: 'Kneel, and I will spare your captains. Or do not. It changes nothing.' },
   ],
+  '8-5': [
+    { speaker: 'narrator', line: 'His ribcage burns cyan with the souls of a hundred fallen kings.' },
+    { speaker: 'boss', line: 'Each life is a candle. Yours, I think, will burn warmly for me.' },
+    { speaker: 'boss', line: 'Step closer. Let me taste it.' },
+  ],
 };

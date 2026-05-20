@@ -83,6 +83,15 @@ export const HERO_SKILLS: HeroSkillDef[] = [
     trigger: 'on_hit',
     effect: { kind: 'dodge', value: 0.20 } },
 
+  // ===== PYRA — Fire Mage =====
+  { id: 'pyra_p1', heroId: 'pyra', name: 'Ember Surge',
+    description: 'Each attack has +20% crit chance.',
+    trigger: 'on_attack',
+    effect: { kind: 'crit_chance', value: 0.20 } },
+  { id: 'pyra_p2', heroId: 'pyra', name: 'Heat Veil',
+    description: 'On hit, 25% chance to reflect 25% damage back as fire.',
+    trigger: 'on_hit',
+    effect: { kind: 'reflect', value: 0.25 } },
 ];
 
 export const HERO_SKILL_BY_ID = Object.fromEntries(HERO_SKILLS.map(s => [s.id, s]));

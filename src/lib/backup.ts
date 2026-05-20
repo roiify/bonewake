@@ -83,6 +83,20 @@ function mirrorAutoBackupToLocalStorage(payload: string, date: string) {
   }
 }
 
+// Force-mirror the current DB state to localStorage right now, regardless of
+// the 22h auto-backup interval. Used by wipeSave/importSave so destructive
+// operations leave a recoverable trail in browser storage that survives the
+// IndexedDB deletion.
+export async function forceMirrorSnapshot(label: string): Promise<void> {
+  try {
+    const snap = await gatherSnapshot();
+    const date = new Date().toISOString().slice(0, 10);
+    mirrorAutoBackupToLocalStorage(snap.payload, `${date}_${label}`);
+  } catch (e) {
+    console.warn('forceMirrorSnapshot failed', e);
+  }
+}
+
 // Read the localStorage-mirrored backups (most recent first). For disaster recovery.
 export function listMirroredBackups(): { createdAt: number; date: string; payload: string }[] {
   try {

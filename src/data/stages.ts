@@ -17,6 +17,15 @@ export const ENEMY_TEMPLATES = {
   carrion_spider:    { name: 'Carrion Spider',  element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1100, atk: 155, def: 55,  spd: 70, crit: 0.15 }, color: '#22c55e', ultimateId: 'enemy_basic' },
   phantom_knight:    { name: 'Phantom Knight',  element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 1500, atk: 165, def: 90,  spd: 65, crit: 0.18 }, color: '#22d3ee', ultimateId: 'enemy_basic' },
   wailing_wraith:    { name: 'Wailing Wraith',  element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 950,  atk: 185, def: 40,  spd: 80, crit: 0.18 }, color: '#d4d4d8', ultimateId: 'enemy_basic' },
+  // Chapter 8 — Zombie Legion + Necromancer's Court
+  zombie_knight:     { name: 'Zombie Knight',   element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 1800, atk: 175, def: 110, spd: 50, crit: 0.12 }, color: '#a16207', ultimateId: 'enemy_basic' },
+  zombie_berserker:  { name: 'Zombie Berserker',element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 1600, atk: 220, def: 70,  spd: 65, crit: 0.25 }, color: '#dc2626', ultimateId: 'enemy_basic' },
+  shield_bearer:     { name: 'Shield-Bearer',   element: 'dark' as const, archetype: 'tank' as const,     baseStats: { hp: 2600, atk: 130, def: 180, spd: 35, crit: 0.05 }, color: '#737373', ultimateId: 'enemy_basic' },
+  zombie_mage:       { name: 'Zombie Mage',     element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1300, atk: 190, def: 55,  spd: 65, crit: 0.16 }, color: '#65a30d', ultimateId: 'enemy_basic' },
+  grave_channeler:   { name: 'Grave Channeler', element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1500, atk: 180, def: 70,  spd: 55, crit: 0.14 }, color: '#67e8f9', ultimateId: 'enemy_basic' },
+  soul_leech:        { name: 'Soul Leech',      element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 3600, atk: 210, def: 130, spd: 70, crit: 0.20 }, color: '#22d3ee', ultimateId: 'enemy_basic' },
+  rotwolf:           { name: 'Rotwolf',         element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 1100, atk: 185, def: 50,  spd: 105, crit: 0.22 }, color: '#a8a29e', ultimateId: 'enemy_basic' },
+  bone_bear:         { name: 'Bone Bear',       element: 'dark' as const, archetype: 'tank' as const,     baseStats: { hp: 3000, atk: 175, def: 140, spd: 40, crit: 0.10 }, color: '#92400e', ultimateId: 'enemy_basic' },
 };
 export type EnemyTemplateId = keyof typeof ENEMY_TEMPLATES;
 
@@ -142,6 +151,23 @@ export const STAGES: Stage[] = [
   { id: '7-5', chapter: 7, num: 5, name: 'Vanguard Boss: The Fallen Captain', energyCost: 36,
     enemyTeam: [E('phantom_knight', 95, 5), E('fallen_captain', 100, 6), E('wailing_wraith', 95, 5)],
     rewards: { gold: 9000, exp: 4800, items: { weapon_5: 1 } }, firstClearBonus: { gems: 900 } },
+
+  // Chapter 8 — Zombie Legion. The Soul Leech raises a corrupted army.
+  { id: '8-1', chapter: 8, num: 1, name: 'Legion Muster', energyCost: 30,
+    enemyTeam: [E('zombie_knight', 105, 5), E('zombie_berserker', 105, 5), E('zombie_knight', 105, 5)],
+    rewards: { gold: 5500, exp: 3200 }, firstClearBonus: { gems: 440 } },
+  { id: '8-2', chapter: 8, num: 2, name: 'Shield Wall', energyCost: 30,
+    enemyTeam: [E('shield_bearer', 108, 5), E('zombie_berserker', 108, 5), E('shield_bearer', 108, 5)],
+    rewards: { gold: 5800, exp: 3400 }, firstClearBonus: { gems: 460 } },
+  { id: '8-3', chapter: 8, num: 3, name: 'Wild Hunt', energyCost: 32,
+    enemyTeam: [E('rotwolf', 111, 5), E('bone_bear', 113, 5), E('rotwolf', 111, 5)],
+    rewards: { gold: 6200, exp: 3700 }, firstClearBonus: { gems: 480 } },
+  { id: '8-4', chapter: 8, num: 4, name: 'Necromancer\'s Conclave', energyCost: 32,
+    enemyTeam: [E('zombie_mage', 115, 5), E('grave_channeler', 115, 5), E('zombie_mage', 115, 5)],
+    rewards: { gold: 6700, exp: 4000 }, firstClearBonus: { gems: 520 } },
+  { id: '8-5', chapter: 8, num: 5, name: 'Legion Boss: The Soul Leech', energyCost: 42,
+    enemyTeam: [E('grave_channeler', 120, 5), E('soul_leech', 125, 6), E('zombie_knight', 120, 5)],
+    rewards: { gold: 11000, exp: 5600, items: { armor_5: 1 } }, firstClearBonus: { gems: 1100 } },
 ];
 
 export const STAGE_BY_ID = Object.fromEntries(STAGES.map(s => [s.id, s]));
