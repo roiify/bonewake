@@ -152,7 +152,9 @@ export default function BattlePlayPage() {
       setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 900);
     }
     setTimeout(() => setHit(null), 200 / speed);
-    setTick(t => t + 1);
+    // Give the eye a clear beat between turns so the battle reads as
+    // turn-based instead of "everyone moves at once".
+    setTimeout(() => setTick(t => t + 1), 350 / speed);
   }
 
   async function endBattle() {
