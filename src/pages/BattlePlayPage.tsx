@@ -76,6 +76,10 @@ export default function BattlePlayPage() {
   const [skillCaster, setSkillCaster] = useState<string | null>(null);
   const [floats, setFloats] = useState<FloatingNumber[]>([]);
   const [ultFlash, setUltFlash] = useState<CombatUnit | null>(null);
+  // Screen-shake pulse — set to 'soft' on basic hits, 'hard' on crits/ults.
+  // Reset to null after the CSS animation completes.
+  const [shake, setShake] = useState<'soft' | 'hard' | null>(null);
+  const [flash, setFlash] = useState(false);
   const [done, setDone] = useState(false);
   const [speed, setSpeed] = useState<1 | 2 | 4 | 8>(useProfile.getState().profile.settings?.defaultBattleSpeed ?? 2);
   const [paused, setPaused] = useState(false);
@@ -148,6 +152,14 @@ export default function BattlePlayPage() {
     });
     setHit(action.dst);
     setAttacker(null);
+    // Screen-shake + impact flash on damage hits (skip heals).
+    if (action.dmg > 0) {
+      const hard = action.crit || action.ult;
+      setShake(hard ? 'hard' : 'soft');
+      setFlash(true);
+      setTimeout(() => setShake(null), hard ? 320 : 180);
+      setTimeout(() => setFlash(false), 180);
+    }
     const dstUnit = units[action.dst];
     if (dstUnit) {
       const id = ++floatId.current;
@@ -400,8 +412,11 @@ export default function BattlePlayPage() {
         )}
       </AnimatePresence>
 
+      {/* Impact-flash overlay (briefly whitens the screen on hits) */}
+      {flash && <div className="absolute inset-0 z-20 pointer-events-none bg-white animate-impact-flash" />}
+
       {/* Battlefield: heroes on left facing right, enemies on right facing left */}
-      <div className="absolute inset-0 flex flex-row p-3 pt-12 pb-28 gap-2">
+      <div className={`absolute inset-0 flex flex-row p-3 pt-12 pb-28 gap-2 ${shake === 'hard' ? 'animate-screen-shake-hard' : shake === 'soft' ? 'animate-screen-shake' : ''}`}>
         {/* Player column (left) */}
         <div className="flex-1 flex flex-col justify-around items-start">
           {playerSlots.map((u, i) => (

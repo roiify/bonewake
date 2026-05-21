@@ -24,12 +24,40 @@ export default {
       animation: {
         'pulse-slow': 'pulse 2s ease-in-out infinite',
         'shake': 'shake 0.4s ease-in-out',
+        'screen-shake': 'screen-shake 0.18s ease-out',
+        'screen-shake-hard': 'screen-shake-hard 0.32s ease-out',
+        'impact-flash': 'impact-flash 0.18s ease-out',
       },
       keyframes: {
         shake: {
           '0%,100%': { transform: 'translateX(0)' },
           '25%': { transform: 'translateX(-4px)' },
           '75%': { transform: 'translateX(4px)' },
+        },
+        // Global battlefield shake — short, sharp, decays toward 0.
+        'screen-shake': {
+          '0%':   { transform: 'translate(0, 0)' },
+          '20%':  { transform: 'translate(-6px, 3px)' },
+          '40%':  { transform: 'translate(5px, -2px)' },
+          '60%':  { transform: 'translate(-3px, 1px)' },
+          '80%':  { transform: 'translate(2px, -1px)' },
+          '100%': { transform: 'translate(0, 0)' },
+        },
+        'screen-shake-hard': {
+          '0%':   { transform: 'translate(0, 0)' },
+          '10%':  { transform: 'translate(-12px, 6px)' },
+          '25%':  { transform: 'translate(10px, -5px)' },
+          '40%':  { transform: 'translate(-8px, 4px)' },
+          '55%':  { transform: 'translate(7px, -3px)' },
+          '70%':  { transform: 'translate(-4px, 2px)' },
+          '85%':  { transform: 'translate(2px, -1px)' },
+          '100%': { transform: 'translate(0, 0)' },
+        },
+        // Quick white flash overlay for impact frames.
+        'impact-flash': {
+          '0%':   { opacity: '0' },
+          '20%':  { opacity: '0.55' },
+          '100%': { opacity: '0' },
         },
       },
     },
