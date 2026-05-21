@@ -88,7 +88,7 @@ export default function StagePrebattlePage() {
   async function startBattle() {
     if (!stage) return;
     if (squad.length === 0) { alert('Pick at least 1 hero!'); return; }
-    if (profile.energy < stage.energyCost) { alert('Not enough energy!'); return; }
+    // TESTING: energy check disabled (unlimited energy mode).
     navigate(`/battle/play/${stage.id}`);
   }
 
@@ -96,7 +96,7 @@ export default function StagePrebattlePage() {
   async function instantClear(count: number = 1) {
     if (!stage) return;
     if (squad.length === 0) { alert('Pick at least 1 hero!'); return; }
-    if (profile.energy < stage.energyCost * count) { alert('Not enough energy!'); return; }
+    // TESTING: energy check disabled (unlimited energy mode).
     setInstantBusy(true);
     let totalGold = 0, totalExp = 0;
     const droppedItems: number[] = [];

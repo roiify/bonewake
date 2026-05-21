@@ -62,10 +62,8 @@ export const useProfile = create<ProfileState>((set, get) => ({
     await get().patch({ friendPoints: p.friendPoints - n });
     return true;
   },
-  spendEnergy: async (n) => {
-    const p = get().profile;
-    if (p.energy < n) return false;
-    await get().patch({ energy: p.energy - n, lastEnergyTick: Date.now() });
+  spendEnergy: async (_n) => {
+    // TESTING: unlimited energy — no-op spend, always succeeds.
     return true;
   },
   gainExp: async (n) => {
