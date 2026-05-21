@@ -160,21 +160,34 @@ export function resolveBattle(
       const isPlayer = unit.side === 'player';
       const allies = isPlayer ? p : e;
       const enemies = isPlayer ? e : p;
-      const isUlt = unit.energy >= 100;
-      const skill = isUlt ? SKILL_BY_ID[unit.ultimateId] : undefined;
+      // Heal-all ults are "wasted" if no ally is below max HP — in that
+      // case keep energy at 100 and fall through to the basic-attack block.
+      const rawIsUlt = unit.energy >= 100;
+      const rawSkill = rawIsUlt ? SKILL_BY_ID[unit.ultimateId] : undefined;
+      const wastedHeal = rawSkill
+        && rawSkill.targeting === 'self'
+        && rawSkill.effect?.type === 'heal'
+        && !allies.some(a => a.alive && a.hp < a.maxHp);
+      const isUlt = rawIsUlt && !wastedHeal;
+      const skill = wastedHeal ? undefined : rawSkill;
 
       if (isUlt && skill) {
         // Ult-level bonus from per-hero skill leveling
         const ultMult = ultLevelMultiplier(unit.ultLevel ?? 0);
         if (skill.targeting === 'self' && skill.effect?.type === 'heal') {
           const healValue = Math.floor((skill.effect.value + Math.floor(unit.atk * 0.5)) * ultMult);
+          let isFirst = true;
           for (const ally of allies) {
             if (!ally.alive) continue;
             const before = ally.hp;
             ally.hp = Math.min(ally.maxHp, ally.hp + healValue);
-            log.push({ tick: ++tick, src: unit.id, dst: ally.id, dmg: 0, crit: false, ult: true, heal: ally.hp - before });
+            log.push({ tick: ++tick, src: unit.id, dst: ally.id, dmg: 0, crit: false, ult: true, heal: ally.hp - before, cont: !isFirst });
+            isFirst = false;
           }
+          unit.energy = 0;
+          continue;
         } else if (skill.targeting === 'all') {
+          let isFirst = true;
           for (const target of enemies) {
             if (!target.alive) continue;
             const eAdv = elementAdvantage(unit.element, target.element);
@@ -182,7 +195,8 @@ export function resolveBattle(
             let dmg = Math.max(1, unit.atk * skill.damageMultiplier - target.def);
             dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv * ultMult);
             target.hp = Math.max(0, target.hp - dmg);
-            log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true });
+            log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true, cont: !isFirst });
+            isFirst = false;
             if (skill.effect && (target.effects as any)) {
               (target.effects as any).push({ kind: skill.effect.type, value: skill.effect.value, remaining: skill.effect.duration ?? 2 });
             }

@@ -95,6 +95,11 @@ export interface BattleAction {
   crit: boolean;
   ult: boolean;
   heal?: number;
+  // Continuation entry — same logical cast as the previous entry (e.g.
+  // multi-target ult hits each target as its own log entry). Playback
+  // applies the effect immediately but doesn't re-play the animation
+  // or wait the full action duration.
+  cont?: boolean;
 }
 
 export interface BattleResult {

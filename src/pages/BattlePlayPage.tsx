@@ -101,6 +101,10 @@ export default function BattlePlayPage() {
       return () => clearTimeout(t);
     }
     const action = battle.log[tick];
+    // Continuation entries: don't re-trigger the attack/ult animation —
+    // just keep current attacker so the animation we already started keeps
+    // playing while the additional targets apply.
+    if (action.cont) return;
     setAttacker(action.src);
     if (action.ult) {
       const u = units[action.src];
@@ -114,7 +118,10 @@ export default function BattlePlayPage() {
   useEffect(() => {
     if (!battle || done || paused) return;
     if (tick >= battle.log.length) return;
-    const baseDuration = battle.log[tick].ult ? 6000 : 1100;
+    const a = battle.log[tick];
+    // Continuation entries (extra targets of a multi-target ult) get a
+    // very short wait — the animation already played on the first entry.
+    const baseDuration = a.cont ? 250 : (a.ult ? 6000 : 1100);
     const t = setTimeout(() => applyAction(), baseDuration / speed);
     return () => clearTimeout(t);
   }, [tick, battle, done, speed, paused]);
