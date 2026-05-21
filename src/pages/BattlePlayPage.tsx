@@ -630,13 +630,6 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt }: {
         </div>
       )}
 
-      {/* Active-attacker ground ring */}
-      {attacker && unit.alive && (
-        <div
-          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-20 h-3 rounded-[50%] pointer-events-none"
-          style={{ background: `radial-gradient(ellipse, ${unit.color}aa 0%, transparent 70%)`, animation: 'mvp-star-spin 1.6s ease-in-out infinite' }}
-        />
-      )}
 
       {/* Character sprite — heroes face right naturally, enemies mirrored */}
       <div className="relative w-28 h-28 flex items-end justify-center">

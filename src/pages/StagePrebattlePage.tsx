@@ -5,7 +5,6 @@ import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
 import { HERO_BY_ID, HERO_PORTRAITS, ENEMY_SPRITES } from '../data/heroes';
 import { buildEnemyUnit, calcHeroStats, toCombatUnit, xpForLevel } from '../lib/stats';
-import { StaticSprite } from '../components/SpriteAnimator';
 import { tierLabel } from '../lib/tier';
 import { resolveBattle } from '../lib/combat';
 import { db } from '../lib/db';
@@ -185,7 +184,9 @@ export default function StagePrebattlePage() {
             return (
               <div key={e.id} className="rounded border-2 p-2 text-center bg-zinc-950" style={{ borderColor: e.color }}>
                 <div className="aspect-square flex items-center justify-center overflow-hidden">
-                  {sprite ? <StaticSprite src={sprite.idle} size={70} className="scale-x-[-1]" /> : <div className="text-3xl">{e.emoji}</div>}
+                  {sprite
+                    ? <img src={sprite.idle} alt={e.name} className="w-full h-full object-cover scale-x-[-1]" style={{ imageRendering: 'pixelated' }} />
+                    : <div className="text-3xl">{e.emoji}</div>}
                 </div>
                 <div className="text-[10px] mt-1 truncate" style={{ color: e.color }}>{e.name}</div>
                 <div className="text-[9px] text-zinc-400">LVL:{e.level} {tierLabel(e.star)}</div>
@@ -234,7 +235,9 @@ export default function StagePrebattlePage() {
             return (
               <div key={u.id} className="rounded border-2 p-2 text-center bg-zinc-950" style={{ borderColor: u.color }}>
                 <div className="aspect-square flex items-center justify-center overflow-hidden">
-                  {portrait ? <StaticSprite src={portrait} size={70} /> : <div className="text-3xl">{u.emoji}</div>}
+                  {portrait
+                    ? <img src={portrait} alt={u.name} className="w-full h-full object-cover" style={{ imageRendering: 'pixelated' }} />
+                    : <div className="text-3xl">{u.emoji}</div>}
                 </div>
                 <div className="text-[10px] mt-1 truncate" style={{ color: u.color }}>{u.name}</div>
                 <div className="text-[9px] text-zinc-400">LVL:{u.level} {tierLabel(u.star)}</div>
@@ -298,7 +301,9 @@ export default function StagePrebattlePage() {
                     style={{ borderColor: tpl.color }}
                   >
                     <div className="aspect-square flex items-center justify-center overflow-hidden">
-                      {HERO_PORTRAITS[tpl.id] ? <StaticSprite src={HERO_PORTRAITS[tpl.id]} size={60} /> : <div className="text-3xl">{tpl.emoji}</div>}
+                      {HERO_PORTRAITS[tpl.id]
+                        ? <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="w-full h-full object-cover" style={{ imageRendering: 'pixelated' }} />
+                        : <div className="text-3xl">{tpl.emoji}</div>}
                     </div>
                     <div className="text-[10px] mt-1 truncate" style={{ color: tpl.color }}>{tpl.name}</div>
                     <div className="text-[9px] text-zinc-400">LVL:{h.level} ⚔{stats.power}</div>
