@@ -4,7 +4,6 @@ import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { calcHeroStats } from '../lib/stats';
 import { Link } from 'react-router-dom';
 import type { Rarity } from '../types';
-import { ELEMENT_AURA } from '../data/auraMap';
 import { tierLabel, tierColor } from '../lib/tier';
 import { useItems } from '../store/items';
 import { fragmentItemId, STAR_UP_COST } from '../lib/fragments';
@@ -153,9 +152,8 @@ export default function HeroesPage() {
                 <div className="relative aspect-square rounded flex items-center justify-center mb-1 overflow-hidden"
                   style={{ background: `linear-gradient(135deg, ${tpl.color}30, transparent)` }}
                 >
-                  <img src={ELEMENT_AURA[tpl.element]} alt="" className="absolute inset-0 w-full h-full object-contain opacity-25 mix-blend-screen pointer-events-none" />
                   {HERO_PORTRAITS[tpl.id] ? (
-                    <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="relative w-[95%] h-[95%] object-contain drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]" style={{ imageRendering: 'pixelated' }} />
+                    <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="relative w-full h-full object-cover drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]" style={{ imageRendering: 'pixelated' }} />
                   ) : (
                     <div className="relative text-4xl drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]">{tpl.emoji}</div>
                   )}

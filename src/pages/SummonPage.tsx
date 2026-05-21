@@ -13,7 +13,6 @@ import { uid } from '../lib/id';
 import { addFragments, DUP_FRAGMENT_VALUE } from '../lib/fragments';
 import { recordEvent } from '../lib/lifetime';
 import { sound } from '../lib/audio';
-import { ELEMENT_AURA } from '../data/auraMap';
 import { tierLabel, tierColor } from '../lib/tier';
 
 function rarityGlow(star: number) {
@@ -175,7 +174,6 @@ export default function SummonPage() {
                       }}
                     >
                       <div className="relative">
-                        <img src={ELEMENT_AURA[r.hero.element]} alt="" className="absolute inset-0 w-full h-full object-contain opacity-60 mix-blend-screen pointer-events-none" />
                         <div className={`relative ${reveal.length === 1 ? 'text-6xl' : 'text-2xl'} drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]`}>{r.hero.emoji}</div>
                       </div>
                       <div className="text-[9px] mt-1 truncate" style={{ color: r.hero.color }}>{r.hero.name}</div>

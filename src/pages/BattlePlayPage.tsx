@@ -10,7 +10,7 @@ import { db } from '../lib/db';
 import { incrementTask } from '../lib/tasks';
 import type { CombatUnit, BattleResult } from '../types';
 import type { OwnedEquipment } from '../lib/db';
-import { CHAPTER_BG, ELEMENT_AURA } from '../data/auraMap';
+import { CHAPTER_BG } from '../data/auraMap';
 import { HERO_SPRITES, ENEMY_SPRITES } from '../data/heroes';
 import SpriteAnimator from '../components/SpriteAnimator';
 import { genLoot } from '../lib/loot';
@@ -365,15 +365,6 @@ export default function BattlePlayPage() {
             className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
             style={{ background: `radial-gradient(circle, ${ultFlash.color}90, #000000d0)` }}
           >
-            <motion.img
-              src={ELEMENT_AURA[ultFlash.element]}
-              alt=""
-              initial={{ scale: 0.4, opacity: 0 }}
-              animate={{ scale: [0.4, 1.4, 1.2], opacity: [0, 1, 0.9], rotate: [0, 8, -4] }}
-              exit={{ scale: 1.8, opacity: 0 }}
-              transition={{ duration: 0.6 / speed }}
-              className="absolute w-72 h-72 mix-blend-screen pointer-events-none"
-            />
             {HERO_SPRITES[ultFlash.templateId]?.skill ? (
               <motion.div
                 initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1.6, opacity: 1 }} exit={{ scale: 2.2, opacity: 0 }}

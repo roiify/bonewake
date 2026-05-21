@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { STAGES } from '../data/stages';
 import { db, type StageClear } from '../lib/db';
-import { CHAPTER_BG, CHAPTER_BIOME } from '../data/auraMap';
+import { CHAPTER_BG } from '../data/auraMap';
 
 const CHAPTER_NAMES: Record<number, string> = {
   1: 'Forsaken Fields', 2: 'Ashen Wastes', 3: 'Dread Court',
@@ -113,12 +113,6 @@ export default function ChapterMapPage() {
               </div>
             </div>
 
-            {/* Biome tile decoration */}
-            {CHAPTER_BIOME[ch] && (
-              <div className="bg-zinc-950 p-2 flex items-center justify-center">
-                <img src={CHAPTER_BIOME[ch]} alt="" className="h-16 object-contain opacity-80" style={{ imageRendering: 'pixelated' }} />
-              </div>
-            )}
           </div>
         );
       })}

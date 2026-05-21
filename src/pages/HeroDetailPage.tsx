@@ -3,7 +3,6 @@ import { useMemo, useState } from 'react';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
 import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
-import { StaticSprite } from '../components/SpriteAnimator';
 import { SKILL_BY_ID } from '../data/skills';
 import { EQUIP_BY_ID } from '../data/equipment';
 import { BASE_BY_ID, LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/loot';
@@ -14,7 +13,6 @@ import { GEMS, GEM_BY_ID, GEM_TIER_COLOR, gemInventoryKey } from '../data/gems';
 import { socketGem, unsocketGem, socketsAvailableFor, ensureSockets, getGemInventoryMap, removeGemFromInventory } from '../lib/gems';
 import { calcHeroStats, goldToLevelUp, maxLevelForStar, xpForLevel } from '../lib/stats';
 import type { EquipSlot } from '../types';
-import { ELEMENT_AURA } from '../data/auraMap';
 import { useItems } from '../store/items';
 import { consumeFragments, fragmentItemId, STAR_UP_COST, MAX_STAR } from '../lib/fragments';
 import { tierLabel, tierColor, nextTierLabel } from '../lib/tier';
@@ -207,9 +205,8 @@ export default function HeroDetailPage() {
         <div className="relative aspect-square w-40 mx-auto rounded-lg flex items-center justify-center mb-2 overflow-hidden"
           style={{ background: `radial-gradient(circle, ${tpl.color}40, transparent)` }}
         >
-          <img src={ELEMENT_AURA[tpl.element]} alt="" className="absolute inset-0 w-full h-full object-contain opacity-50 mix-blend-screen animate-pulse-slow pointer-events-none" />
           {HERO_PORTRAITS[tpl.id] ? (
-            <StaticSprite src={HERO_PORTRAITS[tpl.id]} size={150} className="relative drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]" />
+            <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="relative w-full h-full object-cover drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]" style={{ imageRendering: 'pixelated' }} />
           ) : (
             <div className="relative text-6xl drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]">{tpl.emoji}</div>
           )}

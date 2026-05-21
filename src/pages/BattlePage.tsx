@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { STAGES } from '../data/stages';
 import { db, type StageClear } from '../lib/db';
-import { CHAPTER_BIOME } from '../data/auraMap';
 
 export default function BattlePage() {
   const [clears, setClears] = useState<Record<string, StageClear>>({});
@@ -84,8 +83,7 @@ export default function BattlePage() {
       {Object.entries(byChapter).map(([ch, stages]) => (
         <div key={ch}>
           <div className="relative rounded-md overflow-hidden mb-2 h-20 border border-zinc-800">
-            <img src={CHAPTER_BIOME[Number(ch)]} alt="" className="absolute right-0 top-0 h-full object-cover opacity-80" />
-            <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-900/60 to-zinc-800" />
             <div className="relative flex items-center gap-2 h-full px-3">
               <span className="text-2xl drop-shadow">{chapterEmoji[Number(ch) as 1]}</span>
               <div>
