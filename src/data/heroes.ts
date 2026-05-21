@@ -153,7 +153,7 @@ export const HERO_SPRITES: Record<string, {
   len:    { idle: A('sprites/pixellab/heroes/len_idle.png'),    attack: A('sprites/pixellab/heroes/len_attack.png'),    skill: A('sprites/pixellab/heroes/len_skill.png'),    hit: A('sprites/pixellab/heroes/len_attack.png'),    death: A('sprites/pixellab/heroes/len_death.png'),    cols: 43, rows: 1 },
   kaius:  { idle: A('sprites/pixellab/heroes/kaius.png'),  attack: A('sprites/pixellab/heroes/kaius.png'),  skill: A('sprites/pixellab/heroes/kaius.png'),  hit: A('sprites/pixellab/heroes/kaius.png'),  death: A('sprites/pixellab/heroes/kaius.png'),  cols: 1, rows: 1 },
   pyra:   { idle: A('sprites/pixellab/heroes/pyra.png'),   attack: A('sprites/pixellab/heroes/pyra.png'),   skill: A('sprites/pixellab/heroes/pyra.png'),   hit: A('sprites/pixellab/heroes/pyra.png'),   death: A('sprites/pixellab/heroes/pyra.png'),   cols: 1, rows: 1 },
-  korvan: { idle: A('sprites/pixellab/heroes/korvan.png'), attack: A('sprites/pixellab/heroes/korvan.png'), skill: A('sprites/pixellab/heroes/korvan.png'), hit: A('sprites/pixellab/heroes/korvan.png'), death: A('sprites/pixellab/heroes/korvan.png'), cols: 1, rows: 1 },
+  korvan: { idle: A('sprites/pixellab/heroes/korvan_idle.png'), attack: A('sprites/pixellab/heroes/korvan_attack.png'), skill: A('sprites/pixellab/heroes/korvan_skill.png'), hit: A('sprites/pixellab/heroes/korvan_attack.png'), death: A('sprites/pixellab/heroes/korvan_death.png'), cols: 43, rows: 1 },
 };
 
 export const ENEMY_SPRITES: Record<string, {
