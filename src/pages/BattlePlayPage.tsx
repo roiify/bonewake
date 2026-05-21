@@ -374,14 +374,14 @@ export default function BattlePlayPage() {
             className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
             style={{ background: `radial-gradient(circle, ${ultFlash.color}90, #000000d0)` }}
           >
-            {HERO_SPRITES[ultFlash.templateId]?.skill ? (
+            {(HERO_SPRITES[ultFlash.templateId]?.ult || HERO_SPRITES[ultFlash.templateId]?.skill) ? (
               <motion.div
                 initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1.6, opacity: 1 }} exit={{ scale: 2.2, opacity: 0 }}
                 transition={{ duration: 0.5 / speed }}
                 className="relative"
               >
                 <SpriteAnimator
-                  src={HERO_SPRITES[ultFlash.templateId].skill}
+                  src={HERO_SPRITES[ultFlash.templateId].ult ?? HERO_SPRITES[ultFlash.templateId].skill}
                   cols={HERO_SPRITES[ultFlash.templateId].cols}
                   rows={HERO_SPRITES[ultFlash.templateId].rows}
                   fps={7} loop={false} size={200}
@@ -596,7 +596,7 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill }: {
   if (sprites) {
     if (!unit.alive) animSrc = (heroSprites?.death ?? enemySprites?.death) ?? animSrc;
     else if (hit) animSrc = (heroSprites?.hit ?? enemySprites?.hit) ?? animSrc;
-    else if (attacker && isUlt && (heroSprites?.skill || enemySprites?.skill)) animSrc = heroSprites?.skill ?? enemySprites?.skill ?? animSrc;
+    else if (attacker && isUlt && (heroSprites?.ult || enemySprites?.skill)) animSrc = heroSprites?.ult ?? heroSprites?.skill ?? enemySprites?.skill ?? animSrc;
     else if (attacker && isSkill && (heroSprites?.skill || enemySprites?.skill)) animSrc = heroSprites?.skill ?? enemySprites?.skill ?? animSrc;
     else if (attacker) animSrc = (heroSprites?.attack ?? enemySprites?.attack) ?? animSrc;
   }
