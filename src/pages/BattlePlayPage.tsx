@@ -73,6 +73,7 @@ export default function BattlePlayPage() {
   });
   const [attacker, setAttacker] = useState<string | null>(null);
   const [hit, setHit] = useState<string | null>(null);
+  const [skillCaster, setSkillCaster] = useState<string | null>(null);
   const [floats, setFloats] = useState<FloatingNumber[]>([]);
   const [ultFlash, setUltFlash] = useState<CombatUnit | null>(null);
   const [done, setDone] = useState(false);
@@ -106,6 +107,7 @@ export default function BattlePlayPage() {
     // playing while the additional targets apply.
     if (action.cont) return;
     setAttacker(action.src);
+    setSkillCaster(action.skill ? action.src : null);
     if (action.ult) {
       const u = units[action.src];
       setUltFlash(u);
@@ -121,7 +123,7 @@ export default function BattlePlayPage() {
     const a = battle.log[tick];
     // Continuation entries (extra targets of a multi-target ult) get a
     // very short wait — the animation already played on the first entry.
-    const baseDuration = a.cont ? 250 : (a.ult ? 6000 : 1100);
+    const baseDuration = a.cont ? 250 : (a.ult ? 6000 : a.skill ? 2400 : 1100);
     const t = setTimeout(() => applyAction(), baseDuration / speed);
     return () => clearTimeout(t);
   }, [tick, battle, done, speed, paused]);
@@ -404,7 +406,7 @@ export default function BattlePlayPage() {
         <div className="flex-1 flex flex-col justify-around items-start">
           {playerSlots.map((u, i) => (
             <div key={u.id} style={{ marginLeft: `${i % 2 === 0 ? 0 : 18}px` }}>
-              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} side="player" floats={floats.filter(() => attacker === u.id || hit === u.id)} />
+              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} side="player" floats={floats.filter(() => attacker === u.id || hit === u.id)} />
             </div>
           ))}
         </div>
@@ -412,7 +414,7 @@ export default function BattlePlayPage() {
         <div className="flex-1 flex flex-col justify-around items-end">
           {enemySlots.map((u, i) => (
             <div key={u.id} style={{ marginRight: `${i % 2 === 0 ? 0 : 18}px` }}>
-              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} side="enemy" floats={floats.filter(() => attacker === u.id || hit === u.id)} />
+              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} side="enemy" floats={floats.filter(() => attacker === u.id || hit === u.id)} />
             </div>
           ))}
         </div>
@@ -579,8 +581,8 @@ export default function BattlePlayPage() {
   );
 }
 
-function UnitCard({ unit, attacker, hit, side, floats, isUlt }: {
-  unit: CombatUnit; attacker: boolean; hit: boolean; side: 'player' | 'enemy'; floats: FloatingNumber[]; isUlt: boolean;
+function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill }: {
+  unit: CombatUnit; attacker: boolean; hit: boolean; side: 'player' | 'enemy'; floats: FloatingNumber[]; isUlt: boolean; isSkill: boolean;
 }) {
   // Resolve sprite set
   const heroSprites = HERO_SPRITES[unit.templateId];
@@ -595,6 +597,7 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt }: {
     if (!unit.alive) animSrc = (heroSprites?.death ?? enemySprites?.death) ?? animSrc;
     else if (hit) animSrc = (heroSprites?.hit ?? enemySprites?.hit) ?? animSrc;
     else if (attacker && isUlt && (heroSprites?.skill || enemySprites?.skill)) animSrc = heroSprites?.skill ?? enemySprites?.skill ?? animSrc;
+    else if (attacker && isSkill && (heroSprites?.skill || enemySprites?.skill)) animSrc = heroSprites?.skill ?? enemySprites?.skill ?? animSrc;
     else if (attacker) animSrc = (heroSprites?.attack ?? enemySprites?.attack) ?? animSrc;
   }
 
@@ -645,7 +648,7 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt }: {
             src={animSrc}
             cols={sprites!.cols}
             rows={sprites!.rows}
-            fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker ? 18 : 14))}
+            fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 18 : 14)))}
             loop={unit.alive && !hit}
             size={112}
             className={side === 'enemy' ? 'scale-x-[-1]' : ''}

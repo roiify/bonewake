@@ -95,6 +95,10 @@ export interface BattleAction {
   crit: boolean;
   ult: boolean;
   heal?: number;
+  // Mid-power skill (between basic attack and ultimate). Plays the
+  // `skill` sprite strip but at a faster pace than an ult cast and
+  // without the full-screen flash overlay.
+  skill?: boolean;
   // Continuation entry — same logical cast as the previous entry (e.g.
   // multi-target ult hits each target as its own log entry). Playback
   // applies the effect immediately but doesn't re-play the animation
