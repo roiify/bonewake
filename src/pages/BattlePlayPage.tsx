@@ -421,7 +421,7 @@ export default function BattlePlayPage() {
         <div className="flex-1 flex flex-col justify-around items-start">
           {playerSlots.map((u, i) => (
             <div key={u.id} style={{ marginLeft: `${i % 2 === 0 ? 0 : 18}px` }}>
-              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} side="player" floats={floats.filter(() => attacker === u.id || hit === u.id)} />
+              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} side="player" floats={floats.filter(() => hit === u.id)} />
             </div>
           ))}
         </div>
@@ -429,7 +429,7 @@ export default function BattlePlayPage() {
         <div className="flex-1 flex flex-col justify-around items-end">
           {enemySlots.map((u, i) => (
             <div key={u.id} style={{ marginRight: `${i % 2 === 0 ? 0 : 18}px` }}>
-              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} side="enemy" floats={floats.filter(() => attacker === u.id || hit === u.id)} />
+              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} side="enemy" floats={floats.filter(() => hit === u.id)} />
             </div>
           ))}
         </div>
