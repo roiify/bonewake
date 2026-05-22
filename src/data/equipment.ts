@@ -14,7 +14,7 @@ export const EQUIPMENT_TEMPLATES: EquipmentTemplate[] = [
   { id: 'helm_4', name: 'Knight Helm', slot: 'helm', rarity: 4, stats: { hp: 300, def: 25 }, emoji: '🪖' },
   { id: 'helm_5', name: 'Crown of Stars', slot: 'helm', rarity: 5, stats: { hp: 700, def: 60, crit: 0.05 }, emoji: '👑' },
 
-  { id: 'boots_3', name: 'Worn Boots', slot: 'boots', rarity: 3, stats: { spd: 8 }, emoji: '👢' },
+  { id: 'boots_3', name: 'Worn Boots', slot: 'boots', rarity: 3, stats: { spd: 8 }, emoji: '🥾' },
   { id: 'boots_4', name: 'Swift Greaves', slot: 'boots', rarity: 4, stats: { spd: 20, def: 15 }, emoji: '🥾' },
   { id: 'boots_5', name: 'Windstride', slot: 'boots', rarity: 5, stats: { spd: 45, def: 35 }, emoji: '🪶' },
 

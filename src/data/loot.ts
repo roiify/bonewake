@@ -47,7 +47,7 @@ export const BASE_ITEMS: BaseItem[] = [
   // Armor
   { id: 'plate',  name: 'Plate Armor', slot: 'armor', emoji: '🛡️', primary: 'def',
     baseMin: 14, baseMax: 35, affixPool: ['hp', 'def', 'atk'] },
-  { id: 'robe',   name: 'Robe',        slot: 'armor', emoji: '🥻', primary: 'def',
+  { id: 'robe',   name: 'Robe',        slot: 'armor', emoji: '🧥', primary: 'def',
     baseMin: 6, baseMax: 18, affixPool: ['hp', 'atk', 'crit', 'spd'] },
   { id: 'leather',name: 'Leather Vest',slot: 'armor', emoji: '🦺', primary: 'def',
     baseMin: 10, baseMax: 24, affixPool: ['hp', 'spd', 'def'] },
@@ -63,7 +63,7 @@ export const BASE_ITEMS: BaseItem[] = [
   // Boots
   { id: 'boots',  name: 'Boots', slot: 'boots', emoji: '🥾', primary: 'spd',
     baseMin: 6, baseMax: 18, affixPool: ['spd', 'def', 'hp'] },
-  { id: 'sandals',name: 'Sandals', slot: 'boots', emoji: '👡', primary: 'spd',
+  { id: 'sandals',name: 'Sandals', slot: 'boots', emoji: '🥾', primary: 'spd',
     baseMin: 8, baseMax: 22, affixPool: ['spd', 'crit', 'def'] },
 
   // Accessories
