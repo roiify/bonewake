@@ -59,13 +59,24 @@ export default function StagePrebattlePage() {
     .map((h, i, arr) => toCombatUnit(h, equipment, 'player', `p${i}`, arr.map(x => x.templateId)))
     .filter((u): u is NonNullable<typeof u> => !!u);
 
-  function autoFormation() {
-    const top3 = [...heroes]
+  async function autoFormation() {
+    // Manny's lore: he fights with his summons, not other heroes. If Auto
+    // would have picked Manny in the top 3, switch to the locked solo
+    // lineup (Manny + Bone King + Lich Sovereign) instead of mixing him
+    // with other heroes.
+    const ranked = [...heroes]
+      // Skip the auto-managed summons — they only enter via Manny.
+      .filter(h => !HIDDEN_HERO_IDS.has(h.templateId))
       .map(h => ({ h, p: calcHeroStats(h, equipment).power }))
-      .sort((a, b) => b.p - a.p)
-      .slice(0, 3)
-      .map(x => x.h.id);
-    setSquad(top3);
+      .sort((a, b) => b.p - a.p);
+    const top3 = ranked.slice(0, 3);
+    const mannyPick = top3.find(x => x.h.templateId === MANNY_TPL);
+    if (mannyPick) {
+      const summonIds = await ensureMannySummons();
+      setSquad([mannyPick.h.id, ...summonIds]);
+      return;
+    }
+    setSquad(top3.map(x => x.h.id));
   }
 
   async function toggleHeroInSquad(heroId: string) {
@@ -96,8 +107,16 @@ export default function StagePrebattlePage() {
     if (squad.length < 3) setSquad([...squad, heroId]);
   }
 
-  function loadPresetSquad(heroIds: string[]) {
+  async function loadPresetSquad(heroIds: string[]) {
     const valid = heroIds.filter(id => heroes.some(h => h.id === id));
+    // If the preset includes Manny, enforce the locked solo lineup so
+    // an old preset can't bypass the Manny-fights-alone rule.
+    const mannyId = valid.find(id => heroes.find(h => h.id === id)?.templateId === MANNY_TPL);
+    if (mannyId) {
+      const summonIds = await ensureMannySummons();
+      setSquad([mannyId, ...summonIds]);
+      return;
+    }
     setSquad(valid);
   }
 
