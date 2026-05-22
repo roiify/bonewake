@@ -20,7 +20,7 @@ import { maxLevelForStar } from '../lib/stats';
 import { MAX_ULT_LEVEL } from '../lib/ultLeveling';
 import { TALENT_TREE } from '../data/talents';
 import { craftSetPiece } from '../lib/crafting';
-import type { OwnedEquipment } from '../lib/db';
+import type { LootStat } from '../data/loot';
 
 export default function DebugPage() {
   const navigate = useNavigate();
