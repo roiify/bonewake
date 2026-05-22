@@ -39,9 +39,10 @@ export function pullOnce(
     star = rollStarTier(poolId, rng);
   }
 
-  // Pick which hero — featured wins half the time on SSS pulls if pool has one
+  // Pick which hero — featured wins 30% of SSS pulls (was 50%; Luna was
+  // popping too often as the SSS result on Stellar Wish).
   let hero: HeroTemplate;
-  if (star === 5 && pool.featuredHeroId && rng() < 0.5) {
+  if (star === 5 && pool.featuredHeroId && rng() < 0.30) {
     hero = HERO_TEMPLATES.find(h => h.id === pool.featuredHeroId) ?? pickWeighted(rng);
   } else {
     hero = pickWeighted(rng);

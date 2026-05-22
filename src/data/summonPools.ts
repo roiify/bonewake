@@ -18,18 +18,18 @@ export const SUMMON_POOLS: SummonPool[] = [
   {
     id: 'standard',
     name: 'Standard Wish',
-    description: 'Cheap. Mostly S, occasional SS.',
+    description: 'Cheap. Mostly S, rare SS, almost never SSS.',
     cost: { currency: 'gold', amount: 100 },
-    rates: { 3: 0.85, 4: 0.13, 5: 0.02 },
+    rates: { 3: 0.90, 4: 0.095, 5: 0.005 },
     pityFive: null,
   },
   {
     id: 'premium',
     name: 'Stellar Wish',
-    description: 'Higher SSS chance. Pity at 80.',
+    description: 'Better SS/SSS odds. Pity at 90.',
     cost: { currency: 'gems', amount: 5 },
-    rates: { 3: 0.60, 4: 0.30, 5: 0.10 },
-    pityFive: 80,
+    rates: { 3: 0.70, 4: 0.26, 5: 0.04 },
+    pityFive: 90,
     featuredHeroId: 'luna',
   },
   {

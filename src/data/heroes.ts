@@ -63,7 +63,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     emoji: '✨',
     color: '#fde047',
     flavor: 'Priestess of the dawn. Mends what is broken.',
-    pullWeight: 14,
+    pullWeight: 8,
   },
   {
     id: 'aelia',

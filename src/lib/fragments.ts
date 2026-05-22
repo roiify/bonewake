@@ -3,18 +3,20 @@ import type { Rarity } from '../types';
 
 export const fragmentItemId = (heroTemplateId: string) => `frag_${heroTemplateId}`;
 
-// How many fragments a duplicate is worth
+// How many fragments a duplicate is worth (bumped so S-tier dupes give
+// a meaningful chunk toward promotion now that the SSS pull rate is harsher).
 export const DUP_FRAGMENT_VALUE: Record<Rarity, number> = {
-  3: 5,
-  4: 20,
+  3: 10,
+  4: 35,
   5: 100,
 };
 
-// Fragments required to advance a hero from N stars to N+1 stars
+// Fragments required to advance a hero from N stars to N+1 stars.
+// S → SS at 2 dupes, SS → SSS at ~5 dupes — a real path to SSS via play.
 export const STAR_UP_COST: Record<number, number> = {
-  3: 30,   // 3★ → 4★ (after pulling enough dupes)
-  4: 80,   // 4★ → 5★
-  5: 200,  // 5★ → 6★ (post-cap)
+  3: 20,   // 3★ → 4★ (S → SS)
+  4: 50,   // 4★ → 5★ (SS → SSS)
+  5: 200,  // 5★ → 6★ (SSS+ end-game)
 };
 
 export const MAX_STAR = 6;
