@@ -60,11 +60,15 @@ function applyFirstTurn(unit: CombatUnit, allies: CombatUnit[]): { healLogs: { d
   for (const sk of skills) {
     if (sk.trigger !== 'first_turn') continue;
     if (sk.effect.kind === 'team_heal') {
+      // Skip entirely if nobody actually needs healing — no log entries
+      // emitted so the playback doesn't show "+0" green floaters.
+      if (!allies.some(a => a.alive && a.hp < a.maxHp)) continue;
       for (const a of allies) {
         if (!a.alive) continue;
         const before = a.hp;
         a.hp = Math.min(a.maxHp, a.hp + sk.effect.value);
-        out.push({ dst: a.id, heal: a.hp - before });
+        const gained = a.hp - before;
+        if (gained > 0) out.push({ dst: a.id, heal: gained });
       }
       ranTeamHeal = true;
     }
@@ -81,12 +85,15 @@ function applyOnAttackHeal(attacker: CombatUnit, allies: CombatUnit[], dmg: numb
   const skills = skillsForHero(attacker.templateId);
   for (const sk of skills) {
     if (sk.trigger === 'on_attack' && sk.effect.kind === 'lifesteal') {
-      const target = [...allies].filter(a => a.alive).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
-      if (!target) return null;
+      const target = [...allies].filter(a => a.alive && a.hp < a.maxHp)
+        .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+      if (!target) return null;  // no ally needs healing — skip the lifesteal
       const before = target.hp;
       const amount = Math.floor(dmg * sk.effect.value);
       target.hp = Math.min(target.maxHp, target.hp + amount);
-      return { dst: target.id, heal: target.hp - before };
+      const gained = target.hp - before;
+      if (gained <= 0) return null;
+      return { dst: target.id, heal: gained };
     }
   }
   return null;
