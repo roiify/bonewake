@@ -229,6 +229,12 @@ export default function StagePrebattlePage() {
             <button className="btn-pixel" onClick={autoFormation}>Auto</button>
             <button className="btn-pixel" onClick={() => setPicker(true)}>Edit</button>
             <button className="btn-pixel" onClick={savePresetSquad} disabled={squad.length === 0}>💾</button>
+            <button
+              className="btn-pixel danger"
+              onClick={() => setSquad([])}
+              disabled={squad.length === 0}
+              title="Remove all heroes from squad"
+            >🗑️</button>
           </div>
         </div>
         {/* Preset chips */}
