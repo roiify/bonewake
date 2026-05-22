@@ -1,22 +1,26 @@
 // Gem system — socketable into equipment. Drop from battles.
 import type { LootStat } from './loot';
 
-export type GemTier = 1 | 2 | 3 | 4;
+export type GemTier = 1 | 2 | 3 | 4 | 5;
 
 export const GEM_TIER_NAME: Record<GemTier, string> = {
-  1: 'Chip', 2: 'Stone', 3: 'Gem', 4: 'Crystal',
+  1: 'Chip', 2: 'Stone', 3: 'Gem', 4: 'Crystal', 5: 'Ultimate',
 };
 export const GEM_TIER_COLOR: Record<GemTier, string> = {
-  1: '#9ca3af', 2: '#3b82f6', 3: '#a855f7', 4: '#f59e0b',
+  1: '#9ca3af', 2: '#3b82f6', 3: '#a855f7', 4: '#f59e0b', 5: '#fb7185',
 };
 
 export interface GemDef {
-  id: string;             // e.g., 'gem_atk_2'
+  id: string;             // e.g., 'gem_atk_2' or 'gem_ult_luna'
   stat: LootStat;
   tier: GemTier;
-  value: number;          // stat boost provided
+  value: number;          // primary stat boost provided
   emoji: string;
   name: string;
+  // For tier-5 (Ultimate) gems: secondary stats bundled into the same gem
+  // so one socket gives a meaningful hero-specific boost.
+  bonusStats?: Partial<Record<LootStat, number>>;
+  heroId?: string;        // tier-5 gems are bound to a hero (crafted, not random)
 }
 
 // Generate gem definitions for each stat × tier
@@ -46,6 +50,53 @@ export const GEMS: GemDef[] = [];
     });
   });
 });
+
+// ============ TIER 5 — ULTIMATE SOCKET GEMS (one per hero) ============
+// Crafted from the same materials as ultimate gear pieces. Bound to a
+// hero (cannot drop, cannot be socketed into another hero's gear via
+// auto-fill — UI checks heroId). Carries one primary stat + a bonus
+// stat bundle tuned to the hero's archetype, so they're meaningfully
+// stronger than a tier-4 gem but never push one hero past the rest.
+interface UltGemSeed { heroId: string; name: string; emoji: string;
+  primary: { stat: LootStat; value: number };
+  bonus: Partial<Record<LootStat, number>>;
+  cost: { soulshard: number; essence: number; gold: number };
+}
+const ULT_GEM_COST = { soulshard: 60, essence: 25, gold: 18000 };
+const ULT_GEM_SEEDS: UltGemSeed[] = [
+  // Mages — ATK primary + crit bundle
+  { heroId: 'aelia',  name: 'Frost Heart',      emoji: '💠', primary: { stat: 'atk', value: 280 }, bonus: { crit: 0.10, hp: 800 }, cost: ULT_GEM_COST },
+  { heroId: 'pyra',   name: 'Ember Core',       emoji: '🔥', primary: { stat: 'atk', value: 280 }, bonus: { crit: 0.10, hp: 800 }, cost: ULT_GEM_COST },
+  { heroId: 'manny',  name: 'Soulbinder Stone', emoji: '☠️', primary: { stat: 'atk', value: 280 }, bonus: { crit: 0.10, hp: 800 }, cost: ULT_GEM_COST },
+  // Healer — HP primary + atk bundle
+  { heroId: 'luna',   name: 'Dawn Tear',        emoji: '☀️', primary: { stat: 'hp',  value: 2400 }, bonus: { atk: 160, def: 100 }, cost: ULT_GEM_COST },
+  // Tank — HP primary + def bundle
+  { heroId: 'kaius',  name: 'Aegis Sigil',      emoji: '🛡️', primary: { stat: 'hp',  value: 2800 }, bonus: { def: 220, atk: 100 }, cost: ULT_GEM_COST },
+  // Warriors — HP/ATK split
+  { heroId: 'kengo',  name: 'Mountain Pearl',   emoji: '🪨', primary: { stat: 'hp',  value: 2200 }, bonus: { atk: 200, def: 120 }, cost: ULT_GEM_COST },
+  { heroId: 'korvan', name: 'Black Harvest Gem', emoji: '🩸', primary: { stat: 'atk', value: 240 }, bonus: { crit: 0.08, hp: 1200 }, cost: ULT_GEM_COST },
+  { heroId: 'george', name: 'Heart of the Wild', emoji: '🌿', primary: { stat: 'hp',  value: 2200 }, bonus: { atk: 200, def: 120 }, cost: ULT_GEM_COST },
+  // Assassins — CRIT primary + spd bundle
+  { heroId: 'len',    name: 'Eclipse Shard',    emoji: '🌒', primary: { stat: 'crit', value: 0.18 }, bonus: { atk: 200, spd: 50 }, cost: ULT_GEM_COST },
+  { heroId: 'elara',  name: 'Worldweave Crystal', emoji: '🍃', primary: { stat: 'crit', value: 0.18 }, bonus: { atk: 200, spd: 50 }, cost: ULT_GEM_COST },
+];
+
+export const ULT_GEMS: GemDef[] = ULT_GEM_SEEDS.map(s => ({
+  id: `gem_ult_${s.heroId}`,
+  stat: s.primary.stat,
+  tier: 5,
+  value: s.primary.value,
+  emoji: s.emoji,
+  name: s.name,
+  bonusStats: s.bonus,
+  heroId: s.heroId,
+}));
+export const ULT_GEM_BY_HERO: Record<string, GemDef> = Object.fromEntries(ULT_GEMS.map(g => [g.heroId!, g]));
+export const ULT_GEM_COST_BY_HERO: Record<string, typeof ULT_GEM_COST> = Object.fromEntries(ULT_GEM_SEEDS.map(s => [s.heroId, s.cost]));
+
+// Merge ult gems into the main gem registry so socket UI, inventory,
+// and stat aggregation pick them up automatically.
+GEMS.push(...ULT_GEMS);
 
 export const GEM_BY_ID = Object.fromEntries(GEMS.map(g => [g.id, g]));
 

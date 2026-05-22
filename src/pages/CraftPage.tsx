@@ -14,7 +14,8 @@ import {
 } from '../data/ultimateGear';
 import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
-import { craftSetPiece } from '../lib/crafting';
+import { craftSetPiece, craftUltimateGem } from '../lib/crafting';
+import { ULT_GEM_BY_HERO, ULT_GEM_COST_BY_HERO, gemInventoryKey } from '../data/gems';
 
 function statRowFromStats(stats: Record<string, number>): string {
   return Object.entries(stats).map(([k, v]) =>
@@ -138,6 +139,61 @@ export default function CraftPage() {
           })}
         </div>
       </div>
+
+      {/* Ultimate Socket Gem (one per hero) */}
+      {(() => {
+        const ultGem = ULT_GEM_BY_HERO[activeHeroId];
+        const ultGemCost = ULT_GEM_COST_BY_HERO[activeHeroId];
+        if (!ultGem || !ultGemCost) return null;
+        const owned = items.find(i => i.templateId === gemInventoryKey(ultGem.id))?.count ?? 0;
+        const canAfford = soulshards >= ultGemCost.soulshard && essence >= ultGemCost.essence && profile.gold >= ultGemCost.gold && !!hero;
+        const isCrafting = crafting === ultGem.id;
+        return (
+          <div
+            className="rounded-md border-2 p-3 mb-2"
+            style={{ borderColor: owned > 0 ? '#fb7185' : '#3f3f46', background: owned > 0 ? '#1c1217' : '#18181b' }}
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 rounded bg-zinc-950 flex items-center justify-center text-3xl shrink-0">{ultGem.emoji}</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <div className="text-xs font-pixel truncate" style={{ color: '#fb7185' }}>{ultGem.name}</div>
+                  <span className="text-[9px] font-pixel text-rose-300">★ ULT SOCKET</span>
+                  {owned > 0 && <span className="text-[9px] font-pixel text-emerald-400">✓ x{owned}</span>}
+                </div>
+                <div className="text-[9px] text-zinc-500">Socket gem — fits any item</div>
+                <div className="text-[10px] text-zinc-300 mt-1">
+                  {ultGem.stat === 'crit' ? `+${(ultGem.value * 100).toFixed(0)}% CRIT` : `+${ultGem.value} ${ultGem.stat.toUpperCase()}`}
+                  {ultGem.bonusStats && Object.entries(ultGem.bonusStats).map(([k, v]) => (
+                    <span key={k}> · {k === 'crit' ? `+${(v as number * 100).toFixed(0)}% CRIT` : `+${v} ${k.toUpperCase()}`}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex-1 text-[10px] text-zinc-400 space-x-2">
+                <span className={soulshards >= ultGemCost.soulshard ? 'text-emerald-400' : 'text-rose-400'}>💠{ultGemCost.soulshard}</span>
+                <span className={essence >= ultGemCost.essence ? 'text-emerald-400' : 'text-rose-400'}>🔮{ultGemCost.essence}</span>
+                <span className={profile.gold >= ultGemCost.gold ? 'text-emerald-400' : 'text-rose-400'}>🪙{ultGemCost.gold.toLocaleString()}</span>
+              </div>
+              <button
+                className="btn-pixel primary shrink-0"
+                disabled={!canAfford || isCrafting}
+                onClick={async () => {
+                  if (crafting) return;
+                  setCrafting(ultGem.id);
+                  const ok = await craftUltimateGem(activeHeroId);
+                  setCrafting(null);
+                  setToast(ok ? `✓ Crafted ${ultGem.name}` : 'Missing materials, gold, or hero not owned');
+                  setTimeout(() => setToast(null), 2500);
+                }}
+              >
+                {isCrafting ? '…' : 'Craft'}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Pieces */}
       <div className="space-y-2">

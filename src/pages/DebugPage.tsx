@@ -13,8 +13,14 @@ import { genLoot } from '../lib/loot';
 import { addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD, essenceItemId, ULTIMATE_SETS } from '../data/ultimateGear';
 import { sendMail } from '../lib/mail';
-import { addGemToInventory } from '../lib/gems';
-import { GEMS } from '../data/gems';
+import { addGemToInventory, ensureSockets, socketsAvailableFor, removeGemFromInventory } from '../lib/gems';
+import { GEMS, ULT_GEM_BY_HERO } from '../data/gems';
+import { MAX_STAR } from '../lib/fragments';
+import { maxLevelForStar } from '../lib/stats';
+import { MAX_ULT_LEVEL } from '../lib/ultLeveling';
+import { TALENT_TREE } from '../data/talents';
+import { craftSetPiece } from '../lib/crafting';
+import type { OwnedEquipment } from '../lib/db';
 
 export default function DebugPage() {
   const navigate = useNavigate();
@@ -140,6 +146,127 @@ export default function DebugPage() {
     window.location.reload();
   }
 
+  // TESTING ONLY — unlock every hero at MAX_STAR / max level / max ult,
+  // unlock every talent, craft and auto-equip every ultimate set piece,
+  // craft and socket every hero's ultimate socket gem, top up currencies.
+  async function maxEverything() {
+    if (!confirm('TESTING — Max everything?\n\nGrants all heroes at max stats, crafts every ultimate set + socket gem, auto-equips, sockets ult gems into ult weapons.')) return;
+
+    // 1. Top up currencies + materials so crafts never fail mid-flight
+    await patch({ gold: 999_999_999, gems: 9_999_999, energy: 100, friendPoints: 99_999 });
+    await addMaterial(MAT_SOULSHARD, 10_000);
+    for (const s of ULTIMATE_SETS) await addMaterial(essenceItemId(s.heroId), 10_000);
+
+    // 2. Grant any missing hero. For owned ones, push to max state.
+    const owned = await db.heroes.toArray();
+    const ownedByTpl = new Map(owned.map(h => [h.templateId, h]));
+    for (const tpl of HERO_TEMPLATES) {
+      const allTalents = TALENT_TREE.filter(t => t.heroId === tpl.id).map(t => t.id);
+      const existing = ownedByTpl.get(tpl.id);
+      const maxLevel = maxLevelForStar(MAX_STAR);
+      if (existing) {
+        await db.heroes.update(existing.id, {
+          star: MAX_STAR,
+          level: maxLevel,
+          exp: 0,
+          talents: allTalents,
+          ultLevel: MAX_ULT_LEVEL,
+        });
+      } else {
+        await db.heroes.add({
+          id: genId(),
+          templateId: tpl.id,
+          level: maxLevel,
+          exp: 0,
+          star: MAX_STAR,
+          equipped: {},
+          obtainedAt: Date.now(),
+          talents: allTalents,
+          ultLevel: MAX_ULT_LEVEL,
+        });
+      }
+    }
+    await reload();
+
+    // 3. Craft every ultimate set piece (skip already-crafted).
+    const equipped = await db.equipment.toArray();
+    const craftedIds = new Set(equipped.map(e => e.craftedPieceId).filter(Boolean));
+    for (const set of ULTIMATE_SETS) {
+      for (const piece of set.pieces) {
+        if (craftedIds.has(piece.id)) continue;
+        await craftSetPiece(piece.id);
+      }
+    }
+    await reload();
+
+    // 4. Grant every ultimate socket gem (skip the craft flow — direct add).
+    for (const heroId of Object.keys(ULT_GEM_BY_HERO)) {
+      await addGemToInventory(ULT_GEM_BY_HERO[heroId].id, 1);
+    }
+    // Plus a healthy stock of tier-4 gems for filling other sockets.
+    for (const g of GEMS) {
+      if (g.tier === 4) await addGemToInventory(g.id, 30);
+    }
+
+    // 5. For each hero: equip their five set pieces, then socket ult gem
+    // into the ult weapon and fill remaining sockets with the best
+    // matching tier-4 gem available.
+    const allHeroes = await db.heroes.toArray();
+    const heroByTpl = new Map(allHeroes.map(h => [h.templateId, h]));
+    for (const set of ULTIMATE_SETS) {
+      const hero = heroByTpl.get(set.heroId);
+      if (!hero) continue;
+      const newEquipped: Partial<Record<string, string>> = {};
+      let ultWeaponId: string | null = null;
+      for (const piece of set.pieces) {
+        const eq = (await db.equipment.toArray()).find(e => e.craftedPieceId === piece.id);
+        if (!eq) continue;
+        await db.equipment.update(eq.id, { equippedTo: hero.id });
+        newEquipped[piece.slot] = eq.id;
+        if (eq.isUltimateWeapon) ultWeaponId = eq.id;
+      }
+      await db.heroes.update(hero.id, { equipped: newEquipped });
+
+      // Socket the hero's ult gem into the ult weapon, plus tier-4 gems
+      // into remaining sockets across all equipped pieces.
+      for (const [slot, eqId] of Object.entries(newEquipped)) {
+        if (!eqId) continue;
+        const eq = await db.equipment.get(eqId);
+        if (!eq) continue;
+        const total = socketsAvailableFor(eq);
+        if (total === 0) continue;
+        const sockets: (string | null)[] = [...(ensureSockets(eq).sockets ?? Array(total).fill(null))];
+        const primaryStat = (eq.primary?.stat ?? 'atk') as LootStat;
+
+        // First socket of the ult weapon: insert the hero's ult gem
+        let startIdx = 0;
+        if (eqId === ultWeaponId) {
+          const ultGem = ULT_GEM_BY_HERO[set.heroId];
+          if (ultGem) {
+            const ok = await removeGemFromInventory(ultGem.id, 1);
+            if (ok) {
+              sockets[0] = ultGem.id;
+              startIdx = 1;
+            }
+          }
+        }
+        // Fill remaining sockets with a tier-4 gem matching the item's primary stat.
+        const fillerId = `gem_${primaryStat}_4`;
+        for (let i = startIdx; i < total; i++) {
+          if (sockets[i]) continue;
+          const ok = await removeGemFromInventory(fillerId, 1);
+          if (!ok) break;
+          sockets[i] = fillerId;
+        }
+        await db.equipment.update(eqId, { sockets });
+        void slot;
+      }
+    }
+
+    await reload();
+    alert('MAX EVERYTHING applied — all heroes maxed, ult gear crafted & equipped, ult sockets installed.');
+  }
+
   async function resetDaily() {
     await patch({ lastDailyClaim: '' });
     await db.tasks.clear();
@@ -150,6 +277,21 @@ export default function DebugPage() {
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
       <h2 className="font-pixel text-sm">Debug Menu</h2>
+
+      {/* Big red TEST button — skips all the unlock grind so animations,
+          UI, and balance can be verified in a single click. */}
+      <div className="rounded-md border-2 border-rose-500 bg-rose-900/30 p-3">
+        <div className="font-pixel text-xs mb-2 text-rose-300">TESTING — Skip the grind</div>
+        <button
+          className="btn-pixel danger w-full text-base py-3"
+          onClick={async () => { await maxEverything(); }}
+        >🚀 MAX EVERYTHING</button>
+        <div className="text-[9px] text-rose-200/70 mt-1">
+          Grants all heroes at MAX_STAR / max level / max ult, unlocks every talent,
+          crafts every ultimate set + socket gem, auto-equips, sockets ult gems into
+          ult weapons. Use only for testing.
+        </div>
+      </div>
 
       <div className="rounded-md border border-amber-700 bg-amber-900/20 p-3">
         <div className="font-pixel text-xs mb-2">Currencies</div>

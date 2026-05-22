@@ -42,7 +42,9 @@ export async function getGemInventoryMap(): Promise<Record<string, number>> {
   return out;
 }
 
-// Aggregate gem stat contribution for an equipment instance
+// Aggregate gem stat contribution for an equipment instance.
+// Tier-5 (Ultimate) gems may carry bonusStats — fold those in too so a
+// single socket of an ult gem grants multiple stats at once.
 export function gemStats(eq: OwnedEquipment): Partial<Record<string, number>> {
   const out: Record<string, number> = {};
   if (!eq.sockets) return out;
@@ -51,6 +53,11 @@ export function gemStats(eq: OwnedEquipment): Partial<Record<string, number>> {
     const g = GEM_BY_ID[gemId];
     if (!g) continue;
     out[g.stat] = (out[g.stat] ?? 0) + g.value;
+    if (g.bonusStats) {
+      for (const [s, v] of Object.entries(g.bonusStats)) {
+        out[s] = (out[s] ?? 0) + (v as number);
+      }
+    }
   }
   return out;
 }

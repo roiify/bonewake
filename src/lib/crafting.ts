@@ -2,6 +2,8 @@ import { db, type OwnedEquipment } from './db';
 import type { LootStat } from '../data/loot';
 import { uid } from './id';
 import { PIECE_BY_ID, MAT_SOULSHARD, essenceItemId, SET_BY_HERO, ULTIMATE_SETS } from '../data/ultimateGear';
+import { ULT_GEM_BY_HERO, ULT_GEM_COST_BY_HERO } from '../data/gems';
+import { addGemToInventory } from './gems';
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import { useItems } from '../store/items';
@@ -84,6 +86,33 @@ export async function craftSetPiece(pieceId: string): Promise<OwnedEquipment | n
   await useItems.getState().refresh();
   await recordEvent({ kind: 'mythicCrafted' });
   return eq;
+}
+
+// Craft a hero's Ultimate Socket Gem. Uses the same materials as a
+// set piece. Adds the gem to the inventory on success.
+export async function craftUltimateGem(heroId: string): Promise<boolean> {
+  const gem = ULT_GEM_BY_HERO[heroId];
+  const cost = ULT_GEM_COST_BY_HERO[heroId];
+  if (!gem || !cost) return false;
+
+  const shards = await getMaterialCount(MAT_SOULSHARD);
+  const essence = await getMaterialCount(essenceItemId(heroId));
+  const profile = useProfile.getState().profile;
+  if (shards < cost.soulshard) return false;
+  if (essence < cost.essence) return false;
+  if (profile.gold < cost.gold) return false;
+
+  // Verify hero owned
+  const heroes = useHeroes.getState().heroes;
+  if (!heroes.find(h => h.templateId === heroId)) return false;
+
+  await spendMaterial(MAT_SOULSHARD, cost.soulshard);
+  await spendMaterial(essenceItemId(heroId), cost.essence);
+  await useProfile.getState().patch({ gold: profile.gold - cost.gold });
+
+  await addGemToInventory(gem.id, 1);
+  await useItems.getState().refresh();
+  return true;
 }
 
 function dominantStat(stats: Record<string, number>): LootStat {
