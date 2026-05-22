@@ -280,6 +280,68 @@ export const ULTIMATE_SETS: UltimateSetDef[] = [
         description: 'Full set: every crit lifesteals; ultimate +50% damage' },
     ],
   },
+
+  // GEORGE — Druid / Warrior (earth shapeshifter, single-target ult)
+  {
+    id: 'george_primordial',
+    name: 'Primordial Wrath',
+    heroId: 'george',
+    description: 'Bound antlers and root-wrapped iron. The forest remembers every cut.',
+    pieces: [
+      { id: 'george_primordial_glaive', setId: 'george_primordial', name: 'Antler Glaive', slot: 'weapon', emoji: '🦌',
+        stats: { atk: 1360, hp: 4400, def: 280 }, flavor: 'Bone of a stag, sharpened on stone.',
+        isUltimateWeapon: true, cost: c(120, 60, 40000) },
+      { id: 'george_primordial_pelt', setId: 'george_primordial', name: 'Wildbeast Pelt', slot: 'armor', emoji: '🧥',
+        stats: { def: 560, hp: 9200, atk: 240 }, flavor: 'Hide of the first bear.',
+        cost: c(60, 25, 18000) },
+      { id: 'george_primordial_crown', setId: 'george_primordial', name: 'Crown of Briars', slot: 'helm', emoji: '🌿',
+        stats: { hp: 4000, def: 320, atk: 200 }, flavor: 'Thorns that drink from the wearer.',
+        cost: c(50, 20, 15000) },
+      { id: 'george_primordial_treads', setId: 'george_primordial', name: 'Rootbound Treads', slot: 'boots', emoji: '🥾',
+        stats: { spd: 160, def: 280, hp: 2400 }, flavor: 'Roots curl with each step.',
+        cost: c(40, 15, 12000) },
+      { id: 'george_primordial_totem', setId: 'george_primordial', name: 'Bonewood Totem', slot: 'accessory', emoji: '🪵',
+        stats: { atk: 480, hp: 3200, def: 160 }, flavor: 'Carved from a tree that drank a soul.',
+        cost: c(50, 20, 15000) },
+    ],
+    bonuses: [
+      { atPieces: 2, stats: { hp: 4000 }, description: '+4000 HP' },
+      { atPieces: 3, stats: { atk: 400, def: 200 }, description: '+400 ATK · +200 DEF' },
+      { atPieces: 5, stats: { atk: 800, hp: 6000, def: 280 },
+        description: 'Full set: shapeshift on low HP grants damage reduction; ultimate +40%' },
+    ],
+  },
+
+  // MANNY — Necromancer / Mage (dark AOE, ult Army of the Dead)
+  {
+    id: 'manny_grave',
+    name: 'Throne of Bones',
+    heroId: 'manny',
+    description: "Regalia stitched from the dead's last breaths. The grave answers when he lifts his hand.",
+    pieces: [
+      { id: 'manny_grave_scepter', setId: 'manny_grave', name: 'Sceptre of the Risen', slot: 'weapon', emoji: '☠️',
+        stats: { atk: 1400, crit: 0.18, hp: 2800 }, flavor: 'Topped with a screaming skull.',
+        isUltimateWeapon: true, cost: c(120, 60, 40000) },
+      { id: 'manny_grave_shroud', setId: 'manny_grave', name: 'Grave-Cloth Shroud', slot: 'armor', emoji: '🥻',
+        stats: { def: 380, hp: 6000, atk: 360 }, flavor: 'Sewn from burial linens.',
+        cost: c(60, 25, 18000) },
+      { id: 'manny_grave_crown', setId: 'manny_grave', name: 'Sovereign Bone Crown', slot: 'helm', emoji: '👑',
+        stats: { hp: 2800, crit: 0.10, atk: 320 }, flavor: 'Worn by the king of dust.',
+        cost: c(50, 20, 15000) },
+      { id: 'manny_grave_steps', setId: 'manny_grave', name: 'Coffin-Tread Steps', slot: 'boots', emoji: '🥾',
+        stats: { spd: 200, def: 160, atk: 240 }, flavor: 'Leaves no footprint, only chill.',
+        cost: c(40, 15, 12000) },
+      { id: 'manny_grave_relic', setId: 'manny_grave', name: 'Vial of First Breath', slot: 'accessory', emoji: '🩸',
+        stats: { atk: 520, crit: 0.15, hp: 1600 }, flavor: 'A breath caught from the dying.',
+        cost: c(50, 20, 15000) },
+    ],
+    bonuses: [
+      { atPieces: 2, stats: { atk: 400 }, description: '+400 ATK' },
+      { atPieces: 3, stats: { crit: 0.12, atk: 400 }, description: '+12% CRIT · +400 ATK' },
+      { atPieces: 5, stats: { atk: 1100, crit: 0.18, hp: 3000 },
+        description: 'Full set: ultimate spawns extra necrotic wave; +40% ult damage' },
+    ],
+  },
 ];
 
 export const SET_BY_ID = Object.fromEntries(ULTIMATE_SETS.map(s => [s.id, s]));
