@@ -7,7 +7,8 @@ import { isoWeek } from '../data/tower';
 import { resolveBattle } from '../lib/combat';
 import { toCombatUnit } from '../lib/stats';
 import { recordEvent } from '../lib/lifetime';
-import { ENEMY_SPRITES, HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
+import { ENEMY_SPRITES, HERO_BY_ID, HERO_PORTRAITS, HIDDEN_HERO_IDS } from '../data/heroes';
+import { ensureMannySummons, MANNY_TPL } from '../lib/mannySummons';
 import { calcHeroStats } from '../lib/stats';
 import { addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD } from '../data/ultimateGear';
@@ -33,9 +34,22 @@ export default function WorldBossPage() {
 
   useEffect(() => { saveSquad(squad); }, [squad]);
 
-  function toggleHero(hid: string) {
-    if (squad.includes(hid)) setSquad(squad.filter(id => id !== hid));
-    else if (squad.length < 3) setSquad([...squad, hid]);
+  async function toggleHero(hid: string) {
+    const h = heroes.find(x => x.id === hid);
+    const isManny = h?.templateId === MANNY_TPL;
+    const mannyInSquad = squad.some(id => heroes.find(x => x.id === id)?.templateId === MANNY_TPL);
+    if (squad.includes(hid)) {
+      if (isManny) setSquad([]);
+      else setSquad(squad.filter(id => id !== hid));
+      return;
+    }
+    if (isManny) {
+      const summonIds = await ensureMannySummons();
+      setSquad([hid, ...summonIds]);
+      return;
+    }
+    if (mannyInSquad) return;
+    if (squad.length < 3) setSquad([...squad, hid]);
   }
 
   const week = isoWeek();
@@ -212,16 +226,19 @@ export default function WorldBossPage() {
         </div>
         {editing && (
           <div className="mt-3 grid grid-cols-3 gap-2">
-            {heroes.map(h => {
+            {heroes.filter(h => !HIDDEN_HERO_IDS.has(h.templateId)).map(h => {
               const tpl = HERO_BY_ID[h.templateId];
               if (!tpl) return null;
               const stats = calcHeroStats(h, equipment);
               const inSquad = squad.includes(h.id);
+              const mannyInSquad = squad.some(sid => heroes.find(x => x.id === sid)?.templateId === MANNY_TPL);
+              const locked = mannyInSquad && h.templateId !== MANNY_TPL;
               return (
                 <button
                   key={h.id}
                   onClick={() => toggleHero(h.id)}
-                  className={`rounded border-2 p-1.5 text-center bg-zinc-950 transition-transform ${inSquad ? 'scale-95 ring-2 ring-amber-400' : ''}`}
+                  disabled={locked}
+                  className={`rounded border-2 p-1.5 text-center bg-zinc-950 transition-transform ${inSquad ? 'scale-95 ring-2 ring-amber-400' : ''} ${locked ? 'opacity-30 grayscale' : ''}`}
                   style={{ borderColor: tpl.color }}
                 >
                   <div className="aspect-square flex items-center justify-center overflow-hidden">

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useHeroes } from '../store/heroes';
-import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
+import { HERO_BY_ID, HERO_PORTRAITS, HIDDEN_HERO_IDS } from '../data/heroes';
 import { calcHeroStats } from '../lib/stats';
 import { Link } from 'react-router-dom';
 import type { Rarity } from '../types';
@@ -74,6 +74,8 @@ export default function HeroesPage() {
 
   const sorted = useMemo(() => {
     const list = heroes
+      // Manny's summons (Bone King, Lich Sovereign) are auto-managed — hide from roster.
+      .filter(h => !HIDDEN_HERO_IDS.has(h.templateId))
       .map(h => ({ h, tpl: HERO_BY_ID[h.templateId], stats: calcHeroStats(h, equipment) }))
       .filter(x => !!x.tpl)
       .filter(x => filterRarity == null || x.h.star === filterRarity)
@@ -93,7 +95,7 @@ export default function HeroesPage() {
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <h2 className="font-pixel text-sm text-zinc-200">Owned ({heroes.length})</h2>
+        <h2 className="font-pixel text-sm text-zinc-200">Owned ({heroes.filter(h => !HIDDEN_HERO_IDS.has(h.templateId)).length})</h2>
         <div className="flex gap-1">
           {[null, 3, 4, 5].map(r => (
             <button

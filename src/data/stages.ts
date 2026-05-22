@@ -11,28 +11,28 @@ export const ENEMY_TEMPLATES = {
   graveyardlich:     { name: 'Graveyard Lich',  element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 2000, atk: 180, def: 80,  spd: 65, crit: 0.15 }, color: '#7c3aed', ultimateId: 'enemy_basic' },
   // World Boss tier (used by WorldBossPage). Way more HP/ATK than regular stage enemies.
   worldboss_1:       { name: 'Crimson Apostate',element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 80000, atk: 950, def: 350, spd: 95, crit: 0.30 }, color: '#dc2626', ultimateId: 'enemy_basic' },
-  // Chapter 7 — Undead Vanguard
-  undead_archer:     { name: 'Undead Archer',   element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 900,  atk: 160, def: 35,  spd: 75, crit: 0.22 }, color: '#a8a29e', ultimateId: 'enemy_basic' },
-  plague_caster:     { name: 'Plague Caster',   element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1400, atk: 175, def: 65,  spd: 50, crit: 0.10 }, color: '#84cc16', ultimateId: 'enemy_basic' },
-  fallen_captain:    { name: 'Fallen Captain',  element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 3200, atk: 195, def: 130, spd: 60, crit: 0.18 }, color: '#a855f7', ultimateId: 'enemy_basic' },
-  skeletal_warhorse: { name: 'Skeletal Warhorse', element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 1200, atk: 175, def: 50,  spd: 100, crit: 0.20 }, color: '#67e8f9', ultimateId: 'enemy_basic' },
-  carrion_spider:    { name: 'Carrion Spider',  element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1100, atk: 155, def: 55,  spd: 70, crit: 0.15 }, color: '#22c55e', ultimateId: 'enemy_basic' },
-  phantom_knight:    { name: 'Phantom Knight',  element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 1500, atk: 165, def: 90,  spd: 65, crit: 0.18 }, color: '#22d3ee', ultimateId: 'enemy_basic' },
-  wailing_wraith:    { name: 'Wailing Wraith',  element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 950,  atk: 185, def: 40,  spd: 80, crit: 0.18 }, color: '#d4d4d8', ultimateId: 'enemy_basic' },
-  // Chapter 8 — Zombie Legion + Necromancer's Court
-  zombie_knight:     { name: 'Zombie Knight',   element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 1800, atk: 175, def: 110, spd: 50, crit: 0.12 }, color: '#a16207', ultimateId: 'enemy_basic' },
-  zombie_berserker:  { name: 'Zombie Berserker',element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 1600, atk: 220, def: 70,  spd: 65, crit: 0.25 }, color: '#dc2626', ultimateId: 'enemy_basic' },
-  shield_bearer:     { name: 'Shield-Bearer',   element: 'dark' as const, archetype: 'tank' as const,     baseStats: { hp: 2600, atk: 130, def: 180, spd: 35, crit: 0.05 }, color: '#737373', ultimateId: 'enemy_basic' },
-  zombie_mage:       { name: 'Zombie Mage',     element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1300, atk: 190, def: 55,  spd: 65, crit: 0.16 }, color: '#65a30d', ultimateId: 'enemy_basic' },
-  grave_channeler:   { name: 'Grave Channeler', element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1500, atk: 180, def: 70,  spd: 55, crit: 0.14 }, color: '#67e8f9', ultimateId: 'enemy_basic' },
-  soul_leech:        { name: 'Soul Leech',      element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 3600, atk: 210, def: 130, spd: 70, crit: 0.20 }, color: '#22d3ee', ultimateId: 'enemy_basic' },
-  rotwolf:           { name: 'Rotwolf',         element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 1100, atk: 185, def: 50,  spd: 105, crit: 0.22 }, color: '#a8a29e', ultimateId: 'enemy_basic' },
-  bone_bear:         { name: 'Bone Bear',       element: 'dark' as const, archetype: 'tank' as const,     baseStats: { hp: 3000, atk: 175, def: 140, spd: 40, crit: 0.10 }, color: '#92400e', ultimateId: 'enemy_basic' },
-  // Chapter 9 — Necromancer's Court
-  possessed_corpse:  { name: 'Possessed Corpse',element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1700, atk: 200, def: 75,  spd: 70, crit: 0.18 }, color: '#a855f7', ultimateId: 'enemy_basic' },
-  grave_digger:      { name: 'Grave Digger',    element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 2100, atk: 185, def: 95,  spd: 55, crit: 0.12 }, color: '#78350f', ultimateId: 'enemy_basic' },
-  plague_monk:       { name: 'Plague Monk',     element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1500, atk: 205, def: 60,  spd: 75, crit: 0.16 }, color: '#16a34a', ultimateId: 'enemy_basic' },
-  necromancer:       { name: 'Necromancer',     element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 4200, atk: 240, def: 130, spd: 80, crit: 0.22 }, color: '#7c3aed', ultimateId: 'enemy_basic' },
+  // Chapter 7 — Undead Vanguard (HP/ATK bumped ~30% for late-game difficulty)
+  undead_archer:     { name: 'Undead Archer',   element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 1170, atk: 210, def: 45,  spd: 75, crit: 0.22 }, color: '#a8a29e', ultimateId: 'enemy_basic' },
+  plague_caster:     { name: 'Plague Caster',   element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1820, atk: 230, def: 85,  spd: 50, crit: 0.10 }, color: '#84cc16', ultimateId: 'enemy_basic' },
+  fallen_captain:    { name: 'Fallen Captain',  element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 4200, atk: 255, def: 170, spd: 60, crit: 0.18 }, color: '#a855f7', ultimateId: 'enemy_basic' },
+  skeletal_warhorse: { name: 'Skeletal Warhorse', element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 1560, atk: 230, def: 65,  spd: 100, crit: 0.20 }, color: '#67e8f9', ultimateId: 'enemy_basic' },
+  carrion_spider:    { name: 'Carrion Spider',  element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1430, atk: 200, def: 70,  spd: 70, crit: 0.15 }, color: '#22c55e', ultimateId: 'enemy_basic' },
+  phantom_knight:    { name: 'Phantom Knight',  element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 1950, atk: 215, def: 115, spd: 65, crit: 0.18 }, color: '#22d3ee', ultimateId: 'enemy_basic' },
+  wailing_wraith:    { name: 'Wailing Wraith',  element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1230, atk: 240, def: 50,  spd: 80, crit: 0.18 }, color: '#d4d4d8', ultimateId: 'enemy_basic' },
+  // Chapter 8 — Zombie Legion + Necromancer's Court (HP/ATK +30%)
+  zombie_knight:     { name: 'Zombie Knight',   element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 2340, atk: 230, def: 140, spd: 50, crit: 0.12 }, color: '#a16207', ultimateId: 'enemy_basic' },
+  zombie_berserker:  { name: 'Zombie Berserker',element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 2080, atk: 285, def: 90,  spd: 65, crit: 0.25 }, color: '#dc2626', ultimateId: 'enemy_basic' },
+  shield_bearer:     { name: 'Shield-Bearer',   element: 'dark' as const, archetype: 'tank' as const,     baseStats: { hp: 3380, atk: 170, def: 230, spd: 35, crit: 0.05 }, color: '#737373', ultimateId: 'enemy_basic' },
+  zombie_mage:       { name: 'Zombie Mage',     element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1690, atk: 245, def: 70,  spd: 65, crit: 0.16 }, color: '#65a30d', ultimateId: 'enemy_basic' },
+  grave_channeler:   { name: 'Grave Channeler', element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1950, atk: 235, def: 90,  spd: 55, crit: 0.14 }, color: '#67e8f9', ultimateId: 'enemy_basic' },
+  soul_leech:        { name: 'Soul Leech',      element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 4680, atk: 275, def: 170, spd: 70, crit: 0.20 }, color: '#22d3ee', ultimateId: 'enemy_basic' },
+  rotwolf:           { name: 'Rotwolf',         element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 1430, atk: 240, def: 65,  spd: 105, crit: 0.22 }, color: '#a8a29e', ultimateId: 'enemy_basic' },
+  bone_bear:         { name: 'Bone Bear',       element: 'dark' as const, archetype: 'tank' as const,     baseStats: { hp: 3900, atk: 230, def: 180, spd: 40, crit: 0.10 }, color: '#92400e', ultimateId: 'enemy_basic' },
+  // Chapter 9 — Necromancer's Court (HP/ATK +30%)
+  possessed_corpse:  { name: 'Possessed Corpse',element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 2210, atk: 260, def: 95,  spd: 70, crit: 0.18 }, color: '#a855f7', ultimateId: 'enemy_basic' },
+  grave_digger:      { name: 'Grave Digger',    element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 2730, atk: 240, def: 125, spd: 55, crit: 0.12 }, color: '#78350f', ultimateId: 'enemy_basic' },
+  plague_monk:       { name: 'Plague Monk',     element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1950, atk: 265, def: 80,  spd: 75, crit: 0.16 }, color: '#16a34a', ultimateId: 'enemy_basic' },
+  necromancer:       { name: 'Necromancer',     element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 5460, atk: 310, def: 170, spd: 80, crit: 0.22 }, color: '#7c3aed', ultimateId: 'enemy_basic' },
 };
 export type EnemyTemplateId = keyof typeof ENEMY_TEMPLATES;
 
@@ -125,21 +125,21 @@ export const STAGES: Stage[] = [
     enemyTeam: [E('graveyardlich', 55, 5), E('graveyardlich', 55, 5), E('graveyardlich', 55, 5)],
     rewards: { gold: 4500, exp: 2200, items: { helm_5: 1 } }, firstClearBonus: { gems: 500 } },
 
-  // Chapter 6 — World's Edge. Floor above ch5-5 boss.
+  // Chapter 6 — World's Edge. Floor above ch5-5 boss. Levels bumped +8 for late-game difficulty.
   { id: '6-1', chapter: 6, num: 1, name: 'Cliffs of Forgetting', energyCost: 24,
-    enemyTeam: [E('boneknight', 58, 5), E('graveyardlich', 58, 5), E('fastghoul', 60, 5)],
+    enemyTeam: [E('boneknight', 66, 5), E('graveyardlich', 66, 5), E('fastghoul', 68, 5)],
     rewards: { gold: 3200, exp: 1800 }, firstClearBonus: { gems: 240 } },
   { id: '6-2', chapter: 6, num: 2, name: 'Tideless Sea', energyCost: 24,
-    enemyTeam: [E('graveyardlich', 62, 5), E('graveyardlich', 62, 5), E('boneknight', 60, 5)],
+    enemyTeam: [E('graveyardlich', 70, 5), E('graveyardlich', 70, 5), E('boneknight', 68, 5)],
     rewards: { gold: 3500, exp: 2000 }, firstClearBonus: { gems: 260 } },
   { id: '6-3', chapter: 6, num: 3, name: 'Last Light', energyCost: 26,
-    enemyTeam: [E('boneknight', 65, 5), E('graveyardlich', 65, 5), E('graveyardlich', 65, 5)],
+    enemyTeam: [E('boneknight', 73, 5), E('graveyardlich', 73, 5), E('graveyardlich', 73, 5)],
     rewards: { gold: 3800, exp: 2250 }, firstClearBonus: { gems: 280 } },
   { id: '6-4', chapter: 6, num: 4, name: 'The Cold Beyond', energyCost: 26,
-    enemyTeam: [E('graveyardlich', 68, 5), E('boneknight', 68, 5), E('graveyardlich', 68, 5)],
+    enemyTeam: [E('graveyardlich', 76, 5), E('boneknight', 76, 5), E('graveyardlich', 76, 5)],
     rewards: { gold: 4100, exp: 2500 }, firstClearBonus: { gems: 300 } },
   { id: '6-5', chapter: 6, num: 5, name: 'World End: The Quiet Crown', energyCost: 32,
-    enemyTeam: [E('graveyardlich', 75, 5), E('graveyardlich', 75, 5), E('graveyardlich', 75, 5)],
+    enemyTeam: [E('graveyardlich', 83, 5), E('graveyardlich', 83, 5), E('graveyardlich', 83, 5)],
     rewards: { gold: 7500, exp: 4000, items: { amulet_5: 1 } }, firstClearBonus: { gems: 800 } },
 
   // Chapter 7 — Undead Vanguard. The Crowned Revenant's army, in 5 themed encounters.

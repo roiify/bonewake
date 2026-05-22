@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { STAGE_BY_ID } from '../data/stages';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
-import { HERO_BY_ID, HERO_PORTRAITS, ENEMY_SPRITES } from '../data/heroes';
+import { HERO_BY_ID, HERO_PORTRAITS, ENEMY_SPRITES, HIDDEN_HERO_IDS } from '../data/heroes';
+import { ensureMannySummons, MANNY_TPL } from '../lib/mannySummons';
 import { buildEnemyUnit, calcHeroStats, toCombatUnit, xpForLevel } from '../lib/stats';
 import { tierLabel } from '../lib/tier';
 import { resolveBattle } from '../lib/combat';
@@ -67,9 +68,32 @@ export default function StagePrebattlePage() {
     setSquad(top3);
   }
 
-  function toggleHeroInSquad(heroId: string) {
-    if (squad.includes(heroId)) setSquad(squad.filter(id => id !== heroId));
-    else if (squad.length < 3) setSquad([...squad, heroId]);
+  async function toggleHeroInSquad(heroId: string) {
+    const h = heroes.find(x => x.id === heroId);
+    const isManny = h?.templateId === MANNY_TPL;
+    const mannyInSquad = squad.some(id => heroes.find(x => x.id === id)?.templateId === MANNY_TPL);
+
+    // Removing Manny clears his summons too (the locked solo lineup is all-or-nothing).
+    if (squad.includes(heroId)) {
+      if (isManny) {
+        setSquad([]);
+      } else {
+        setSquad(squad.filter(id => id !== heroId));
+      }
+      return;
+    }
+
+    // Adding Manny: auto-fill summons and lock the squad to [manny, bone_king, lich_sovereign].
+    if (isManny) {
+      const summonIds = await ensureMannySummons();
+      setSquad([heroId, ...summonIds]);
+      return;
+    }
+
+    // Can't add other heroes while Manny is in the squad — he fights alone.
+    if (mannyInSquad) return;
+
+    if (squad.length < 3) setSquad([...squad, heroId]);
   }
 
   function loadPresetSquad(heroIds: string[]) {
@@ -288,16 +312,20 @@ export default function StagePrebattlePage() {
               <button className="btn-pixel" onClick={() => setPicker(false)}>Done</button>
             </div>
             {heroes.length === 0 && <div className="text-xs text-zinc-500 text-center py-6">No heroes. Try Summon.</div>}
+            {/* Hide Manny's summons — they're not pickable, they auto-fill when Manny enters the squad. */}
             <div className="grid grid-cols-3 gap-2">
-              {heroes.map(h => {
+              {heroes.filter(h => !HIDDEN_HERO_IDS.has(h.templateId)).map(h => {
                 const tpl = HERO_BY_ID[h.templateId];
                 const inSquad = squad.includes(h.id);
                 const stats = calcHeroStats(h, equipment);
+                const mannyInSquad = squad.some(sid => heroes.find(x => x.id === sid)?.templateId === MANNY_TPL);
+                const locked = mannyInSquad && h.templateId !== MANNY_TPL;
                 return (
                   <button
                     key={h.id}
                     onClick={() => toggleHeroInSquad(h.id)}
-                    className={`rounded border-2 p-2 text-center bg-zinc-950 transition-transform ${inSquad ? 'scale-95 ring-2 ring-amber-400' : ''}`}
+                    disabled={locked}
+                    className={`rounded border-2 p-2 text-center bg-zinc-950 transition-transform ${inSquad ? 'scale-95 ring-2 ring-amber-400' : ''} ${locked ? 'opacity-30 grayscale' : ''}`}
                     style={{ borderColor: tpl.color }}
                   >
                     <div className="aspect-square flex items-center justify-center overflow-hidden">

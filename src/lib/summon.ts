@@ -1,17 +1,21 @@
-import { HERO_TEMPLATES } from '../data/heroes';
+import { HERO_TEMPLATES, HIDDEN_HERO_IDS } from '../data/heroes';
 import { POOL_BY_ID } from '../data/summonPools';
 import type { HeroTemplate, Rarity } from '../types';
+
+// Public pool excludes summons (Bone King, Lich Sovereign) — they only
+// enter the squad through Manny.
+const POOL = HERO_TEMPLATES.filter(h => !HIDDEN_HERO_IDS.has(h.id));
 
 // Weighted pick: favors heroes with higher pullWeight (more common-feeling).
 // Used by Novice banner and as the default picker for any tier.
 function pickWeighted(rng: () => number): HeroTemplate {
-  const total = HERO_TEMPLATES.reduce((s, h) => s + (h.pullWeight ?? 10), 0);
+  const total = POOL.reduce((s, h) => s + (h.pullWeight ?? 10), 0);
   let r = rng() * total;
-  for (const h of HERO_TEMPLATES) {
+  for (const h of POOL) {
     r -= (h.pullWeight ?? 10);
     if (r <= 0) return h;
   }
-  return HERO_TEMPLATES[0];
+  return POOL[0];
 }
 
 // Roll an outcome star tier for a pool (3/4/5).

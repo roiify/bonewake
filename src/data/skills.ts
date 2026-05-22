@@ -1,14 +1,25 @@
 import type { Skill } from '../types';
 
+// Power-budget rule: an AOE ult hits 3 enemies, so a single-target ult
+// at the SAME multiplier is doing 1/3 the work.  Single-target ults must
+// be ~2.5-3x the multiplier of an AOE ult to land in the same power band.
 export const SKILLS: Skill[] = [
-  { id: 'arrow_volley', name: 'Arrow Volley', description: 'Hail of arrows on all enemies.', damageMultiplier: 1.8, targeting: 'all' },
-  { id: 'iron_palm', name: 'Iron Palm', description: 'Devastating single strike.', damageMultiplier: 3.2, targeting: 'single' },
-  { id: 'shadow_dance', name: 'Shadow Dance', description: 'Multi-hit on lowest-HP target.', damageMultiplier: 4.0, targeting: 'lowest' },
-  { id: 'dawn_blessing', name: 'Dawn Blessing', description: 'Heals all allies for 800.', damageMultiplier: 0, targeting: 'self', effect: { type: 'heal', value: 800 } },
-  { id: 'frost_crystal', name: 'Frost Crystal', description: 'Crystalline blast on all enemies.', damageMultiplier: 2.2, targeting: 'all' },
-  { id: 'aegis_judgment', name: 'Aegis Judgment', description: 'Massive single hit + ally shield.', damageMultiplier: 3.6, targeting: 'single', effect: { type: 'shield', value: 400, duration: 2 } },
-  { id: 'infernal_cataclysm', name: 'Infernal Cataclysm', description: 'Volcanic blast across all enemies + burn DoT.', damageMultiplier: 2.4, targeting: 'all', effect: { type: 'burn', value: 200, duration: 3 } },
-  { id: 'soul_harvest', name: 'Soul Harvest', description: 'Spinning scythe sweeps all enemies in a brutal arc.', damageMultiplier: 3.6, targeting: 'all' },
+  // AOE ults (targeting: 'all') — multiplier hits each enemy, so effective ≈ mult × 3
+  { id: 'arrow_volley',       name: 'Arrow Volley',       description: 'Hail of arrows on all enemies.',                     damageMultiplier: 2.2, targeting: 'all' },
+  { id: 'frost_crystal',      name: 'Frost Crystal',      description: 'Crystalline blast on all enemies.',                  damageMultiplier: 2.4, targeting: 'all' },
+  { id: 'infernal_cataclysm', name: 'Infernal Cataclysm', description: 'Volcanic blast across all enemies + burn DoT.',      damageMultiplier: 2.4, targeting: 'all', effect: { type: 'burn', value: 200, duration: 3 } },
+  { id: 'soul_harvest',       name: 'Soul Harvest',       description: 'Spinning scythe sweeps all enemies in a brutal arc.', damageMultiplier: 2.5, targeting: 'all' },
+  { id: 'army_of_the_dead',   name: 'Army of the Dead',   description: 'Necrotic blast tears through all enemies.',           damageMultiplier: 2.6, targeting: 'all', effect: { type: 'burn', value: 150, duration: 3 } },
+  { id: 'lich_blast',         name: 'Tomb Blast',         description: "Lich Sovereign's necrotic AOE blast.",                damageMultiplier: 2.2, targeting: 'all' },
+  // Single-target ults — bumped to ~3x AOE multiplier so they're competitive
+  { id: 'iron_palm',          name: 'Iron Palm',          description: 'Devastating single strike.',                          damageMultiplier: 7.5, targeting: 'single' },
+  { id: 'aegis_judgment',     name: 'Aegis Judgment',     description: 'Massive single hit + ally shield.',                    damageMultiplier: 7.0, targeting: 'single', effect: { type: 'shield', value: 400, duration: 2 } },
+  { id: 'primal_form',        name: 'Primal Form',        description: "Shapeshift to bear and crush a single enemy.",         damageMultiplier: 7.0, targeting: 'single' },
+  { id: 'bone_strike',        name: 'Bone Strike',        description: "Bone King's executioner blow on a single target.",    damageMultiplier: 7.2, targeting: 'single' },
+  // Lowest-HP multi-hit (single target but seeks weakest — useful for finishing)
+  { id: 'shadow_dance',       name: 'Shadow Dance',       description: 'Multi-hit on lowest-HP target.',                       damageMultiplier: 6.5, targeting: 'lowest' },
+  // Healer / self-targeting
+  { id: 'dawn_blessing',      name: 'Dawn Blessing',      description: 'Heals all allies for 800.',                            damageMultiplier: 0,   targeting: 'self', effect: { type: 'heal', value: 800 } },
 ];
 
 export const SKILL_BY_ID = Object.fromEntries(SKILLS.map(s => [s.id, s]));

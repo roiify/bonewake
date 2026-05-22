@@ -155,7 +155,45 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     flavor: 'Death Caller. Battles alone — his minions are his party.',
     pullWeight: 3,
   },
+  // ============ MANNY'S SUMMONS (hidden from gacha/roster) ============
+  // These templates exist so the squad logic can fill Manny's solo team
+  // with Bone King + Lich Sovereign. They're NOT pullable and don't show
+  // in the roster — UI filters them by templateId.
+  {
+    id: 'bone_king',
+    name: 'Bone King',
+    rarity: 3,
+    element: 'dark',
+    archetype: 'warrior',
+    // Tank-warrior summon: tanky, low SPD, single-target ult
+    baseStats: stat(1150, 115, 100, 50, 0.10),
+    ultimateId: 'bone_strike',
+    emoji: '🦴',
+    color: '#94a3b8',
+    flavor: "Manny's risen warrior-king. A wall of bone.",
+    pullWeight: 0,  // not pullable
+  },
+  {
+    id: 'lich_sovereign',
+    name: 'Lich Sovereign',
+    rarity: 3,
+    element: 'dark',
+    archetype: 'mage',
+    // Glass-cannon summon: AOE caster, fragile but dangerous
+    baseStats: stat(720, 165, 50, 70, 0.16),
+    ultimateId: 'lich_blast',
+    emoji: '👑',
+    color: '#06b6d4',
+    flavor: "Manny's crowned phantom. Voids the air with death.",
+    pullWeight: 0,  // not pullable
+  },
 ];
+
+// Manny's summon IDs — used to filter from gacha/roster and to auto-fill
+// the squad slots when Manny is picked.
+export const MANNY_SUMMON_IDS = ['bone_king', 'lich_sovereign'] as const;
+// All hidden hero templateIds — exclude from gacha pull pool and roster display.
+export const HIDDEN_HERO_IDS = new Set<string>(MANNY_SUMMON_IDS);
 
 export const HERO_BY_ID = Object.fromEntries(HERO_TEMPLATES.map(h => [h.id, h]));
 
@@ -172,6 +210,8 @@ export const HERO_PORTRAITS: Record<string, string> = {
   korvan: A('sprites/pixellab/heroes/portraits/korvan.png'),
   george: A('sprites/pixellab/heroes/portraits/george.png'),
   manny:  A('sprites/pixellab/heroes/portraits/manny.png'),
+  bone_king:      A('sprites/pixellab/heroes/portraits/bone_king.png'),
+  lich_sovereign: A('sprites/pixellab/heroes/portraits/lich_sovereign.png'),
 };
 
 export const HERO_SPRITES: Record<string, {
@@ -198,6 +238,8 @@ export const HERO_SPRITES: Record<string, {
   // George shapeshifts: skill = wolf form, ult = bear form. attack stays in human form.
   george: { idle: A('sprites/pixellab/heroes/george_idle.png'), attack: A('sprites/pixellab/heroes/george_attack.png'), skill: A('sprites/pixellab/heroes/george_skill.png'), ult: A('sprites/pixellab/heroes/george_ult.png'), hit: A('sprites/pixellab/heroes/george_idle.png'), death: A('sprites/pixellab/heroes/george_death.png'), cols: 43, rows: 1 },
   manny:  { idle: A('sprites/pixellab/heroes/manny_idle.png'),  attack: A('sprites/pixellab/heroes/manny_attack.png'),  skill: A('sprites/pixellab/heroes/manny_skill.png'),  ult: A('sprites/pixellab/heroes/manny_ult.png'),  hit: A('sprites/pixellab/heroes/manny_idle.png'),  death: A('sprites/pixellab/heroes/manny_death.png'), cols: 43, rows: 1 },
+  bone_king:      { idle: A('sprites/pixellab/heroes/bone_king_idle.png'),      attack: A('sprites/pixellab/heroes/bone_king_attack.png'),      skill: A('sprites/pixellab/heroes/bone_king_skill.png'),      ult: A('sprites/pixellab/heroes/bone_king_ult.png'),      hit: A('sprites/pixellab/heroes/bone_king_idle.png'),      death: A('sprites/pixellab/heroes/bone_king_death.png'),      cols: 43, rows: 1 },
+  lich_sovereign: { idle: A('sprites/pixellab/heroes/lich_sovereign_idle.png'), attack: A('sprites/pixellab/heroes/lich_sovereign_attack.png'), skill: A('sprites/pixellab/heroes/lich_sovereign_skill.png'), ult: A('sprites/pixellab/heroes/lich_sovereign_ult.png'), hit: A('sprites/pixellab/heroes/lich_sovereign_idle.png'), death: A('sprites/pixellab/heroes/lich_sovereign_death.png'), cols: 43, rows: 1 },
 };
 
 export const ENEMY_SPRITES: Record<string, {
