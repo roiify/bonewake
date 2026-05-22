@@ -8,13 +8,16 @@ import { resolveBattle } from '../lib/combat';
 import { toCombatUnit } from '../lib/stats';
 import { recordEvent } from '../lib/lifetime';
 import { ENEMY_SPRITES, HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
-import { StaticSprite } from '../components/SpriteAnimator';
+import { calcHeroStats } from '../lib/stats';
 import { addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD } from '../data/ultimateGear';
 
 const SQUAD_KEY = 'bonewake_squad';
 function loadSquad(): string[] {
   try { return JSON.parse(localStorage.getItem(SQUAD_KEY) ?? '[]'); } catch { return []; }
+}
+function saveSquad(ids: string[]) {
+  localStorage.setItem(SQUAD_KEY, JSON.stringify(ids));
 }
 
 export default function WorldBossPage() {
@@ -25,6 +28,15 @@ export default function WorldBossPage() {
   const equipment = useHeroes(s => s.equipment);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ damage: number; pct: number; tier: typeof REWARD_TIERS[number]; newBest: boolean } | null>(null);
+  const [squad, setSquad] = useState<string[]>(loadSquad());
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => { saveSquad(squad); }, [squad]);
+
+  function toggleHero(hid: string) {
+    if (squad.includes(hid)) setSquad(squad.filter(id => id !== hid));
+    else if (squad.length < 3) setSquad([...squad, hid]);
+  }
 
   const week = isoWeek();
   const boss = currentBoss(week);
@@ -115,17 +127,20 @@ export default function WorldBossPage() {
         </div>
       </div>
 
-      {/* Boss */}
+      {/* Boss — big-sprite hero shot */}
       <div className="rounded-lg border-2 border-rose-700 bg-gradient-to-b from-rose-950/40 to-zinc-900 p-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col items-center text-center gap-2">
           {ENEMY_SPRITES[boss.templateId as keyof typeof ENEMY_SPRITES] ? (
-            <StaticSprite src={ENEMY_SPRITES[boss.templateId as keyof typeof ENEMY_SPRITES]!.idle} size={72} className="scale-x-[-1]" />
-          ) : <div className="text-5xl">{boss.emoji}</div>}
-          <div className="flex-1 min-w-0">
-            <div className="font-pixel text-sm text-rose-200">{boss.name}</div>
-            <div className="text-[10px] text-zinc-400 italic mt-0.5">"{boss.description}"</div>
-            <div className="text-[10px] text-zinc-500 mt-1">LVL:{boss.level} · {bossHp.toLocaleString()} HP</div>
-          </div>
+            <img
+              src={ENEMY_SPRITES[boss.templateId as keyof typeof ENEMY_SPRITES]!.idle}
+              alt={boss.name}
+              className="w-48 h-48 object-contain"
+              style={{ imageRendering: 'pixelated' }}
+            />
+          ) : <div className="text-7xl">{boss.emoji}</div>}
+          <div className="font-pixel text-base text-rose-200">{boss.name}</div>
+          <div className="text-[11px] text-zinc-400 italic">"{boss.description}"</div>
+          <div className="text-[10px] text-zinc-500">LVL:{boss.level} · {bossHp.toLocaleString()} HP</div>
         </div>
         {/* Best damage progress bar */}
         <div className="mt-3">
@@ -164,28 +179,63 @@ export default function WorldBossPage() {
         )}
       </div>
 
-      {/* Squad preview */}
+      {/* Squad — editable */}
       <div className="rounded-md border border-emerald-900/50 bg-emerald-950/20 p-3">
-        <div className="font-pixel text-[10px] text-emerald-300 mb-2">Your Squad</div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="font-pixel text-[10px] text-emerald-300">Your Squad ({squad.length}/3)</div>
+          <button className="btn-pixel text-[10px] px-2 py-1" onClick={() => setEditing(e => !e)}>
+            {editing ? 'Done' : 'Edit'}
+          </button>
+        </div>
         <div className="grid grid-cols-3 gap-2">
-          {loadSquad().map(id => {
-            const h = heroes.find(x => x.id === id);
-            if (!h) return null;
+          {[0,1,2].map(i => {
+            const id = squad[i];
+            const h = id ? heroes.find(x => x.id === id) : undefined;
+            if (!h) return (
+              <div key={i} className="rounded border-2 border-dashed border-zinc-700 bg-zinc-950 aspect-square flex items-center justify-center">
+                <span className="text-[10px] text-zinc-600">empty</span>
+              </div>
+            );
             const tpl = HERO_BY_ID[h.templateId];
             return (
               <div key={id} className="rounded border bg-zinc-950 p-1.5 text-center" style={{ borderColor: tpl.color }}>
                 <div className="aspect-square flex items-center justify-center overflow-hidden">
-                  {HERO_PORTRAITS[tpl.id] ? <StaticSprite src={HERO_PORTRAITS[tpl.id]} size={50} /> : <div className="text-2xl">{tpl.emoji}</div>}
+                  {HERO_PORTRAITS[tpl.id]
+                    ? <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="w-[90%] h-[90%] object-contain" style={{ imageRendering: 'pixelated' }} />
+                    : <div className="text-2xl">{tpl.emoji}</div>}
                 </div>
                 <div className="text-[9px] truncate" style={{ color: tpl.color }}>{tpl.name}</div>
                 <div className="text-[8px] text-zinc-500">LVL:{h.level}</div>
               </div>
             );
           })}
-          {loadSquad().length === 0 && (
-            <div className="col-span-3 text-[10px] text-zinc-500 text-center">No squad set.</div>
-          )}
         </div>
+        {editing && (
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {heroes.map(h => {
+              const tpl = HERO_BY_ID[h.templateId];
+              if (!tpl) return null;
+              const stats = calcHeroStats(h, equipment);
+              const inSquad = squad.includes(h.id);
+              return (
+                <button
+                  key={h.id}
+                  onClick={() => toggleHero(h.id)}
+                  className={`rounded border-2 p-1.5 text-center bg-zinc-950 transition-transform ${inSquad ? 'scale-95 ring-2 ring-amber-400' : ''}`}
+                  style={{ borderColor: tpl.color }}
+                >
+                  <div className="aspect-square flex items-center justify-center overflow-hidden">
+                    {HERO_PORTRAITS[tpl.id]
+                      ? <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="w-[90%] h-[90%] object-contain" style={{ imageRendering: 'pixelated' }} />
+                      : <div className="text-2xl">{tpl.emoji}</div>}
+                  </div>
+                  <div className="text-[9px] truncate" style={{ color: tpl.color }}>{tpl.name}</div>
+                  <div className="text-[8px] text-zinc-500">LVL:{h.level} ⚔{stats.power}</div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Attack */}

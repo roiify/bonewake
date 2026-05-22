@@ -9,6 +9,8 @@ export const ENEMY_TEMPLATES = {
   fastghoul:         { name: 'Fast Ghoul',      element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 800,  atk: 130, def: 40,  spd: 90, crit: 0.20 }, color: '#a3a3a3', ultimateId: 'enemy_basic' },
   boneknight:        { name: 'Bone Knight',     element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 1600, atk: 140, def: 100, spd: 55, crit: 0.10 }, color: '#e7e5e4', ultimateId: 'enemy_basic' },
   graveyardlich:     { name: 'Graveyard Lich',  element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 2000, atk: 180, def: 80,  spd: 65, crit: 0.15 }, color: '#7c3aed', ultimateId: 'enemy_basic' },
+  // World Boss tier (used by WorldBossPage). Way more HP/ATK than regular stage enemies.
+  worldboss_1:       { name: 'Crimson Apostate',element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 80000, atk: 950, def: 350, spd: 95, crit: 0.30 }, color: '#dc2626', ultimateId: 'enemy_basic' },
   // Chapter 7 — Undead Vanguard
   undead_archer:     { name: 'Undead Archer',   element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 900,  atk: 160, def: 35,  spd: 75, crit: 0.22 }, color: '#a8a29e', ultimateId: 'enemy_basic' },
   plague_caster:     { name: 'Plague Caster',   element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1400, atk: 175, def: 65,  spd: 50, crit: 0.10 }, color: '#84cc16', ultimateId: 'enemy_basic' },

@@ -19,7 +19,8 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     rarity: 3,
     element: 'earth',
     archetype: 'warrior',
-    baseStats: stat(950, 110, 60, 50, 0.10),
+    // Bruiser balance: solid HP/ATK/DEF, moderate SPD/CRIT
+    baseStats: stat(1100, 125, 75, 60, 0.12),
     ultimateId: 'iron_palm',
     emoji: '🥋',
     color: '#a16207',
@@ -32,7 +33,8 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     rarity: 3,
     element: 'earth',
     archetype: 'assassin',
-    baseStats: stat(750, 135, 40, 80, 0.18),
+    // Ranger assassin: fragile, blazing SPD + very high CRIT
+    baseStats: stat(720, 130, 45, 90, 0.28),
     ultimateId: 'arrow_volley',
     emoji: '🏹',
     color: '#65a30d',
@@ -45,7 +47,8 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     rarity: 3,
     element: 'dark',
     archetype: 'assassin',
-    baseStats: stat(800, 145, 45, 85, 0.22),
+    // Pure speed-crit dagger assassin: highest SPD/CRIT in the roster
+    baseStats: stat(750, 140, 45, 95, 0.32),
     ultimateId: 'shadow_dance',
     emoji: '🗡️',
     color: '#7c3aed',
@@ -58,7 +61,9 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     rarity: 3,
     element: 'light',
     archetype: 'healer',
-    baseStats: stat(850, 120, 50, 65, 0.10),
+    // Survivable support: bumped HP + DEF (per "healer = more defense + heal");
+    // value comes from her passive heals + ult, not raw ATK
+    baseStats: stat(1000, 95, 95, 60, 0.08),
     ultimateId: 'dawn_blessing',
     emoji: '✨',
     color: '#fde047',
@@ -71,7 +76,8 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     rarity: 3,
     element: 'water',
     archetype: 'mage',
-    baseStats: stat(780, 170, 45, 70, 0.15),
+    // Frost caster: high ATK, fragile, moderate CRIT
+    baseStats: stat(770, 165, 50, 70, 0.15),
     ultimateId: 'frost_crystal',
     emoji: '❄️',
     color: '#60a5fa',
@@ -84,7 +90,8 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     rarity: 3,
     element: 'light',
     archetype: 'tank',
-    baseStats: stat(1700, 100, 130, 45, 0.06),
+    // Pure wall: highest HP + DEF, lowest ATK/SPD/CRIT
+    baseStats: stat(1900, 90, 150, 40, 0.05),
     ultimateId: 'aegis_judgment',
     emoji: '🛡️',
     color: '#fbbf24',
@@ -97,7 +104,8 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     rarity: 3,
     element: 'fire',
     archetype: 'mage',
-    baseStats: stat(750, 175, 40, 70, 0.18),
+    // Burn DPS: highest ATK among mages, fragile
+    baseStats: stat(720, 170, 45, 75, 0.16),
     ultimateId: 'infernal_cataclysm',
     emoji: '🔥',
     color: '#f97316',
@@ -110,7 +118,8 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     rarity: 3,
     element: 'dark',
     archetype: 'warrior',
-    baseStats: stat(1000, 165, 65, 70, 0.25),
+    // Crit-warrior: scythe wielder, balanced HP/ATK/DEF, above-average CRIT
+    baseStats: stat(1050, 135, 70, 65, 0.18),
     ultimateId: 'soul_harvest',
     emoji: '🌑',
     color: '#9f1239',
@@ -123,7 +132,8 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     rarity: 3,
     element: 'earth',
     archetype: 'warrior',
-    baseStats: stat(1100, 145, 75, 75, 0.18),
+    // Beefy shapeshifter frontline: highest warrior HP, solid DEF
+    baseStats: stat(1200, 120, 85, 60, 0.10),
     ultimateId: 'primal_form',
     emoji: '🐺',
     color: '#16a34a',
@@ -136,8 +146,9 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     rarity: 3,
     element: 'dark',
     archetype: 'mage',
+    // Necromancer caster: high ATK, fragile, moderate CRIT
     // Solo lineup: Manny battles alone with his summons. No party slots.
-    baseStats: stat(950, 180, 50, 65, 0.20),
+    baseStats: stat(820, 160, 55, 65, 0.14),
     ultimateId: 'army_of_the_dead',
     emoji: '💀',
     color: '#7c3aed',
@@ -198,6 +209,8 @@ export const ENEMY_SPRITES: Record<string, {
   cols: number;
   rows: number;
 }> = {
+  // World boss tier
+  worldboss_1:   { idle: A('sprites/echoes/enemies/worldboss_1_idle.png'),    attack: A('sprites/echoes/enemies/worldboss_1_attack.png'),   skill: A('sprites/echoes/enemies/worldboss_1_skill.png'),   hit: A('sprites/echoes/enemies/worldboss_1_hit.png'),   death: A('sprites/echoes/enemies/worldboss_1_death.png'),   cols: 43, rows: 1 },
   shambler:      { idle: A('sprites/echoes/enemies/shambler_idle.png'),      attack: A('sprites/echoes/enemies/shambler_attack.png'),      skill: A('sprites/echoes/enemies/shambler_skill.png'),      hit: A('sprites/echoes/enemies/shambler_hit.png'),      death: A('sprites/echoes/enemies/shambler_death.png'),      cols: 1, rows: 1 },
   boneknight:    { idle: A('sprites/echoes/enemies/boneknight_idle.png'),    attack: A('sprites/echoes/enemies/boneknight_attack.png'),    skill: A('sprites/echoes/enemies/boneknight_skill.png'),    hit: A('sprites/echoes/enemies/boneknight_hit.png'),    death: A('sprites/echoes/enemies/boneknight_death.png'),    cols: 1, rows: 1 },
   fastghoul:     { idle: A('sprites/echoes/enemies/fastghoul_idle.png'),     attack: A('sprites/echoes/enemies/fastghoul_attack.png'),     skill: A('sprites/echoes/enemies/fastghoul_skill.png'),     hit: A('sprites/echoes/enemies/fastghoul_hit.png'),     death: A('sprites/echoes/enemies/fastghoul_death.png'),     cols: 1, rows: 1 },

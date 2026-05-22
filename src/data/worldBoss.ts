@@ -17,16 +17,17 @@ export interface WorldBossDef {
   star: number;
 }
 
-// 4 bosses rotate weekly (one per week)
+// 4 bosses rotate weekly (one per week). HP / level cranked up so the
+// fight is a real challenge instead of a tap-and-pass.
 export const WORLD_BOSSES: WorldBossDef[] = [
-  { id: 'lichlord',  name: 'The Bone Lich',  description: 'A skeletal sovereign of dust and grudges.',     emoji: '💀',
-    templateId: 'graveyardlich', hpMillions: 1.0, level: 30, star: 5 },
-  { id: 'ironknight',name: 'Ironclad Knight',description: 'Plate so thick it eats your blows.',           emoji: '🛡️',
-    templateId: 'boneknight',    hpMillions: 1.2, level: 35, star: 5 },
-  { id: 'pleagueghoul',name: 'Plague Ghoul Alpha', description: 'Faster than the wind. Mean as a curse.', emoji: '🧟',
-    templateId: 'fastghoul',     hpMillions: 0.9, level: 28, star: 5 },
-  { id: 'crowned',   name: 'The Crowned Lich', description: 'It speaks no words. The cold answers.',      emoji: '👑',
-    templateId: 'graveyardlich', hpMillions: 2.0, level: 50, star: 5 },
+  { id: 'apostate',    name: 'The Crimson Apostate', description: 'A hooded blood-mage whose every gesture costs you blood.', emoji: '🩸',
+    templateId: 'worldboss_1',   hpMillions: 4.0, level: 60, star: 6 },
+  { id: 'ironknight',  name: 'Ironclad Knight',    description: 'Plate so thick it eats your blows.',                       emoji: '🛡️',
+    templateId: 'boneknight',    hpMillions: 5.0, level: 65, star: 6 },
+  { id: 'plagueghoul', name: 'Plague Ghoul Alpha', description: 'Faster than the wind. Mean as a curse.',                    emoji: '🧟',
+    templateId: 'fastghoul',     hpMillions: 3.5, level: 55, star: 6 },
+  { id: 'crowned',     name: 'The Crowned Lich',   description: 'It speaks no words. The cold answers.',                     emoji: '👑',
+    templateId: 'graveyardlich', hpMillions: 7.0, level: 80, star: 6 },
 ];
 
 export function currentBoss(weekIso: string): WorldBossDef {
