@@ -325,15 +325,26 @@ export default function StagePrebattlePage() {
                     key={h.id}
                     onClick={() => toggleHeroInSquad(h.id)}
                     disabled={locked}
-                    className={`rounded border-2 p-2 text-center bg-zinc-950 transition-transform ${inSquad ? 'scale-95 ring-2 ring-amber-400' : ''} ${locked ? 'opacity-30 grayscale' : ''}`}
-                    style={{ borderColor: tpl.color }}
+                    className={`relative rounded p-2 text-center transition-all ${inSquad ? 'scale-105 ring-4 ring-amber-300' : ''} ${locked ? 'opacity-30 grayscale' : ''}`}
+                    style={{
+                      borderWidth: inSquad ? 3 : 2,
+                      borderStyle: 'solid',
+                      borderColor: inSquad ? '#fbbf24' : tpl.color,
+                      background: inSquad ? `${tpl.color}33` : '#09090b',
+                      boxShadow: inSquad ? `0 0 18px ${tpl.color}, 0 0 8px #fbbf24` : undefined,
+                    }}
                   >
+                    {inSquad && (
+                      <div className="absolute -top-2 -right-2 z-10 w-6 h-6 rounded-full bg-amber-400 border-2 border-zinc-950 flex items-center justify-center text-zinc-950 font-pixel text-xs">
+                        ✓
+                      </div>
+                    )}
                     <div className="aspect-square flex items-center justify-center overflow-hidden">
                       {HERO_PORTRAITS[tpl.id]
                         ? <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="w-[90%] h-[90%] object-contain" style={{ imageRendering: 'pixelated' }} />
                         : <div className="text-3xl">{tpl.emoji}</div>}
                     </div>
-                    <div className="text-[10px] mt-1 truncate" style={{ color: tpl.color }}>{tpl.name}</div>
+                    <div className="text-[10px] mt-1 truncate font-pixel" style={{ color: inSquad ? '#fde68a' : tpl.color }}>{tpl.name}</div>
                     <div className="text-[9px] text-zinc-400">LVL:{h.level} ⚔{stats.power}</div>
                   </button>
                 );
