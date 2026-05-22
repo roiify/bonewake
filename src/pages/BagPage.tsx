@@ -131,13 +131,32 @@ export default function BagPage() {
             const isSelected = selected === eq.id;
             return (
               <div key={eq.id}
-                className="rounded border-2 p-2.5 bg-zinc-900/70 cursor-pointer"
+                className="relative rounded border-2 p-2.5 cursor-pointer"
                 onClick={() => setSelected(isSelected ? null : eq.id)}
-                style={{ borderColor: color, boxShadow: rarity >= 4 ? `0 0 12px ${color}40` : undefined }}
+                style={{
+                  borderColor: color,
+                  // Equipped items get a tinted background so they're obvious at a glance
+                  background: equippedHero ? `${eqTpl?.color}22` : 'rgba(24, 24, 27, 0.7)',
+                  boxShadow: rarity >= 4 ? `0 0 12px ${color}40` : undefined,
+                }}
               >
+                {equippedHero && (
+                  <div
+                    className="absolute -top-1.5 -right-1.5 z-10 font-pixel text-[8px] px-1.5 py-0.5 rounded text-zinc-950"
+                    style={{ background: eqTpl?.color ?? '#fbbf24' }}
+                  >
+                    EQUIPPED · {eqTpl?.name}
+                  </div>
+                )}
                 <div className="flex gap-3">
-                <div className="w-14 h-14 rounded bg-zinc-950 flex items-center justify-center text-3xl shrink-0">
+                <div className="w-14 h-14 rounded bg-zinc-950 flex items-center justify-center text-3xl shrink-0 relative">
                   {itemEmojiFor(eq)}
+                  {equippedHero && (
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-zinc-950 border-2 flex items-center justify-center text-[9px] font-pixel"
+                      style={{ borderColor: eqTpl?.color, color: eqTpl?.color }}>
+                      ✓
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
@@ -149,7 +168,6 @@ export default function BagPage() {
                     {eq.itemLevel && <span> · iL{eq.itemLevel}</span>}
                     {eq.isUltimateWeapon && <span className="ml-1 text-amber-400">· ★ULT</span>}
                     {eq.setRestrictedTo && <span className="ml-1 text-rose-300">· Set: {eq.setRestrictedTo}</span>}
-                    {equippedHero && <span className="ml-1" style={{ color: eqTpl?.color }}>· {eqTpl?.name}</span>}
                   </div>
                   {stats ? (
                     <div className="text-[10px] text-zinc-300 leading-tight">
