@@ -17,10 +17,14 @@ export interface TalentNode {
 // Helper to build a hero's 9 nodes
 type N = { name: string; description: string; bonus: Partial<Record<LootStat, number>> };
 function mk(heroId: string, branch: TalentBranch, rank: 1|2|3, n: N): TalentNode {
+  // Cost curve: 1pt → 2pt → 2pt (was 1/2/3).
+  // Slightly cheaper rank-3 so deep specialization is reachable without
+  // requiring level 28 to max one hero, but rank-2/3 still gate properly.
+  const cost = rank === 1 ? 1 : 2;
   return {
     id: `${heroId}_${branch}_${rank}`,
     heroId, branch, rank,
-    cost: rank,
+    cost,
     ...n,
   };
 }

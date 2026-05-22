@@ -29,9 +29,15 @@ export default function TalentsPage() {
     if (!node) return;
     if (unlocked.has(nodeId)) return;
     if (node.cost > available) { setToast('Not enough points'); setTimeout(() => setToast(null), 1500); return; }
-    // Must have unlocked previous ranks in this branch first
+    // Must have unlocked previous ranks in this branch (for THIS hero) first.
+    // The lookup must filter by heroId — otherwise it grabs whichever hero's
+    // matching node is first in TALENT_TREE and the prereq check is wrong.
     if (node.rank > 1) {
-      const prev = TALENT_TREE.find(t => t.branch === node.branch && t.rank === node.rank - 1);
+      const prev = TALENT_TREE.find(t =>
+        t.heroId === node.heroId &&
+        t.branch === node.branch &&
+        t.rank === node.rank - 1
+      );
       if (prev && !unlocked.has(prev.id)) {
         setToast(`Unlock ${prev.name} first`);
         setTimeout(() => setToast(null), 1800);

@@ -117,6 +117,33 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     flavor: 'Soul-Reaper of the Black Harvest. Each kill feeds his blade.',
     pullWeight: 5,
   },
+  {
+    id: 'george',
+    name: 'George',
+    rarity: 3,
+    element: 'earth',
+    archetype: 'warrior',
+    baseStats: stat(1100, 145, 75, 75, 0.18),
+    ultimateId: 'primal_form',
+    emoji: '🐺',
+    color: '#16a34a',
+    flavor: 'Druid of the Last Grove. Shapeshifts between man, wolf, and bear.',
+    pullWeight: 5,
+  },
+  {
+    id: 'manny',
+    name: 'Manny',
+    rarity: 3,
+    element: 'dark',
+    archetype: 'mage',
+    // Solo lineup: Manny battles alone with his summons. No party slots.
+    baseStats: stat(950, 180, 50, 65, 0.20),
+    ultimateId: 'army_of_the_dead',
+    emoji: '💀',
+    color: '#7c3aed',
+    flavor: 'Death Caller. Battles alone — his minions are his party.',
+    pullWeight: 3,
+  },
 ];
 
 export const HERO_BY_ID = Object.fromEntries(HERO_TEMPLATES.map(h => [h.id, h]));
@@ -132,6 +159,8 @@ export const HERO_PORTRAITS: Record<string, string> = {
   kaius:  A('sprites/pixellab/heroes/portraits/kaius.png'),
   pyra:   A('sprites/pixellab/heroes/portraits/pyra.png'),
   korvan: A('sprites/pixellab/heroes/portraits/korvan.png'),
+  george: A('sprites/pixellab/heroes/portraits/george.png'),
+  manny:  A('sprites/pixellab/heroes/portraits/manny.png'),
 };
 
 export const HERO_SPRITES: Record<string, {
@@ -154,7 +183,10 @@ export const HERO_SPRITES: Record<string, {
   len:    { idle: A('sprites/pixellab/heroes/len_idle.png'),    attack: A('sprites/pixellab/heroes/len_attack.png'),    skill: A('sprites/pixellab/heroes/len_skill.png'),    ult: A('sprites/pixellab/heroes/len_skill.png'),    hit: A('sprites/pixellab/heroes/len_idle.png'),    death: A('sprites/pixellab/heroes/len_death.png'),    cols: 43, rows: 1 },
   kaius:  { idle: A('sprites/pixellab/heroes/kaius_idle.png'),  attack: A('sprites/pixellab/heroes/kaius_attack.png'),  skill: A('sprites/pixellab/heroes/kaius_skill.png'),  ult: A('sprites/pixellab/heroes/kaius_skill.png'),  hit: A('sprites/pixellab/heroes/kaius_idle.png'),  death: A('sprites/pixellab/heroes/kaius_death.png'),  cols: 43, rows: 1 },
   pyra:   { idle: A('sprites/pixellab/heroes/pyra_idle.png'),   attack: A('sprites/pixellab/heroes/pyra_attack.png'),   skill: A('sprites/pixellab/heroes/pyra_skill.png'),   ult: A('sprites/pixellab/heroes/pyra_skill.png'),   hit: A('sprites/pixellab/heroes/pyra_idle.png'),   death: A('sprites/pixellab/heroes/pyra_death.png'),   cols: 43, rows: 1 },
-  korvan: { idle: A('sprites/pixellab/heroes/korvan_idle.png'), attack: A('sprites/pixellab/heroes/korvan_attack.png'), skill: A('sprites/pixellab/heroes/korvan_skill.png'), ult: A('sprites/pixellab/heroes/korvan_skill.png'), hit: A('sprites/pixellab/heroes/korvan_idle.png'), death: A('sprites/pixellab/heroes/korvan_death.png'), cols: 43, rows: 1 },
+  korvan: { idle: A('sprites/pixellab/heroes/korvan_idle.png'), attack: A('sprites/pixellab/heroes/korvan_attack.png'), skill: A('sprites/pixellab/heroes/korvan_skill.png'), ult: A('sprites/pixellab/heroes/korvan_ult.png'), hit: A('sprites/pixellab/heroes/korvan_idle.png'), death: A('sprites/pixellab/heroes/korvan_death.png'), cols: 43, rows: 1 },
+  // George shapeshifts: skill = wolf form, ult = bear form. attack stays in human form.
+  george: { idle: A('sprites/pixellab/heroes/george_idle.png'), attack: A('sprites/pixellab/heroes/george_attack.png'), skill: A('sprites/pixellab/heroes/george_skill.png'), ult: A('sprites/pixellab/heroes/george_ult.png'), hit: A('sprites/pixellab/heroes/george_idle.png'), death: A('sprites/pixellab/heroes/george_death.png'), cols: 43, rows: 1 },
+  manny:  { idle: A('sprites/pixellab/heroes/manny_idle.png'),  attack: A('sprites/pixellab/heroes/manny_attack.png'),  skill: A('sprites/pixellab/heroes/manny_skill.png'),  ult: A('sprites/pixellab/heroes/manny_ult.png'),  hit: A('sprites/pixellab/heroes/manny_idle.png'),  death: A('sprites/pixellab/heroes/manny_death.png'), cols: 43, rows: 1 },
 };
 
 export const ENEMY_SPRITES: Record<string, {
