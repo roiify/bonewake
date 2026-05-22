@@ -10,28 +10,61 @@ export interface BondDef {
   emoji: string;
 }
 
+// Bond fairness rule: each unique PAIR triggers exactly one pair bond
+// and each unique TRIPLE triggers exactly one triple bond.  No two bonds
+// share the same hero set.  Power budgets are roughly equal across all
+// pair bonds (~225-275 effective power per hero) and across all triple
+// bonds (~400-500 per hero) so no team composition is far ahead.
 export const BONDS: BondDef[] = [
-  // PAIRS
-  { id: 'dawn_brigade',  name: 'Dawn Brigade',  description: 'Light champions stand together.',
-    heroIds: ['luna', 'kaius'], bonus: { hp: 800, def: 50 }, emoji: '☀️' },
-  { id: 'frost_paladin', name: 'Glacial Order', description: 'Frost mage paired with paladin shield.',
-    heroIds: ['aelia', 'kaius'], bonus: { def: 60, atk: 50 }, emoji: '🧊' },
-  { id: 'shadowblades',  name: 'Shadowblades',  description: 'Two assassins move as one.',
-    heroIds: ['len', 'elara'], bonus: { spd: 25, crit: 0.08 }, emoji: '🗡️' },
-  { id: 'mountain_creed',name: 'Mountain Creed',description: 'Monk and elf, forest and stone.',
-    heroIds: ['kengo', 'elara'], bonus: { hp: 600, spd: 15 }, emoji: '🏔️' },
-  { id: 'lightbearers',  name: 'Lightbearers',  description: 'Priestess and paladin radiate hope.',
-    heroIds: ['luna', 'kaius'], bonus: { hp: 400, atk: 30 }, emoji: '✨' },
+  // ============ PAIR BONDS (one per unique pair) ============
+  // Light: priestess + paladin
+  { id: 'dawn_bond',       name: 'Dawn Bond',       description: 'Priestess and paladin radiate light.',
+    heroIds: ['luna', 'kaius'],    bonus: { hp: 500, def: 60 },           emoji: '☀️' },
+  // Mage + tank: frost + shield
+  { id: 'glacial_order',   name: 'Glacial Order',   description: 'Frost mage paired with paladin shield.',
+    heroIds: ['aelia', 'kaius'],   bonus: { def: 60, atk: 40 },           emoji: '🧊' },
+  // Assassin duo
+  { id: 'shadowblades',    name: 'Shadowblades',    description: 'Two assassins move as one.',
+    heroIds: ['len', 'elara'],     bonus: { spd: 30, crit: 0.10 },        emoji: '🗡️' },
+  // Forest pair: monk + ranger
+  { id: 'mountain_creed',  name: 'Mountain Creed',  description: 'Monk and ranger, forest and stone.',
+    heroIds: ['kengo', 'elara'],   bonus: { hp: 500, spd: 20 },           emoji: '🏔️' },
+  // Earth warriors: druid + monk
+  { id: 'earth_bound',     name: 'Earth Bound',     description: 'Two children of the wild stand firm.',
+    heroIds: ['kengo', 'george'],  bonus: { hp: 600, def: 40 },           emoji: '🌿' },
+  // Mage element clash: fire + water
+  { id: 'elemental_storm', name: 'Elemental Storm', description: 'Frost and flame answer each other.',
+    heroIds: ['aelia', 'pyra'],    bonus: { atk: 60, crit: 0.04 },        emoji: '🌩️' },
+  // Dark warriors: scythe + soul
+  { id: 'reapers_pact',    name: "Reapers' Pact",   description: 'Soul-reaper and necromancer trade lives.',
+    heroIds: ['korvan', 'manny'],  bonus: { atk: 70, crit: 0.04 },        emoji: '☠️' },
+  // Fire-warrior synergy
+  { id: 'burning_harvest', name: 'Burning Harvest', description: 'Flame fuels the scythe.',
+    heroIds: ['pyra', 'korvan'],   bonus: { atk: 50, hp: 500 },           emoji: '🔥' },
+  // Healer + tank-druid
+  { id: 'sacred_grove',    name: 'Sacred Grove',    description: 'Druid and priestess mend the broken.',
+    heroIds: ['george', 'luna'],   bonus: { hp: 700, def: 30 },           emoji: '🌳' },
+  // Death magic + assassin
+  { id: 'silent_blade',    name: 'Silent Blade',    description: 'Necromancer and assassin slip past life.',
+    heroIds: ['manny', 'len'],     bonus: { spd: 20, crit: 0.06 },        emoji: '🌑' },
 
-  // TRIPLES (full squad bonds — must be the entire squad)
-  { id: 'light_choir',   name: 'Light Choir',   description: 'All Light heroes — a hymn of dawn.',
-    heroIds: ['luna', 'kaius'], bonus: { atk: 100, hp: 500 }, emoji: '🎵' },
-  { id: 'frost_court',   name: 'Frost Court',   description: 'Aelia leads a winter retinue.',
-    heroIds: ['aelia', 'luna', 'kaius'], bonus: { atk: 80, def: 70, hp: 600 }, emoji: '❄️' },
-  { id: 'twilight_pack', name: 'Twilight Pack', description: 'Three predators of the dusk.',
-    heroIds: ['len', 'elara', 'kengo'], bonus: { spd: 30, crit: 0.10, atk: 80 }, emoji: '🌒' },
-  { id: 'full_party',    name: 'United Front',  description: 'Any 3 heroes form a true team.',
-    heroIds: ['*', '*', '*'], bonus: { hp: 300, atk: 30 }, emoji: '🤝' },
+  // ============ TRIPLE BONDS (one per unique triple) ============
+  { id: 'frost_court',     name: 'Frost Court',     description: 'Aelia leads a winter retinue.',
+    heroIds: ['aelia', 'luna', 'kaius'],   bonus: { atk: 80, def: 70, hp: 600 },     emoji: '❄️' },
+  { id: 'twilight_pack',   name: 'Twilight Pack',   description: 'Three predators of the dusk.',
+    heroIds: ['len', 'elara', 'kengo'],    bonus: { spd: 30, crit: 0.10, atk: 80 },  emoji: '🌒' },
+  { id: 'iron_pact',       name: 'Iron Pact',       description: 'Three warriors swore the same oath.',
+    heroIds: ['kengo', 'george', 'korvan'],bonus: { hp: 800, def: 50, atk: 50 },     emoji: '⚒️' },
+  { id: 'arcane_triumvirate', name: 'Arcane Triumvirate', description: 'Three mages reshape the war.',
+    heroIds: ['aelia', 'pyra', 'manny'],   bonus: { atk: 120, crit: 0.10 },          emoji: '🔮' },
+  { id: 'crimson_choir',   name: 'Crimson Choir',   description: 'Death-callers sing the harvest.',
+    heroIds: ['korvan', 'manny', 'luna'],  bonus: { atk: 70, hp: 700, crit: 0.05 },  emoji: '🩸' },
+
+  // ============ UNIVERSAL BASELINE ============
+  // Every full squad gets this. Smaller than pair/triple bonds so the
+  // composition-specific bonds matter more.
+  { id: 'full_party',      name: 'United Front',    description: 'Any 3 heroes form a true team.',
+    heroIds: ['*', '*', '*'],              bonus: { hp: 300, atk: 30 },              emoji: '🤝' },
 ];
 
 // Compute active bonds for a given squad of hero template IDs
