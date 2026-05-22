@@ -225,7 +225,7 @@ export default function StagePrebattlePage() {
       <div className="rounded-lg border border-emerald-900/50 bg-gradient-to-b from-emerald-950/30 to-zinc-900 p-3">
         <div className="flex items-center justify-between mb-2">
           <div className="font-pixel text-[10px] text-emerald-300">Your Squad ({squad.length}/3)</div>
-          <div className="flex gap-1 flex-wrap">
+          <div className="flex gap-1 shrink-0">
             <button className="btn-pixel" onClick={autoFormation}>Auto</button>
             <button className="btn-pixel" onClick={() => setPicker(true)}>Edit</button>
             <button className="btn-pixel" onClick={savePresetSquad} disabled={squad.length === 0}>💾</button>
