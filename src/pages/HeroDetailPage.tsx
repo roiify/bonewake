@@ -206,7 +206,7 @@ export default function HeroDetailPage() {
           style={{ background: `radial-gradient(circle, ${tpl.color}40, transparent)` }}
         >
           {HERO_PORTRAITS[tpl.id] ? (
-            <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="relative w-full h-full object-cover drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]" style={{ imageRendering: 'pixelated' }} />
+            <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="relative w-[90%] h-[90%] object-contain drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]" style={{ imageRendering: 'pixelated' }} />
           ) : (
             <div className="relative text-6xl drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]">{tpl.emoji}</div>
           )}

@@ -153,7 +153,7 @@ export default function HeroesPage() {
                   style={{ background: `linear-gradient(135deg, ${tpl.color}30, transparent)` }}
                 >
                   {HERO_PORTRAITS[tpl.id] ? (
-                    <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="relative w-full h-full object-cover drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]" style={{ imageRendering: 'pixelated' }} />
+                    <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="relative w-[90%] h-[90%] object-contain drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]" style={{ imageRendering: 'pixelated' }} />
                   ) : (
                     <div className="relative text-4xl drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]">{tpl.emoji}</div>
                   )}

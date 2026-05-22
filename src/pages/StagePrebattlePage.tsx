@@ -185,7 +185,7 @@ export default function StagePrebattlePage() {
               <div key={e.id} className="rounded border-2 p-2 text-center bg-zinc-950" style={{ borderColor: e.color }}>
                 <div className="aspect-square flex items-center justify-center overflow-hidden">
                   {sprite
-                    ? <img src={sprite.idle} alt={e.name} className="w-full h-full object-cover scale-x-[-1]" style={{ imageRendering: 'pixelated' }} />
+                    ? <img src={sprite.idle} alt={e.name} className="w-[90%] h-[90%] object-contain scale-x-[-1]" style={{ imageRendering: 'pixelated' }} />
                     : <div className="text-3xl">{e.emoji}</div>}
                 </div>
                 <div className="text-[10px] mt-1 truncate" style={{ color: e.color }}>{e.name}</div>
@@ -236,7 +236,7 @@ export default function StagePrebattlePage() {
               <div key={u.id} className="rounded border-2 p-2 text-center bg-zinc-950" style={{ borderColor: u.color }}>
                 <div className="aspect-square flex items-center justify-center overflow-hidden">
                   {portrait
-                    ? <img src={portrait} alt={u.name} className="w-full h-full object-cover" style={{ imageRendering: 'pixelated' }} />
+                    ? <img src={portrait} alt={u.name} className="w-[90%] h-[90%] object-contain" style={{ imageRendering: 'pixelated' }} />
                     : <div className="text-3xl">{u.emoji}</div>}
                 </div>
                 <div className="text-[10px] mt-1 truncate" style={{ color: u.color }}>{u.name}</div>
@@ -302,7 +302,7 @@ export default function StagePrebattlePage() {
                   >
                     <div className="aspect-square flex items-center justify-center overflow-hidden">
                       {HERO_PORTRAITS[tpl.id]
-                        ? <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="w-full h-full object-cover" style={{ imageRendering: 'pixelated' }} />
+                        ? <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="w-[90%] h-[90%] object-contain" style={{ imageRendering: 'pixelated' }} />
                         : <div className="text-3xl">{tpl.emoji}</div>}
                     </div>
                     <div className="text-[10px] mt-1 truncate" style={{ color: tpl.color }}>{tpl.name}</div>
