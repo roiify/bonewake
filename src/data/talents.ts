@@ -95,6 +95,50 @@ export const TALENT_TREE: TalentNode[] = [
   mk('len', 'endurance', 1, { name: 'Smoke Cloak', description: '+150 HP · +10 SPD',                    bonus: { hp: 150, spd: 10 } }),
   mk('len', 'endurance', 2, { name: 'Vanish',       description: '+25 DEF · +250 HP',                   bonus: { def: 25, hp: 250 } }),
   mk('len', 'endurance', 3, { name: 'No Witnesses',description: '+600 HP · +25 SPD',                    bonus: { hp: 600, spd: 25 } }),
+
+  // ============ PYRA — Pyromancer ============
+  mk('pyra', 'might', 1, { name: 'Spark',           description: '+35 ATK · embers gather',              bonus: { atk: 35 } }),
+  mk('pyra', 'might', 2, { name: 'Wildfire',        description: '+85 ATK · +8% CRIT',                   bonus: { atk: 85, crit: 0.08 } }),
+  mk('pyra', 'might', 3, { name: 'Conflagration',   description: '+180 ATK · +12% CRIT',                 bonus: { atk: 180, crit: 0.12 } }),
+  mk('pyra', 'finesse', 1, { name: 'Ember Pulse',   description: '+12 SPD',                              bonus: { spd: 12 } }),
+  mk('pyra', 'finesse', 2, { name: 'Heat Mirage',   description: '+25 SPD · +6% CRIT',                   bonus: { spd: 25, crit: 0.06 } }),
+  mk('pyra', 'finesse', 3, { name: 'Solar Surge',   description: '+45 SPD · +10% CRIT',                  bonus: { spd: 45, crit: 0.10 } }),
+  mk('pyra', 'endurance', 1, { name: 'Magma Skin',  description: '+200 HP · burns linger',               bonus: { hp: 200 } }),
+  mk('pyra', 'endurance', 2, { name: 'Phoenix Feather',description: '+35 DEF · +250 HP',                 bonus: { def: 35, hp: 250 } }),
+  mk('pyra', 'endurance', 3, { name: 'Reborn in Flame',description: '+900 HP · +50 DEF',                 bonus: { hp: 900, def: 50 } }),
+
+  // ============ KORVAN — Soul Reaper ============
+  mk('korvan', 'might', 1, { name: 'Scythe Edge',   description: '+35 ATK',                              bonus: { atk: 35 } }),
+  mk('korvan', 'might', 2, { name: 'Soul Cleave',   description: '+80 ATK · +10% CRIT',                  bonus: { atk: 80, crit: 0.10 } }),
+  mk('korvan', 'might', 3, { name: 'Black Harvest', description: '+190 ATK · +18% CRIT',                 bonus: { atk: 190, crit: 0.18 } }),
+  mk('korvan', 'finesse', 1, { name: "Reaper's Step",description: '+12 SPD',                             bonus: { spd: 12 } }),
+  mk('korvan', 'finesse', 2, { name: 'Death Glide', description: '+25 SPD · +8% CRIT',                   bonus: { spd: 25, crit: 0.08 } }),
+  mk('korvan', 'finesse', 3, { name: 'Last Cut',    description: '+50 SPD · +14% CRIT',                  bonus: { spd: 50, crit: 0.14 } }),
+  mk('korvan', 'endurance', 1, { name: 'Soul Eater',description: '+350 HP · feeds on death',             bonus: { hp: 350 } }),
+  mk('korvan', 'endurance', 2, { name: 'Bone Carapace',description: '+60 DEF · +400 HP',                 bonus: { def: 60, hp: 400 } }),
+  mk('korvan', 'endurance', 3, { name: 'Unkillable',description: '+1500 HP · +90 DEF',                   bonus: { hp: 1500, def: 90 } }),
+
+  // ============ GEORGE — Shapeshifter Druid ============
+  mk('george', 'might', 1, { name: 'Claw Sharpening',description: '+30 ATK · wild teeth',                 bonus: { atk: 30 } }),
+  mk('george', 'might', 2, { name: 'Pack Leader',   description: '+70 ATK · +250 HP',                    bonus: { atk: 70, hp: 250 } }),
+  mk('george', 'might', 3, { name: 'Apex Predator', description: '+160 ATK · +500 HP · +5% CRIT',        bonus: { atk: 160, hp: 500, crit: 0.05 } }),
+  mk('george', 'finesse', 1, { name: 'Quickfoot',   description: '+12 SPD',                              bonus: { spd: 12 } }),
+  mk('george', 'finesse', 2, { name: "Wolf's Pace", description: '+25 SPD · +5% CRIT',                   bonus: { spd: 25, crit: 0.05 } }),
+  mk('george', 'finesse', 3, { name: 'Wild Hunt',   description: '+45 SPD · +10% CRIT',                  bonus: { spd: 45, crit: 0.10 } }),
+  mk('george', 'endurance', 1, { name: 'Bark Skin', description: '+400 HP · roots him to earth',         bonus: { hp: 400 } }),
+  mk('george', 'endurance', 2, { name: 'Bear Form', description: '+80 DEF · +500 HP',                    bonus: { def: 80, hp: 500 } }),
+  mk('george', 'endurance', 3, { name: 'Primal Heart',description: '+1800 HP · +100 DEF',                bonus: { hp: 1800, def: 100 } }),
+
+  // ============ MANNY — Death Caller / Necromancer ============
+  mk('manny', 'might', 1, { name: 'Death Word',     description: '+40 ATK · whispers kill',              bonus: { atk: 40 } }),
+  mk('manny', 'might', 2, { name: 'Decay Touch',    description: '+90 ATK · +8% CRIT',                   bonus: { atk: 90, crit: 0.08 } }),
+  mk('manny', 'might', 3, { name: "Reaper's Will",  description: '+200 ATK · +14% CRIT',                 bonus: { atk: 200, crit: 0.14 } }),
+  mk('manny', 'finesse', 1, { name: 'Whisper Step', description: '+10 SPD',                              bonus: { spd: 10 } }),
+  mk('manny', 'finesse', 2, { name: 'Ghost Step',   description: '+22 SPD · +6% CRIT',                   bonus: { spd: 22, crit: 0.06 } }),
+  mk('manny', 'finesse', 3, { name: 'Bone Dance',   description: '+45 SPD · +12% CRIT',                  bonus: { spd: 45, crit: 0.12 } }),
+  mk('manny', 'endurance', 1, { name: 'Phylactery', description: '+300 HP · soul anchored',              bonus: { hp: 300 } }),
+  mk('manny', 'endurance', 2, { name: 'Lich Skin',  description: '+50 DEF · +350 HP',                    bonus: { def: 50, hp: 350 } }),
+  mk('manny', 'endurance', 3, { name: 'Undying',    description: '+1200 HP · +80 DEF',                   bonus: { hp: 1200, def: 80 } }),
 ];
 
 export const TALENT_BY_ID = Object.fromEntries(TALENT_TREE.map(t => [t.id, t]));
