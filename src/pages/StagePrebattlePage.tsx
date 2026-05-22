@@ -17,7 +17,7 @@ import { activeBonds } from '../data/bonds';
 import { loadPresets } from '../lib/squadPresets';
 import { BOSS_BANTER } from '../data/bossBanter';
 
-const SQUAD_KEY = 'pf_squad';
+const SQUAD_KEY = 'bonewake_squad';
 
 function loadSquad(): string[] {
   try { return JSON.parse(localStorage.getItem(SQUAD_KEY) ?? '[]'); } catch { return []; }

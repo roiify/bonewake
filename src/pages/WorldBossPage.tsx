@@ -12,7 +12,7 @@ import { StaticSprite } from '../components/SpriteAnimator';
 import { addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD } from '../data/ultimateGear';
 
-const SQUAD_KEY = 'pf_squad';
+const SQUAD_KEY = 'bonewake_squad';
 function loadSquad(): string[] {
   try { return JSON.parse(localStorage.getItem(SQUAD_KEY) ?? '[]'); } catch { return []; }
 }

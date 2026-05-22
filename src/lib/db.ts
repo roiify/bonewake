@@ -205,7 +205,7 @@ export class GameDB extends Dexie {
   battleLogs!: EntityTable<BattleLogEntry, 'id'>;
 
   constructor() {
-    super('pixel-fighter-save');
+    super('bonewake-save');
     this.version(1).stores({
       profile: 'id',
       heroes: 'id, templateId, level, star',
@@ -231,6 +231,64 @@ export class GameDB extends Dexie {
 }
 
 export const db = new GameDB();
+
+/**
+ * One-time migration: copy data from the legacy `pixel-fighter-save`
+ * IndexedDB into the new `bonewake-save` DB if the new DB is empty.
+ *
+ * Safe to call repeatedly — does nothing once the new DB has any rows.
+ * Called from main.tsx before React mounts so the rest of the app sees
+ * the user's existing save under the new name.
+ */
+export async function migrateLegacyDb(): Promise<void> {
+  if (typeof indexedDB === 'undefined') return;
+  // If the new DB already has heroes, the user is past migration.
+  try {
+    const existing = await db.heroes.count();
+    if (existing > 0) return;
+  } catch { return; }
+
+  // Does the legacy DB exist? Some browsers don't implement databases().
+  let hasOld = false;
+  if ('databases' in indexedDB) {
+    try {
+      const list = await (indexedDB as any).databases();
+      hasOld = list.some((d: any) => d?.name === 'pixel-fighter-save');
+    } catch {/* ignore */}
+  } else {
+    // Fallback: try to open it. If it didn't exist, the open creates an
+    // empty one we then delete.
+    hasOld = true;
+  }
+  if (!hasOld) return;
+
+  const oldDb = await new Promise<IDBDatabase | null>((resolve) => {
+    const req = indexedDB.open('pixel-fighter-save');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(null);
+  });
+  if (!oldDb) return;
+
+  const storeNames = Array.from(oldDb.objectStoreNames);
+  for (const storeName of storeNames) {
+    if (!db.tables.some(t => t.name === storeName)) continue;
+    try {
+      const items = await new Promise<any[]>((resolve, reject) => {
+        const tx = oldDb.transaction(storeName, 'readonly');
+        const req = tx.objectStore(storeName).getAll();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      if (items.length) await (db as any).table(storeName).bulkPut(items);
+    } catch (e) {
+      console.warn(`migrate ${storeName} failed`, e);
+    }
+  }
+  oldDb.close();
+
+  // Drop the legacy DB so it doesn't linger.
+  indexedDB.deleteDatabase('pixel-fighter-save');
+}
 
 export const DEFAULT_LIFETIME: LifetimeStats = {
   battlesWon: 0, battlesLost: 0, stagesCleared: 0, threeStarClears: 0,
@@ -324,12 +382,12 @@ async function pruneOrphanedSaveData() {
   }
   // Clean stale squad selection
   try {
-    const raw = localStorage.getItem('pf_squad');
+    const raw = localStorage.getItem('bonewake_squad');
     if (raw) {
       const ids: string[] = JSON.parse(raw);
       const validIds = ids.filter(id => heroes.some(h => h.id === id && HERO_BY_ID[h.templateId]));
       if (validIds.length !== ids.length) {
-        localStorage.setItem('pf_squad', JSON.stringify(validIds));
+        localStorage.setItem('bonewake_squad', JSON.stringify(validIds));
       }
     }
   } catch { /* ignore */ }

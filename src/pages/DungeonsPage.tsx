@@ -10,7 +10,7 @@ import { genLoot } from '../lib/loot';
 import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 
-const SQUAD_KEY = 'pf_squad';
+const SQUAD_KEY = 'bonewake_squad';
 function loadSquad(): string[] {
   try { return JSON.parse(localStorage.getItem(SQUAD_KEY) ?? '[]'); } catch { return []; }
 }

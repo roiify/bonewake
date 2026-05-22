@@ -28,7 +28,7 @@ import { GEM_TIER_COLOR, GEM_TIER_NAME } from '../data/gems';
 import type { GemDef } from '../data/gems';
 import { sound } from '../lib/audio';
 
-const SQUAD_KEY = 'pf_squad';
+const SQUAD_KEY = 'bonewake_squad';
 
 function loadSquad(): string[] {
   try { return JSON.parse(localStorage.getItem(SQUAD_KEY) ?? '[]'); } catch { return []; }
@@ -46,7 +46,7 @@ export default function BattlePlayPage() {
   // Remember the last stage played so the Story page can scroll back here
   // instead of resetting to chapter 1 every time.
   useEffect(() => {
-    if (stageId) localStorage.setItem('pf_last_stage', stageId);
+    if (stageId) localStorage.setItem('bonewake_last_stage', stageId);
   }, [stageId]);
   const heroes = useHeroes(s => s.heroes);
   const equipment = useHeroes(s => s.equipment);

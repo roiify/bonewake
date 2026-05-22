@@ -4,7 +4,7 @@ import { DEFAULT_LIFETIME } from './db';
 import { earnedTitles, TITLE_BY_ID } from '../data/titles';
 import { sendMail } from './mail';
 
-const TITLE_SEEN_KEY = 'pf_title_seen_v1';
+const TITLE_SEEN_KEY = 'bonewake_title_seen_v1';
 function loadSeenTitles(): Set<string> {
   try { return new Set(JSON.parse(localStorage.getItem(TITLE_SEEN_KEY) ?? '[]')); }
   catch { return new Set(); }

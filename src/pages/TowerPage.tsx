@@ -22,14 +22,14 @@ import { MAT_SOULSHARD } from '../data/ultimateGear';
 import { HERO_BY_ID, HERO_PORTRAITS, ENEMY_SPRITES } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 
-const SQUAD_KEY = 'pf_squad';
+const SQUAD_KEY = 'bonewake_squad';
 function loadSquad(): string[] {
   try { return JSON.parse(localStorage.getItem(SQUAD_KEY) ?? '[]'); } catch { return []; }
 }
 
 function todayStr() { return new Date().toISOString().slice(0, 10); }
 
-const TOWER_HISTORY_KEY = 'pf_tower_weekly_history_v1';
+const TOWER_HISTORY_KEY = 'bonewake_tower_weekly_history_v1';
 type WeekRecord = { week: string; highest: number };
 function loadTowerHistory(): WeekRecord[] {
   try { return JSON.parse(localStorage.getItem(TOWER_HISTORY_KEY) ?? '[]'); } catch { return []; }

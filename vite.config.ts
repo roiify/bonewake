@@ -3,10 +3,10 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { execSync } from 'node:child_process';
 
-// GitHub Pages serves the app at https://<user>.github.io/pixel-fighter-game/
+// GitHub Pages serves the app at https://<user>.github.io/bonewake/
 // so the base path needs the repo name in production. Locally we serve from /.
 const isProd = process.env.NODE_ENV === 'production' || process.env.VITE_BUILD_TARGET === 'pages';
-const base = isProd ? '/pixel-fighter-game/' : '/';
+const base = isProd ? '/bonewake/' : '/';
 
 function safeExec(cmd: string, fallback = ''): string {
   try { return execSync(cmd).toString().trim(); } catch { return fallback; }
@@ -34,7 +34,7 @@ export default defineConfig({
             urlPattern: /\.(?:png|jpg|jpeg|svg|webp)$/,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'pf-images',
+              cacheName: 'bonewake-images',
               expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
@@ -42,7 +42,7 @@ export default defineConfig({
             urlPattern: /\.(?:mp3|wav|ogg)$/,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'pf-audio',
+              cacheName: 'bonewake-audio',
               expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },

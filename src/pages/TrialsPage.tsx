@@ -13,7 +13,7 @@ import { MAT_SOULSHARD } from '../data/ultimateGear';
 import { logBattle } from '../lib/battleLog';
 import { db } from '../lib/db';
 
-const SQUAD_KEY = 'pf_squad';
+const SQUAD_KEY = 'bonewake_squad';
 function loadSquad(): string[] {
   try { return JSON.parse(localStorage.getItem(SQUAD_KEY) ?? '[]'); } catch { return []; }
 }

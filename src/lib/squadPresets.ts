@@ -4,7 +4,7 @@ export interface SquadPreset {
   heroIds: string[];   // owned hero IDs (not template IDs — these are user-instance IDs)
 }
 
-const KEY = 'pf_squad_presets';
+const KEY = 'bonewake_squad_presets';
 export const MAX_PRESETS = 5;
 
 export function loadPresets(): SquadPreset[] {
@@ -32,7 +32,7 @@ export function deletePreset(name: string) {
 }
 
 // Set the currently active squad (used by all battle flows)
-const SQUAD_KEY = 'pf_squad';
+const SQUAD_KEY = 'bonewake_squad';
 export function setActiveSquad(heroIds: string[]) {
   localStorage.setItem(SQUAD_KEY, JSON.stringify(heroIds));
 }

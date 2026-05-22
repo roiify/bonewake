@@ -31,7 +31,7 @@ export default function BattlePage() {
   //   2. If they failed the last stage, scroll to the same stage (retry)
   //   3. Fallback: first uncleared stage
   //   4. Fallback: last cleared stage
-  const lastPlayedStageId = typeof window !== 'undefined' ? localStorage.getItem('pf_last_stage') : null;
+  const lastPlayedStageId = typeof window !== 'undefined' ? localStorage.getItem('bonewake_last_stage') : null;
   let nextStageId: string | null = null;
   if (lastPlayedStageId) {
     if (clears[lastPlayedStageId]) {

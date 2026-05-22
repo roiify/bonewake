@@ -18,9 +18,9 @@ import { sendMail } from './mail';
 
 const MAX_AUTO_BACKUPS = 7;            // keep the last 7 daily auto-backups
 const AUTO_INTERVAL_MS = 22 * 60 * 60 * 1000; // run again at least 22h after the last auto-backup
-const LS_MIRROR_KEY = 'pf_backup_mirror_v1';   // localStorage mirror of the last 3 auto-backups
+const LS_MIRROR_KEY = 'bonewake_backup_mirror_v1';   // localStorage mirror of the last 3 auto-backups
 const LS_MIRROR_KEEP = 3;
-const LS_EXPORT_NAG_KEY = 'pf_last_export_nag';
+const LS_EXPORT_NAG_KEY = 'bonewake_last_export_nag';
 const EXPORT_NAG_INTERVAL_MS = 3 * 24 * 60 * 60 * 1000; // nag every 3 days
 
 async function gatherSnapshot(): Promise<Omit<SaveBackup, 'id' | 'createdAt' | 'source' | 'label'>> {
