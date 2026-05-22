@@ -41,7 +41,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
   },
   {
     id: 'len',
-    name: 'Len',
+    name: 'Arcaveli',
     rarity: 3,
     element: 'dark',
     archetype: 'assassin',
