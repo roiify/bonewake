@@ -657,7 +657,7 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill }: {
 
 
       {/* Character sprite — heroes face right naturally, enemies mirrored */}
-      <div className="relative w-28 h-28 flex items-end justify-center">
+      <div className="relative w-44 h-44 flex items-end justify-center">
         {animSrc ? (
           <SpriteAnimator
             src={animSrc}
@@ -665,11 +665,11 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill }: {
             rows={sprites!.rows}
             fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 18 : 14)))}
             loop={unit.alive && !hit}
-            size={112}
+            size={176}
             className={side === 'enemy' ? 'scale-x-[-1]' : ''}
           />
         ) : (
-          <div className="text-3xl">{unit.emoji}</div>
+          <div className="text-5xl">{unit.emoji}</div>
         )}
       </div>
 
