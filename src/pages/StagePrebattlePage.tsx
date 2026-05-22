@@ -59,24 +59,18 @@ export default function StagePrebattlePage() {
     .map((h, i, arr) => toCombatUnit(h, equipment, 'player', `p${i}`, arr.map(x => x.templateId)))
     .filter((u): u is NonNullable<typeof u> => !!u);
 
-  async function autoFormation() {
-    // Manny's lore: he fights with his summons, not other heroes. If Auto
-    // would have picked Manny in the top 3, switch to the locked solo
-    // lineup (Manny + Bone King + Lich Sovereign) instead of mixing him
-    // with other heroes.
-    const ranked = [...heroes]
-      // Skip the auto-managed summons — they only enter via Manny.
-      .filter(h => !HIDDEN_HERO_IDS.has(h.templateId))
+  function autoFormation() {
+    // Auto never includes Manny — his lore is solo-with-summons, so mixing
+    // him into a standard top-power team breaks the rule. Players who want
+    // the Manny lineup pick him manually, which auto-fills his two summons.
+    // Summons themselves (bone_king, lich_sovereign) are always hidden.
+    const top3 = [...heroes]
+      .filter(h => !HIDDEN_HERO_IDS.has(h.templateId) && h.templateId !== MANNY_TPL)
       .map(h => ({ h, p: calcHeroStats(h, equipment).power }))
-      .sort((a, b) => b.p - a.p);
-    const top3 = ranked.slice(0, 3);
-    const mannyPick = top3.find(x => x.h.templateId === MANNY_TPL);
-    if (mannyPick) {
-      const summonIds = await ensureMannySummons();
-      setSquad([mannyPick.h.id, ...summonIds]);
-      return;
-    }
-    setSquad(top3.map(x => x.h.id));
+      .sort((a, b) => b.p - a.p)
+      .slice(0, 3)
+      .map(x => x.h.id);
+    setSquad(top3);
   }
 
   async function toggleHeroInSquad(heroId: string) {
