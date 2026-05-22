@@ -61,21 +61,20 @@ export default function StagePrebattlePage() {
 
   async function autoFormation() {
     // Auto picks the top 3 by power, excluding the auto-managed summons.
-    // If Manny lands in the top 3, his lore takes over: the squad becomes
-    // the locked solo lineup [Manny, Bone King, Lich Sovereign] instead of
-    // mixing him with other heroes.
+    // Only if Manny is the single strongest hero (rank #1) does the squad
+    // lock to his solo lineup [Manny, Bone King, Lich Sovereign]. If he's
+    // 2nd-3rd, he sits out and Auto picks the next-strongest heroes.
     const ranked = [...heroes]
       .filter(h => !HIDDEN_HERO_IDS.has(h.templateId))
       .map(h => ({ h, p: calcHeroStats(h, equipment).power }))
       .sort((a, b) => b.p - a.p);
-    const top3 = ranked.slice(0, 3);
-    const mannyPick = top3.find(x => x.h.templateId === MANNY_TPL);
-    if (mannyPick) {
+    if (ranked[0]?.h.templateId === MANNY_TPL) {
       const summonIds = await ensureMannySummons();
-      // Drop into the solo lineup regardless of who else was in top 3.
-      setSquad([mannyPick.h.id, ...summonIds]);
+      setSquad([ranked[0].h.id, ...summonIds]);
       return;
     }
+    // Manny excluded — pick top 3 of the rest.
+    const top3 = ranked.filter(x => x.h.templateId !== MANNY_TPL).slice(0, 3);
     setSquad(top3.map(x => x.h.id));
   }
 
