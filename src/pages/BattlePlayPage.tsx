@@ -440,7 +440,7 @@ export default function BattlePlayPage() {
         {done && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-black/85 z-40 flex flex-col items-center justify-center p-6 text-center"
+            className="absolute inset-0 bg-black/85 z-40 flex flex-col items-center p-6 pb-24 text-center overflow-y-auto"
           >
             <motion.div
               initial={{ scale: 0 }} animate={{ scale: 1 }}
