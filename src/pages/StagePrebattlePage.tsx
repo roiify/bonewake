@@ -278,7 +278,7 @@ export default function StagePrebattlePage() {
               <div key={e.id} className="rounded border-2 p-2 text-center bg-zinc-950" style={{ borderColor: e.color }}>
                 <div className="aspect-square flex items-center justify-center overflow-hidden">
                   {sprite
-                    ? <img src={sprite.idle} alt={e.name} className="w-[90%] h-[90%] object-contain scale-x-[-1]" style={{ imageRendering: 'pixelated' }} />
+                    ? <img src={sprite.portrait ?? sprite.idle} alt={e.name} className="w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
                     : <div className="text-3xl">{e.emoji}</div>}
                 </div>
                 <div className="text-[10px] mt-1 truncate" style={{ color: e.color }}>{e.name}</div>
