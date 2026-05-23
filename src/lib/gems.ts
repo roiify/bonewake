@@ -3,13 +3,20 @@ import { GEM_BY_ID, SOCKETS_BY_RARITY, gemInventoryKey, type GemDef } from '../d
 import { useItems } from '../store/items';
 
 // Hero-bound socket count. Gems live on the hero, not the equipment, so
-// they persist across gear swaps. Capped at 4 per hero for now.
-export const HERO_GEM_SLOTS = 4;
+// they persist across gear swaps. Bumped from 4 → 8 after feedback that
+// 4 slots felt like too big a nerf vs the old 15-socket gear ceiling.
+export const HERO_GEM_SLOTS = 8;
 
+// Resize a hero's gem array to the current slot count while preserving
+// whatever gems are already slotted. Adding slots = pads with nulls;
+// shrinking would truncate (we only ever grow today, so excess gems
+// staying in storage is fine — they're just inert).
 export function ensureHeroGems(hero: OwnedHero): (string | null)[] {
-  const g = hero.gems;
-  if (!g || g.length !== HERO_GEM_SLOTS) return Array(HERO_GEM_SLOTS).fill(null);
-  return g;
+  const g = hero.gems ?? [];
+  if (g.length === HERO_GEM_SLOTS) return g;
+  const out: (string | null)[] = Array(HERO_GEM_SLOTS).fill(null);
+  for (let i = 0; i < Math.min(g.length, HERO_GEM_SLOTS); i++) out[i] = g[i];
+  return out;
 }
 
 // Aggregate gem stat contribution for a hero's slotted gems.
