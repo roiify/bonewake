@@ -2,7 +2,7 @@ import { HERO_BY_ID } from '../data/heroes';
 import { ENEMY_TEMPLATES } from '../data/stages';
 import { EQUIP_BY_ID } from '../data/equipment';
 import { equipStats } from './loot';
-import { heroGemStats } from './gems';
+import { equipmentGemStats } from './gems';
 import { SET_BY_HERO } from '../data/ultimateGear';
 import { TALENT_BY_ID } from '../data/talents';
 import { bondBonusFor } from '../data/bonds';
@@ -66,6 +66,13 @@ export function calcHeroStats(
       const own = ownedEquipment.find(e => e.id === eqId);
       if (!own) continue;
       if (own.craftedPieceId) setPieceIdsEquipped.push(own.craftedPieceId);
+      // Gem socket contributions — normal sockets + dedicated ult socket.
+      const gs = equipmentGemStats(own);
+      if (gs.hp) hp += gs.hp as number;
+      if (gs.atk) atk += gs.atk as number;
+      if (gs.def) def += gs.def as number;
+      if (gs.spd) spd += gs.spd as number;
+      if (gs.crit) crit += gs.crit as number;
       // New ARPG-format items have primary/affixes — use them
       if (own.primary || own.affixes) {
         const s = equipStats(own);
@@ -88,17 +95,6 @@ export function calcHeroStats(
         if (et.stats.crit) crit += et.stats.crit;
       }
     }
-  }
-
-  // Hero-bound gem contributions — gems live on the hero now, not on the
-  // gear, so they follow the hero across gear swaps.
-  if ('gems' in hero && Array.isArray((hero as any).gems)) {
-    const gs = heroGemStats(hero as OwnedHero);
-    if (gs.hp) hp += gs.hp as number;
-    if (gs.atk) atk += gs.atk as number;
-    if (gs.def) def += gs.def as number;
-    if (gs.spd) spd += gs.spd as number;
-    if (gs.crit) crit += gs.crit as number;
   }
 
   // Talent bonuses

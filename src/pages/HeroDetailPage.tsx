@@ -9,8 +9,8 @@ import { BASE_BY_ID, LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from
 import { equipPower, equipStats } from '../lib/loot';
 import { db, type OwnedEquipment } from '../lib/db';
 import { MYTHIC_COLOR, SET_BY_HERO } from '../data/ultimateGear';
-import { GEMS, ULT_GEMS, GEM_BY_ID, GEM_TIER_COLOR, gemInventoryKey } from '../data/gems';
-import { getGemInventoryMap, removeGemFromInventory, socketGemOnHero, unsocketGemFromHero, ensureHeroGems } from '../lib/gems';
+import { GEMS, GEM_BY_ID, GEM_TIER_COLOR, ULT_GEM_BY_HERO, gemInventoryKey } from '../data/gems';
+import { addGemToInventory, getGemInventoryMap, removeGemFromInventory, socketGem, unsocketGem, socketUltGem, unsocketUltGem, socketsAvailableFor, hasUltSocket, ensureSockets, transferSockets } from '../lib/gems';
 import { calcHeroStats, goldToLevelUp, maxLevelForStar, xpForLevel } from '../lib/stats';
 import type { EquipSlot } from '../types';
 import { useItems } from '../store/items';
@@ -32,7 +32,9 @@ export default function HeroDetailPage() {
   const items = useItems(s => s.items);
   const refreshItems = useItems(s => s.refresh);
   const [equipSlot, setEquipSlot] = useState<EquipSlot | null>(null);
-  const [socketTarget, setSocketTarget] = useState<{ slotIndex: number } | null>(null);
+  // Socket target now references an equipment id + either a normal slot
+  // index or the dedicated ult socket. Gems live on the gear again.
+  const [socketTarget, setSocketTarget] = useState<{ equipmentId: string; slotIndex: number } | { equipmentId: string; ult: true } | null>(null);
 
   const hero = heroes.find(h => h.id === id);
   if (!hero) return <div className="p-6 text-center text-zinc-500">Hero not found. <Link className="text-amber-400 underline" to="/heroes">Back</Link></div>;
@@ -76,6 +78,7 @@ export default function HeroDetailPage() {
   const equipItem = async (slot: EquipSlot, eqId: string) => {
     // unequip current
     const current = hero.equipped[slot];
+    const oldEq = current ? equipment.find(e => e.id === current) : undefined;
     if (current) await updateEquipment(current, { equippedTo: null });
     // unequip from any other hero
     const eq = equipment.find(e => e.id === eqId);
@@ -89,6 +92,17 @@ export default function HeroDetailPage() {
     }
     await updateEquipment(eqId, { equippedTo: hero.id });
     await updateHero(hero.id, { equipped: { ...hero.equipped, [slot]: eqId } });
+
+    // Auto-transfer sockets from the old piece (if any) to the new one
+    // so gems follow the hero across upgrades. Anything that doesn't fit
+    // (fewer sockets, no ult socket on new piece) returns to inventory.
+    if (oldEq && eq) {
+      const { newPatch, oldPatch, overflowGems } = transferSockets(oldEq, eq);
+      if (Object.keys(newPatch).length > 0) await updateEquipment(eqId, newPatch);
+      if (Object.keys(oldPatch).length > 0) await updateEquipment(oldEq.id, oldPatch);
+      for (const gid of overflowGems) await addGemToInventory(gid, 1);
+      if (overflowGems.length > 0) await refreshItems();
+    }
     setEquipSlot(null);
   };
 
@@ -161,37 +175,53 @@ export default function HeroDetailPage() {
       await updateHero(hero.id, { equipped: newEquipped });
     }
 
-    // Auto-fill any empty hero gem slots with best-available gems. Skip ult
-    // gems bound to other heroes; prefer this hero's ult gem if present.
+    // Auto-fill empty sockets on currently equipped items + the ult socket
+    // on the ult weapon (with this hero's ult gem) from inventory.
     const gemInv = await getGemInventoryMap();
-    const refreshedHero = await db.heroes.get(hero.id);
-    if (refreshedHero) {
-      const gems = [...ensureHeroGems(refreshedHero)];
+    for (const slot of slots) {
+      const eqId = newEquipped[slot];
+      if (!eqId) continue;
+      const eq = await db.equipment.get(eqId);
+      if (!eq) continue;
+      const withSockets = ensureSockets(eq);
+      const sockets = [...(withSockets.sockets ?? [])];
+      let ult = withSockets.ultSocket ?? null;
       let mutated = false;
-      for (let i = 0; i < gems.length; i++) {
-        if (gems[i]) continue;
+      // Fill normal sockets with highest-tier non-ult gems
+      for (let i = 0; i < sockets.length; i++) {
+        if (sockets[i]) continue;
+        const primaryStat = eq.primary?.stat;
         const available = Object.entries(gemInv).filter(([gid, c]) => {
           const g = GEM_BY_ID[gid];
           if (!g || c <= 0) return false;
-          if (g.heroId && g.heroId !== hero.templateId) return false;
+          if (g.heroId) return false; // ult gems go in the ult socket only
           return true;
         });
         if (available.length === 0) break;
-        // Prefer ult gem bound to this hero, then highest tier
         available.sort((a, b) => {
           const ga = GEM_BY_ID[a[0]], gb = GEM_BY_ID[b[0]];
-          const aBound = ga.heroId === hero.templateId ? 1 : 0;
-          const bBound = gb.heroId === hero.templateId ? 1 : 0;
-          if (aBound !== bBound) return bBound - aBound;
+          const aMatch = primaryStat && ga.stat === primaryStat ? 1 : 0;
+          const bMatch = primaryStat && gb.stat === primaryStat ? 1 : 0;
+          if (aMatch !== bMatch) return bMatch - aMatch;
           return gb.tier - ga.tier;
         });
         const [pickedId] = available[0];
         gemInv[pickedId] = (gemInv[pickedId] ?? 0) - 1;
         await removeGemFromInventory(pickedId, 1);
-        gems[i] = pickedId;
+        sockets[i] = pickedId;
         mutated = true;
       }
-      if (mutated) await updateHero(hero.id, { gems });
+      // Fill ult socket on the ult weapon with this hero's ult gem if owned
+      if (hasUltSocket(withSockets) && !ult) {
+        const ultGemId = `gem_ult_${hero.templateId}`;
+        if ((gemInv[ultGemId] ?? 0) > 0) {
+          gemInv[ultGemId] -= 1;
+          await removeGemFromInventory(ultGemId, 1);
+          ult = ultGemId;
+          mutated = true;
+        }
+      }
+      if (mutated) await updateEquipment(eqId, { sockets, ultSocket: ult ?? null });
     }
   };
 
@@ -298,27 +328,57 @@ export default function HeroDetailPage() {
           })}
         </div>
         <div className="text-[9px] text-zinc-500 mt-2 text-center">Auto-equip uses unequipped items only — won't steal from other heroes.</div>
-        {/* Hero-bound gem sockets — gems live on the hero now, so they
-            persist across gear swaps and feed stats unconditionally. */}
-        <div className="mt-3 pt-2 border-t border-zinc-800">
-          <div className="text-[10px] font-pixel text-cyan-300 mb-1.5">GEM SOCKETS</div>
-          <div className="flex gap-1.5 flex-wrap">
-            {ensureHeroGems(hero).map((gemId, i) => {
-              const gem = gemId ? GEM_BY_ID[gemId] : null;
+        {/* Per-equipment sockets — gems live on the gear. The hero's ult
+            weapon also has a dedicated ult-gem socket. Gems auto-transfer
+            when you swap gear for a slot so the hero never "loses" them. */}
+        {SLOTS.some(slot => {
+          const eqId = hero.equipped[slot];
+          const eq = equipment.find(e => e.id === eqId);
+          return eq && (socketsAvailableFor(eq) > 0 || hasUltSocket(eq));
+        }) && (
+          <div className="mt-3 pt-2 border-t border-zinc-800 space-y-1.5">
+            <div className="text-[10px] font-pixel text-cyan-300">SOCKETS</div>
+            {SLOTS.map(slot => {
+              const eqId = hero.equipped[slot];
+              const eq = equipment.find(e => e.id === eqId);
+              if (!eq) return null;
+              const nSockets = socketsAvailableFor(eq);
+              const ultSlot = hasUltSocket(eq);
+              if (nSockets === 0 && !ultSlot) return null;
+              const eqWithSockets = ensureSockets(eq);
+              const sockets = eqWithSockets.sockets ?? [];
+              const ultGemId = eqWithSockets.ultSocket ?? null;
+              const ultGem = ultGemId ? GEM_BY_ID[ultGemId] : null;
               return (
-                <button
-                  key={i}
-                  onClick={() => setSocketTarget({ slotIndex: i })}
-                  className="w-10 h-10 rounded border flex items-center justify-center text-base"
-                  style={{ borderColor: gem ? GEM_TIER_COLOR[gem.tier] : '#3f3f46', background: gem ? '#0c0c0e' : '#18181b' }}
-                  title={gem?.name ?? 'Empty socket'}
-                >
-                  {gem ? gem.emoji : '⚪'}
-                </button>
+                <div key={slot} className="flex items-center gap-2">
+                  <span className="text-[10px] text-zinc-400 w-16 capitalize truncate">{slot}</span>
+                  <div className="flex gap-1 flex-1 flex-wrap">
+                    {sockets.map((gemId, i) => {
+                      const gem = gemId ? GEM_BY_ID[gemId] : null;
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => setSocketTarget({ equipmentId: eq.id, slotIndex: i })}
+                          className="w-8 h-8 rounded border flex items-center justify-center text-xs"
+                          style={{ borderColor: gem ? GEM_TIER_COLOR[gem.tier] : '#3f3f46', background: gem ? '#0c0c0e' : '#18181b' }}
+                          title={gem?.name ?? 'Empty socket'}
+                        >{gem ? gem.emoji : '⚪'}</button>
+                      );
+                    })}
+                    {ultSlot && (
+                      <button
+                        onClick={() => setSocketTarget({ equipmentId: eq.id, ult: true })}
+                        className="w-8 h-8 rounded border-2 flex items-center justify-center text-xs"
+                        style={{ borderColor: ultGem ? GEM_TIER_COLOR[5] : '#a21caf', background: ultGem ? '#1a0822' : '#18181b' }}
+                        title={ultGem?.name ?? `Ult gem socket (${tpl.name} only)`}
+                      >{ultGem ? ultGem.emoji : '★'}</button>
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>
-        </div>
+        )}
         {heroSet && (
           <div className="mt-2 border-t border-zinc-800 pt-2">
             <div className="text-[10px] font-pixel" style={{ color: MYTHIC_COLOR }}>
@@ -423,61 +483,71 @@ export default function HeroDetailPage() {
         </div>
       </Link>
 
-      {/* Socket modal — operates on hero.gems now (gear-agnostic). */}
-      {socketTarget && (
-        <div className="fixed inset-0 bg-black/80 flex items-end justify-center z-50" onClick={() => setSocketTarget(null)}>
-          <div className="bg-zinc-900 w-full max-w-[420px] rounded-t-2xl border-t border-zinc-700 p-4 max-h-[70vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="font-pixel text-xs mb-3">Socket a gem on {tpl.name}</div>
-            {(() => {
-              const currentGemId = ensureHeroGems(hero)[socketTarget.slotIndex];
-              // Eligible gems: ult gems only show if bound to this hero,
-              // regular gems always show.
-              const eligible = [...GEMS, ...ULT_GEMS.filter(g => g.heroId === hero.templateId)];
-              return (
-                <>
-                  {currentGemId && (
+      {/* Socket modal — per-equipment. Handles both normal sockets and
+          the dedicated ult socket on the ult weapon. */}
+      {socketTarget && (() => {
+        const targetEq = equipment.find(e => e.id === socketTarget.equipmentId);
+        if (!targetEq) return null;
+        const isUlt = 'ult' in socketTarget;
+        const currentGemId = isUlt ? (targetEq.ultSocket ?? null) : (targetEq.sockets?.[socketTarget.slotIndex] ?? null);
+        const heroUltGem = ULT_GEM_BY_HERO[hero.templateId];
+        // Eligible gems: ult socket = just this hero's ult gem; normal
+        // socket = every non-bound gem.
+        const eligible = isUlt
+          ? (heroUltGem ? [heroUltGem] : [])
+          : GEMS;
+        return (
+          <div className="fixed inset-0 bg-black/80 flex items-end justify-center z-50" onClick={() => setSocketTarget(null)}>
+            <div className="bg-zinc-900 w-full max-w-[420px] rounded-t-2xl border-t border-zinc-700 p-4 max-h-[70vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="font-pixel text-xs mb-3">
+                {isUlt ? `Ult socket — ${tpl.name} only` : 'Socket a gem'}
+              </div>
+              {currentGemId && (
+                <button
+                  className="btn-pixel danger w-full mb-3"
+                  onClick={async () => {
+                    if (isUlt) await unsocketUltGem(targetEq.id, updateEquipment);
+                    else await unsocketGem(targetEq.id, socketTarget.slotIndex, updateEquipment);
+                    setSocketTarget(null);
+                  }}
+                >
+                  Unsocket {GEM_BY_ID[currentGemId]?.name ?? 'gem'}
+                </button>
+              )}
+              <div className="grid grid-cols-4 gap-2">
+                {eligible.map(gem => {
+                  const inv = items.find(i => i.templateId === gemInventoryKey(gem.id))?.count ?? 0;
+                  if (inv <= 0) return null;
+                  return (
                     <button
-                      className="btn-pixel danger w-full mb-3"
+                      key={gem.id}
                       onClick={async () => {
-                        await unsocketGemFromHero(hero.id, socketTarget.slotIndex, updateHero);
-                        setSocketTarget(null);
+                        const r = isUlt
+                          ? await socketUltGem(targetEq.id, gem.id, updateEquipment)
+                          : await socketGem(targetEq.id, socketTarget.slotIndex, gem.id, updateEquipment);
+                        if (r.ok) setSocketTarget(null);
+                        else alert(`Cannot socket: ${r.reason}`);
                       }}
+                      className="rounded border-2 p-2 bg-zinc-950 text-center"
+                      style={{ borderColor: GEM_TIER_COLOR[gem.tier] }}
                     >
-                      Unsocket {GEM_BY_ID[currentGemId]?.name ?? 'gem'}
+                      <div className="text-xl">{gem.emoji}</div>
+                      <div className="text-[9px] truncate" style={{ color: GEM_TIER_COLOR[gem.tier] }}>{gem.name}</div>
+                      <div className="text-[9px] text-zinc-400">x{inv}</div>
+                      <div className="text-[8px] text-zinc-500">+{gem.stat === 'crit' ? `${(gem.value * 100).toFixed(1)}%` : gem.value} {gem.stat.toUpperCase()}</div>
                     </button>
-                  )}
-                  <div className="grid grid-cols-4 gap-2">
-                    {eligible.map(gem => {
-                      const inv = items.find(i => i.templateId === gemInventoryKey(gem.id))?.count ?? 0;
-                      if (inv <= 0) return null;
-                      return (
-                        <button
-                          key={gem.id}
-                          onClick={async () => {
-                            const r = await socketGemOnHero(hero.id, socketTarget.slotIndex, gem.id, updateHero);
-                            if (r.ok) setSocketTarget(null);
-                            else alert(`Cannot socket: ${r.reason}`);
-                          }}
-                          className="rounded border-2 p-2 bg-zinc-950 text-center"
-                          style={{ borderColor: GEM_TIER_COLOR[gem.tier] }}
-                        >
-                          <div className="text-xl">{gem.emoji}</div>
-                          <div className="text-[9px] truncate" style={{ color: GEM_TIER_COLOR[gem.tier] }}>{gem.name}</div>
-                          <div className="text-[9px] text-zinc-400">x{inv}</div>
-                          <div className="text-[8px] text-zinc-500">+{gem.stat === 'crit' ? `${(gem.value * 100).toFixed(1)}%` : gem.value} {gem.stat.toUpperCase()}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {eligible.every(g => (items.find(i => i.templateId === gemInventoryKey(g.id))?.count ?? 0) === 0) && (
-                    <div className="text-xs text-zinc-500 text-center py-6">No gems available for this hero. Win battles to find them, or craft an Ult gem for {tpl.name}.</div>
-                  )}
-                </>
-              );
-            })()}
+                  );
+                })}
+              </div>
+              {eligible.every(g => (items.find(i => i.templateId === gemInventoryKey(g.id))?.count ?? 0) === 0) && (
+                <div className="text-xs text-zinc-500 text-center py-6">
+                  {isUlt ? `Craft ${tpl.name}'s ult gem in the Craft menu to fill this socket.` : 'No gems. Win battles to find them.'}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
       {/* Equip modal */}
       {equipSlot && (
         <div className="fixed inset-0 bg-black/80 flex items-end justify-center z-50" onClick={() => setEquipSlot(null)}>

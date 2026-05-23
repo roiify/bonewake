@@ -59,12 +59,12 @@ export default function App() {
       // Audio inits on first user gesture
       const unlock = () => { ensureAudioInit(); sound.applySettings(s); window.removeEventListener('pointerdown', unlock); };
       window.addEventListener('pointerdown', unlock, { once: true });
-      // One-time: move any equipment-socketed gems back to the player's
-      // inventory. Gems are now hero-bound (re-socket them on the hero in
-      // the Hero detail page). Idempotent — no-op on subsequent boots.
+      // One-time: any gems that ended up on hero.gems (during the brief
+      // hero-bound experiment) come back to the player's inventory. Gems
+      // live on equipment again — re-socket them per-piece.
       try {
-        const { migrateEquipmentSocketsToInventory } = await import('./lib/gems');
-        await migrateEquipmentSocketsToInventory();
+        const { migrateHeroGemsToInventory } = await import('./lib/gems');
+        await migrateHeroGemsToInventory();
       } catch (e) {
         console.warn('gem migration failed', e);
       }

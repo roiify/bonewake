@@ -126,8 +126,14 @@ export interface OwnedEquipment {
   isUltimateWeapon?: boolean;
   emoji?: string;
   slot?: string;
-  // Gem sockets — array length = available sockets, value = gemId or null
+  // Gem sockets — array length = available sockets, value = gemId or null.
+  // Sockets stay with the equipment instance; when this piece is swapped
+  // out, the equip handler transfers the sockets to the new piece.
   sockets?: (string | null)[];
+  // Dedicated ult-gem socket. Only the ultimate weapon (isUltimateWeapon)
+  // gets one. The bound hero's ult gem goes here; cannot mix with normal
+  // sockets so the ult gem never competes with a tier-4 for a slot.
+  ultSocket?: string | null;
   // Legacy fields (kept for back-compat with older saves)
   templateId?: string;
   level?: number;

@@ -145,8 +145,20 @@ export default function CraftPage() {
         const ultGem = ULT_GEM_BY_HERO[activeHeroId];
         const ultGemCost = ULT_GEM_COST_BY_HERO[activeHeroId];
         if (!ultGem || !ultGemCost) return null;
-        const owned = items.find(i => i.templateId === gemInventoryKey(ultGem.id))?.count ?? 0;
-        const canAfford = soulshards >= ultGemCost.soulshard && essence >= ultGemCost.essence && profile.gold >= ultGemCost.gold && !!hero;
+        // Count copies across inventory + every socketed slot (normal +
+        // ult sockets). Ult gems are unique per hero — only one may
+        // exist at a time, mirroring how ult gear works.
+        const ownedInInv = items.find(i => i.templateId === gemInventoryKey(ultGem.id))?.count ?? 0;
+        let ownedSocketed = 0;
+        for (const eq of equipment) {
+          if (eq.ultSocket === ultGem.id) ownedSocketed++;
+          if (eq.sockets) {
+            for (const g of eq.sockets) if (g === ultGem.id) ownedSocketed++;
+          }
+        }
+        const owned = ownedInInv + ownedSocketed;
+        const alreadyOwned = owned > 0;
+        const canAfford = soulshards >= ultGemCost.soulshard && essence >= ultGemCost.essence && profile.gold >= ultGemCost.gold && !!hero && !alreadyOwned;
         const isCrafting = crafting === ultGem.id;
         return (
           <div
@@ -188,7 +200,7 @@ export default function CraftPage() {
                   setTimeout(() => setToast(null), 2500);
                 }}
               >
-                {isCrafting ? '…' : 'Craft'}
+                {isCrafting ? '…' : alreadyOwned ? '✓ Owned' : 'Craft'}
               </button>
             </div>
           </div>

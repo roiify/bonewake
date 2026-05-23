@@ -14,7 +14,7 @@ import { addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD, essenceItemId, ULTIMATE_SETS } from '../data/ultimateGear';
 import { STAGES } from '../data/stages';
 import { sendMail } from '../lib/mail';
-import { addGemToInventory, removeGemFromInventory, HERO_GEM_SLOTS } from '../lib/gems';
+import { addGemToInventory, removeGemFromInventory } from '../lib/gems';
 import { GEMS, ULT_GEM_BY_HERO } from '../data/gems';
 import { MAX_STAR } from '../lib/fragments';
 import { maxLevelForStar } from '../lib/stats';
@@ -209,36 +209,55 @@ export default function DebugPage() {
       if (g.tier === 4) await addGemToInventory(g.id, 30);
     }
 
-    // 5. For each hero: equip their five set pieces, then fill the hero's
-    // 4 gem slots — slot 0 = the hero's ult gem, slots 1-3 = tier-4 gems
-    // tuned to a sensible spread (atk / hp / crit). Gems are hero-bound now.
+    // 5. For each hero: equip their five set pieces. Then for each
+    // equipped piece, fill normal sockets with tier-4 gems matching the
+    // piece's primary stat (or atk fallback), and put the hero's ult
+    // gem into the ult socket on the ultimate weapon.
     const allHeroes = await db.heroes.toArray();
     const heroByTpl = new Map(allHeroes.map(h => [h.templateId, h]));
     for (const set of ULTIMATE_SETS) {
       const hero = heroByTpl.get(set.heroId);
       if (!hero) continue;
       const newEquipped: Partial<Record<string, string>> = {};
+      let ultWeaponId: string | null = null;
       for (const piece of set.pieces) {
         const eq = (await db.equipment.toArray()).find(e => e.craftedPieceId === piece.id);
         if (!eq) continue;
         await db.equipment.update(eq.id, { equippedTo: hero.id });
         newEquipped[piece.slot] = eq.id;
+        if (eq.isUltimateWeapon) ultWeaponId = eq.id;
       }
+      await db.heroes.update(hero.id, { equipped: newEquipped });
 
-      // Fill hero gem slots: 0 = ult gem, then atk/crit/hp tier-4 fillers.
-      const heroGems: (string | null)[] = Array(HERO_GEM_SLOTS).fill(null);
-      const ultGem = ULT_GEM_BY_HERO[set.heroId];
-      if (ultGem) {
-        const ok = await removeGemFromInventory(ultGem.id, 1);
-        if (ok) heroGems[0] = ultGem.id;
+      // Socket the ult gem into the ult weapon's dedicated ult socket
+      // (mythic pieces don't otherwise have it filled).
+      if (ultWeaponId) {
+        const ultGem = ULT_GEM_BY_HERO[set.heroId];
+        if (ultGem) {
+          const ok = await removeGemFromInventory(ultGem.id, 1);
+          if (ok) await db.equipment.update(ultWeaponId, { ultSocket: ultGem.id });
+        }
       }
-      const fillers: LootStat[] = ['atk', 'crit', 'hp'];
-      for (let i = 0; i < fillers.length && (1 + i) < HERO_GEM_SLOTS; i++) {
-        const gid = `gem_${fillers[i]}_4`;
-        const ok = await removeGemFromInventory(gid, 1);
-        if (ok) heroGems[1 + i] = gid;
+      // Fill normal sockets on every equipped piece with a tier-4 gem
+      // matching the piece's primary stat.
+      for (const [, eqId] of Object.entries(newEquipped)) {
+        if (!eqId) continue;
+        const eq = await db.equipment.get(eqId);
+        if (!eq) continue;
+        const totalSockets = (eq.sockets?.length ?? 0);
+        const primaryStat = (eq.primary?.stat ?? 'atk') as LootStat;
+        const fillerId = `gem_${primaryStat}_4`;
+        const sockets: (string | null)[] = [...(eq.sockets ?? Array(totalSockets).fill(null))];
+        let changed = false;
+        for (let i = 0; i < sockets.length; i++) {
+          if (sockets[i]) continue;
+          const ok = await removeGemFromInventory(fillerId, 1);
+          if (!ok) break;
+          sockets[i] = fillerId;
+          changed = true;
+        }
+        if (changed) await db.equipment.update(eqId, { sockets });
       }
-      await db.heroes.update(hero.id, { equipped: newEquipped, gems: heroGems });
     }
 
     // 6. Unlock every stage at 3 stars so the whole chapter map is open
