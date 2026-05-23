@@ -387,6 +387,24 @@ export default function BattlePlayPage() {
         backgroundPosition: 'center',
       }}
     >
+      {/* Top-left: exit + pause */}
+      {!done && (
+        <div className="absolute top-2 left-2 flex gap-1 z-20">
+          <button
+            onClick={() => {
+              if (confirm('Exit battle? Progress in this run will be lost.')) navigate('/battle');
+            }}
+            className="text-[10px] font-pixel px-2 py-1 rounded border border-zinc-700 bg-zinc-900/80 hover:border-red-500 hover:text-red-300"
+            title="Exit battle"
+          >✕ Exit</button>
+          <button
+            onClick={() => setPaused(p => !p)}
+            className={`text-[10px] font-pixel px-2 py-1 rounded border ${paused ? 'border-amber-400 bg-amber-400/20 text-amber-300' : 'border-zinc-700 bg-zinc-900/80'}`}
+            title={paused ? 'Resume' : 'Pause'}
+          >{paused ? '▶ Resume' : '⏸ Pause'}</button>
+        </div>
+      )}
+
       {/* Speed controls */}
       <div className="absolute top-2 right-2 flex gap-1 z-20">
         {([1, 2, 4, 8] as const).map(s => (
@@ -397,6 +415,13 @@ export default function BattlePlayPage() {
           >×{s}</button>
         ))}
       </div>
+
+      {/* Paused overlay */}
+      {paused && !done && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+          <div className="font-pixel text-amber-300 text-2xl tracking-widest" style={{ textShadow: '0 2px 8px #000, 0 0 16px #000' }}>PAUSED</div>
+        </div>
+      )}
 
       {/* Manual ultimate trigger — appears when a player unit has 100 energy and the setting is on */}
       {useProfile.getState().profile.settings?.manualUltTrigger && (() => {
