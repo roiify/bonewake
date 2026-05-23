@@ -702,7 +702,11 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill }: {
       )}
 
 
-      {/* Character sprite — heroes face right naturally, enemies mirrored */}
+      {/* Character sprite — heroes face right naturally, enemies mirrored.
+          Hero sprite atlases are PixelLab 124×124 frames with significant
+          padding for walk/attack motion; enemy portraits are tightly cropped
+          1024×1024. Rendering both at the same px makes heroes look small,
+          so we upscale the hero render size to match enemy visual weight. */}
       <div className="relative w-44 h-44 flex items-end justify-center">
         {animSrc ? (
           <SpriteAnimator
@@ -711,7 +715,7 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill }: {
             rows={sprites!.rows}
             fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 18 : 14)))}
             loop={unit.alive && !hit}
-            size={176}
+            size={heroSprites ? 260 : 176}
             className={side === 'enemy' ? 'scale-x-[-1]' : ''}
           />
         ) : (
