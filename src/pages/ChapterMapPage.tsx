@@ -8,10 +8,21 @@ const CHAPTER_NAMES: Record<number, string> = {
   1: 'Forsaken Fields', 2: 'Ashen Wastes', 3: 'Dread Court',
   4: 'Whispering Crypts', 5: 'Pale Cathedral', 6: "World's Edge",
   7: 'Undead Vanguard', 8: 'Zombie Legion', 9: "Necromancer's Court",
+  10: 'The Abyssal Maw', 11: 'Tidewreck', 12: 'Iron Famine',
+  13: 'Plaguespire', 14: 'Hollowed Sun', 15: 'Crown of Ash',
+  16: 'Whisper March', 17: 'Boneharbor', 18: 'Salt Wastes',
+  19: 'Frostforge', 20: 'Glass Desert', 21: 'Hungry Sky',
+  22: 'Long Twilight', 23: 'Veined Earth', 24: 'Cinder Choir',
+  25: 'Iron Veil', 26: 'Bleeding Throne', 27: 'Wormwood',
+  28: 'Black Tide', 29: 'The Last Wake',
 };
 const CHAPTER_EMOJI: Record<number, string> = {
   1: '🌾', 2: '🔥', 3: '🌌', 4: '🪦', 5: '⛪', 6: '🌊',
   7: '⚔️', 8: '🩸', 9: '☠️',
+  10: '🕳️', 11: '🌊', 12: '🏯', 13: '🦠', 14: '🌑', 15: '🔥',
+  16: '🌲', 17: '⚓', 18: '🏜️', 19: '🧊', 20: '💎', 21: '🦇',
+  22: '🌆', 23: '🩸', 24: '🕯️', 25: '🚪', 26: '🩸', 27: '🪱',
+  28: '🌊', 29: '💀',
 };
 
 export default function ChapterMapPage() {

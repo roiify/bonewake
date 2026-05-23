@@ -38,6 +38,54 @@ export type EnemyTemplateId = keyof typeof ENEMY_TEMPLATES;
 
 const E = (templateId: EnemyTemplateId, level: number, star = 3) => ({ templateId: templateId as string, level, star });
 
+// ============ CHAPTER GENERATOR (chapters 10-29) ============
+// Hand-writing 100 late-game stages is noisy and error-prone. mkChapter
+// takes a compact spec (5 stage names + enemy triples + a boss enemy +
+// base level/reward/energy/gem floor) and emits 5 fully-formed Stage
+// entries with linear in-chapter scaling. Boss is always stage 5: its
+// middle slot uses the boss enemy at boss level + 5, star 6.
+type EnTpl = EnemyTemplateId;
+interface StageSpec { name: string; enemies: [EnTpl, EnTpl, EnTpl]; }
+function mkChapter(opts: {
+  chapter: number;
+  stages: [StageSpec, StageSpec, StageSpec, StageSpec, StageSpec];
+  bossEnemy: EnTpl;
+  baseLevel: number;
+  baseGold: number;
+  baseExp: number;
+  baseEnergy: number;
+  baseGems: number;
+  bossItems?: Record<string, number>;
+}): Stage[] {
+  const out: Stage[] = [];
+  for (let i = 0; i < 5; i++) {
+    const num = i + 1;
+    const isBoss = num === 5;
+    const level = opts.baseLevel + i * 4;
+    const s = opts.stages[i];
+    const enemyTeam = isBoss
+      ? [E(s.enemies[0], level, 5), E(opts.bossEnemy, level + 5, 6), E(s.enemies[2], level, 5)]
+      : s.enemies.map(t => E(t, level, 5));
+    const gold = isBoss ? opts.baseGold * 2 : opts.baseGold + i * 500;
+    const exp = isBoss ? opts.baseExp * 2 : opts.baseExp + i * 300;
+    const energy = isBoss ? opts.baseEnergy + 12 : opts.baseEnergy + Math.floor(i / 2) * 2;
+    const gems = isBoss ? opts.baseGems * 2 : opts.baseGems + i * 30;
+    out.push({
+      id: `${opts.chapter}-${num}`,
+      chapter: opts.chapter,
+      num,
+      name: s.name,
+      energyCost: energy,
+      enemyTeam,
+      rewards: isBoss
+        ? { gold, exp, items: opts.bossItems ?? { weapon_5: 1, armor_5: 1 } }
+        : { gold, exp },
+      firstClearBonus: { gems },
+    });
+  }
+  return out;
+}
+
 // 15 stages: 3 chapters × 5 stages, using new enemy roster
 export const STAGES: Stage[] = [
   // Chapter 1 — Forsaken Fields
@@ -192,6 +240,214 @@ export const STAGES: Stage[] = [
   { id: '9-5', chapter: 9, num: 5, name: 'Court Boss: The Necromancer', energyCost: 48,
     enemyTeam: [E('plague_monk', 145, 5), E('necromancer', 150, 6), E('possessed_corpse', 145, 5)],
     rewards: { gold: 14000, exp: 7200, items: { weapon_5: 1, armor_5: 1 } }, firstClearBonus: { gems: 1400 } },
+
+  // ============ CHAPTERS 10-29 — Post-Necromancer endgame arc ============
+  // After the Necromancer falls, the wound he opened keeps bleeding. The
+  // world's dead are now self-organizing. Each chapter explores a fresh
+  // facet of the apocalypse — drowned cities, plague spires, sky-borne
+  // parasites, the shattered mirror world — culminating in the BoneWake
+  // itself awakening for the final fight.
+
+  // Ch10 — The Abyssal Maw
+  ...mkChapter({ chapter: 10, baseLevel: 155, baseGold: 8000, baseExp: 4500, baseEnergy: 42, baseGems: 650, bossEnemy: 'necromancer',
+    stages: [
+      { name: 'Lip of the Maw',     enemies: ['shambler', 'fastghoul', 'boneknight'] },
+      { name: 'First Descent',      enemies: ['graveyardlich', 'zombie_mage', 'graveyardlich'] },
+      { name: 'The Hum Below',      enemies: ['rotwolf', 'carrion_spider', 'rotwolf'] },
+      { name: 'Marrow Spines',      enemies: ['shield_bearer', 'zombie_berserker', 'shield_bearer'] },
+      { name: 'Maw Boss: The Mouth Itself', enemies: ['graveyardlich', 'necromancer', 'possessed_corpse'] },
+    ]}),
+
+  // Ch11 — Tidewreck (drowned cities)
+  ...mkChapter({ chapter: 11, baseLevel: 170, baseGold: 9500, baseExp: 5200, baseEnergy: 44, baseGems: 700, bossEnemy: 'fallen_captain',
+    stages: [
+      { name: 'Drowned Pier',       enemies: ['carrion_spider', 'shambler', 'undead_archer'] },
+      { name: 'Bloated March',      enemies: ['shambler', 'shambler', 'zombie_knight'] },
+      { name: 'Salt-Soaked Halls',  enemies: ['wailing_wraith', 'graveyardlich', 'wailing_wraith'] },
+      { name: 'The Long Pier',      enemies: ['phantom_knight', 'shield_bearer', 'phantom_knight'] },
+      { name: 'Tide Boss: The Drowned Captain', enemies: ['skeletal_warhorse', 'fallen_captain', 'undead_archer'] },
+    ]}),
+
+  // Ch12 — Iron Famine (ruined siege fortresses)
+  ...mkChapter({ chapter: 12, baseLevel: 185, baseGold: 11000, baseExp: 5900, baseEnergy: 46, baseGems: 750, bossEnemy: 'necromancer',
+    stages: [
+      { name: 'Burnt Wall',         enemies: ['boneknight', 'zombie_knight', 'boneknight'] },
+      { name: 'Starved Bailey',     enemies: ['grave_digger', 'grave_digger', 'zombie_berserker'] },
+      { name: 'Watch of Bones',     enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
+      { name: 'The Iron Pyre',      enemies: ['shield_bearer', 'fallen_captain', 'shield_bearer'] },
+      { name: 'Famine Boss: King Famine', enemies: ['zombie_knight', 'necromancer', 'grave_digger'] },
+    ]}),
+
+  // Ch13 — Plaguespire (vertical disease city)
+  ...mkChapter({ chapter: 13, baseLevel: 200, baseGold: 12500, baseExp: 6600, baseEnergy: 48, baseGems: 800, bossEnemy: 'soul_leech',
+    stages: [
+      { name: 'First Spire',        enemies: ['plague_caster', 'plague_monk', 'plague_caster'] },
+      { name: 'Choking Stairs',     enemies: ['plague_caster', 'plague_monk', 'plague_caster'] },
+      { name: 'Coughing Throne',    enemies: ['grave_channeler', 'plague_monk', 'grave_channeler'] },
+      { name: 'Black Vein',         enemies: ['plague_caster', 'grave_channeler', 'plague_caster'] },
+      { name: 'Spire Boss: Patient Zero', enemies: ['plague_caster', 'soul_leech', 'plague_monk'] },
+    ]}),
+
+  // Ch14 — Hollowed Sun (eclipse-bound fading light)
+  ...mkChapter({ chapter: 14, baseLevel: 215, baseGold: 14000, baseExp: 7300, baseEnergy: 50, baseGems: 850, bossEnemy: 'soul_leech',
+    stages: [
+      { name: 'Twilight Walk',      enemies: ['wailing_wraith', 'undead_archer', 'wailing_wraith'] },
+      { name: 'Last Sunbeam',       enemies: ['graveyardlich', 'wailing_wraith', 'graveyardlich'] },
+      { name: 'Silent Choir',       enemies: ['phantom_knight', 'wailing_wraith', 'phantom_knight'] },
+      { name: 'Crown of Crows',     enemies: ['possessed_corpse', 'wailing_wraith', 'possessed_corpse'] },
+      { name: 'Sun Boss: The Cinder Sun', enemies: ['graveyardlich', 'soul_leech', 'possessed_corpse'] },
+    ]}),
+
+  // Ch15 — Crown of Ash (burned royal lands)
+  ...mkChapter({ chapter: 15, baseLevel: 230, baseGold: 15500, baseExp: 8000, baseEnergy: 52, baseGems: 900, bossEnemy: 'necromancer',
+    stages: [
+      { name: 'Ember Road',         enemies: ['zombie_berserker', 'zombie_knight', 'zombie_berserker'] },
+      { name: 'Smouldering Hall',   enemies: ['boneknight', 'fallen_captain', 'boneknight'] },
+      { name: 'Throne of Cinders',  enemies: ['grave_digger', 'fallen_captain', 'grave_digger'] },
+      { name: 'Crown Spire',        enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
+      { name: 'Ash Boss: The Burnt King', enemies: ['zombie_berserker', 'necromancer', 'fallen_captain'] },
+    ]}),
+
+  // Ch16 — Whisper March (cursed forest)
+  ...mkChapter({ chapter: 16, baseLevel: 245, baseGold: 17000, baseExp: 8700, baseEnergy: 54, baseGems: 950, bossEnemy: 'bone_bear',
+    stages: [
+      { name: 'Rotwood Trail',      enemies: ['rotwolf', 'bone_bear', 'rotwolf'] },
+      { name: 'Hollow Thicket',     enemies: ['carrion_spider', 'bone_bear', 'carrion_spider'] },
+      { name: 'Antler Glen',        enemies: ['rotwolf', 'bone_bear', 'rotwolf'] },
+      { name: 'Wormwood Gate',      enemies: ['carrion_spider', 'bone_bear', 'carrion_spider'] },
+      { name: 'March Boss: The Wild Hunt', enemies: ['rotwolf', 'bone_bear', 'skeletal_warhorse'] },
+    ]}),
+
+  // Ch17 — Boneharbor (undead pirate seas)
+  ...mkChapter({ chapter: 17, baseLevel: 260, baseGold: 18500, baseExp: 9400, baseEnergy: 56, baseGems: 1000, bossEnemy: 'fallen_captain',
+    stages: [
+      { name: 'Wrecked Quay',       enemies: ['skeletal_warhorse', 'undead_archer', 'skeletal_warhorse'] },
+      { name: 'Ghost Galleon',      enemies: ['undead_archer', 'phantom_knight', 'undead_archer'] },
+      { name: 'Black Tides',        enemies: ['carrion_spider', 'undead_archer', 'carrion_spider'] },
+      { name: 'Plague Wharf',       enemies: ['plague_caster', 'shield_bearer', 'plague_caster'] },
+      { name: 'Harbor Boss: Captain Driftbone', enemies: ['skeletal_warhorse', 'fallen_captain', 'undead_archer'] },
+    ]}),
+
+  // Ch18 — Salt Wastes (desert necropolis)
+  ...mkChapter({ chapter: 18, baseLevel: 275, baseGold: 20000, baseExp: 10100, baseEnergy: 58, baseGems: 1050, bossEnemy: 'necromancer',
+    stages: [
+      { name: 'Mirage Road',        enemies: ['fastghoul', 'shambler', 'fastghoul'] },
+      { name: 'Sand-Veiled Tomb',   enemies: ['graveyardlich', 'boneknight', 'graveyardlich'] },
+      { name: 'Pillared Necropolis', enemies: ['boneknight', 'phantom_knight', 'boneknight'] },
+      { name: 'Withered Oasis',     enemies: ['carrion_spider', 'plague_caster', 'carrion_spider'] },
+      { name: 'Salt Boss: The Salt King', enemies: ['graveyardlich', 'necromancer', 'possessed_corpse'] },
+    ]}),
+
+  // Ch19 — Frostforge (frozen black smith)
+  ...mkChapter({ chapter: 19, baseLevel: 290, baseGold: 21500, baseExp: 10800, baseEnergy: 60, baseGems: 1100, bossEnemy: 'soul_leech',
+    stages: [
+      { name: 'Freezing Mouth',     enemies: ['zombie_knight', 'boneknight', 'zombie_knight'] },
+      { name: 'Forge of Ice',       enemies: ['zombie_knight', 'fallen_captain', 'zombie_knight'] },
+      { name: 'Anvil of Bone',      enemies: ['boneknight', 'fallen_captain', 'boneknight'] },
+      { name: 'Black Bellows',      enemies: ['phantom_knight', 'shield_bearer', 'phantom_knight'] },
+      { name: 'Forge Boss: The Pale Smith', enemies: ['fallen_captain', 'soul_leech', 'shield_bearer'] },
+    ]}),
+
+  // Ch20 — Glass Desert (shattered mirror world)
+  ...mkChapter({ chapter: 20, baseLevel: 305, baseGold: 23000, baseExp: 11500, baseEnergy: 62, baseGems: 1150, bossEnemy: 'necromancer',
+    stages: [
+      { name: 'Shard Plains',       enemies: ['wailing_wraith', 'phantom_knight', 'wailing_wraith'] },
+      { name: 'Mirror Tomb',        enemies: ['graveyardlich', 'phantom_knight', 'graveyardlich'] },
+      { name: 'Reflecting Court',   enemies: ['possessed_corpse', 'phantom_knight', 'possessed_corpse'] },
+      { name: 'Crystal Spine',      enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
+      { name: 'Glass Boss: The Shattered King', enemies: ['phantom_knight', 'necromancer', 'possessed_corpse'] },
+    ]}),
+
+  // Ch21 — Hungry Sky (flying parasites)
+  ...mkChapter({ chapter: 21, baseLevel: 320, baseGold: 24500, baseExp: 12200, baseEnergy: 64, baseGems: 1200, bossEnemy: 'soul_leech',
+    stages: [
+      { name: 'Wing-Black Ridge',   enemies: ['carrion_spider', 'wailing_wraith', 'carrion_spider'] },
+      { name: 'Skyless Vault',      enemies: ['wailing_wraith', 'plague_caster', 'wailing_wraith'] },
+      { name: 'Falling Cloister',   enemies: ['grave_channeler', 'plague_caster', 'grave_channeler'] },
+      { name: 'The High Plague',    enemies: ['plague_caster', 'grave_channeler', 'plague_caster'] },
+      { name: 'Sky Boss: The Sky Devourer', enemies: ['plague_caster', 'soul_leech', 'wailing_wraith'] },
+    ]}),
+
+  // Ch22 — Long Twilight (endless dusk realm)
+  ...mkChapter({ chapter: 22, baseLevel: 335, baseGold: 26000, baseExp: 12900, baseEnergy: 66, baseGems: 1250, bossEnemy: 'necromancer',
+    stages: [
+      { name: 'Dusk Road',          enemies: ['undead_archer', 'wailing_wraith', 'undead_archer'] },
+      { name: 'Hollow Vespers',     enemies: ['wailing_wraith', 'phantom_knight', 'wailing_wraith'] },
+      { name: 'Final Dusk',         enemies: ['plague_caster', 'wailing_wraith', 'plague_caster'] },
+      { name: 'Mourning Vault',     enemies: ['possessed_corpse', 'wailing_wraith', 'possessed_corpse'] },
+      { name: 'Dusk Boss: The Last Vespers', enemies: ['wailing_wraith', 'necromancer', 'possessed_corpse'] },
+    ]}),
+
+  // Ch23 — Veined Earth (underground rivers of blood)
+  ...mkChapter({ chapter: 23, baseLevel: 350, baseGold: 27500, baseExp: 13600, baseEnergy: 68, baseGems: 1300, bossEnemy: 'soul_leech',
+    stages: [
+      { name: 'Iron Vein',          enemies: ['bone_bear', 'carrion_spider', 'bone_bear'] },
+      { name: 'Pulse Tunnels',      enemies: ['carrion_spider', 'rotwolf', 'carrion_spider'] },
+      { name: 'Blood Atrium',       enemies: ['rotwolf', 'bone_bear', 'rotwolf'] },
+      { name: 'Heart Chamber',      enemies: ['bone_bear', 'grave_digger', 'bone_bear'] },
+      { name: 'Vein Boss: The Hungry Vein', enemies: ['bone_bear', 'soul_leech', 'rotwolf'] },
+    ]}),
+
+  // Ch24 — Cinder Choir (burning monastery)
+  ...mkChapter({ chapter: 24, baseLevel: 365, baseGold: 29000, baseExp: 14300, baseEnergy: 70, baseGems: 1350, bossEnemy: 'soul_leech',
+    stages: [
+      { name: 'Ash Cloister',       enemies: ['plague_monk', 'plague_caster', 'plague_monk'] },
+      { name: 'Cinder Halls',       enemies: ['plague_monk', 'grave_channeler', 'plague_monk'] },
+      { name: 'Burnt Confessional', enemies: ['plague_monk', 'plague_caster', 'plague_monk'] },
+      { name: 'Smoking Pews',       enemies: ['plague_monk', 'grave_channeler', 'plague_monk'] },
+      { name: 'Choir Boss: The Burning Saint', enemies: ['plague_monk', 'soul_leech', 'grave_channeler'] },
+    ]}),
+
+  // Ch25 — Iron Veil (curtain between worlds)
+  ...mkChapter({ chapter: 25, baseLevel: 380, baseGold: 30500, baseExp: 15000, baseEnergy: 72, baseGems: 1400, bossEnemy: 'necromancer',
+    stages: [
+      { name: 'Threshold Plains',   enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
+      { name: 'Veiled Gate',        enemies: ['phantom_knight', 'shield_bearer', 'phantom_knight'] },
+      { name: 'Beyond the Veil',    enemies: ['possessed_corpse', 'phantom_knight', 'possessed_corpse'] },
+      { name: 'Other Court',        enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
+      { name: 'Veil Boss: The Veilwarden', enemies: ['fallen_captain', 'necromancer', 'phantom_knight'] },
+    ]}),
+
+  // Ch26 — Bleeding Throne (new dark king)
+  ...mkChapter({ chapter: 26, baseLevel: 395, baseGold: 32000, baseExp: 15700, baseEnergy: 74, baseGems: 1450, bossEnemy: 'necromancer',
+    stages: [
+      { name: 'Throne Approach',    enemies: ['zombie_knight', 'fallen_captain', 'zombie_knight'] },
+      { name: 'Crimson Halls',      enemies: ['grave_digger', 'fallen_captain', 'grave_digger'] },
+      { name: 'Sanguine Court',     enemies: ['possessed_corpse', 'fallen_captain', 'possessed_corpse'] },
+      { name: 'Inner Wound',        enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
+      { name: 'Throne Boss: The Bleeding King', enemies: ['fallen_captain', 'necromancer', 'possessed_corpse'] },
+    ]}),
+
+  // Ch27 — Wormwood (corrupted apocalypse trees)
+  ...mkChapter({ chapter: 27, baseLevel: 410, baseGold: 33500, baseExp: 16400, baseEnergy: 76, baseGems: 1500, bossEnemy: 'soul_leech',
+    stages: [
+      { name: 'Black Roots',        enemies: ['carrion_spider', 'rotwolf', 'carrion_spider'] },
+      { name: 'Worm Hollow',        enemies: ['rotwolf', 'bone_bear', 'rotwolf'] },
+      { name: 'Twisted Grove',      enemies: ['bone_bear', 'grave_digger', 'bone_bear'] },
+      { name: 'Mother Tree',        enemies: ['carrion_spider', 'plague_caster', 'carrion_spider'] },
+      { name: 'Wood Boss: The Wormwood Mother', enemies: ['bone_bear', 'soul_leech', 'carrion_spider'] },
+    ]}),
+
+  // Ch28 — Black Tide (the final assault before the last wake)
+  ...mkChapter({ chapter: 28, baseLevel: 425, baseGold: 35000, baseExp: 17100, baseEnergy: 78, baseGems: 1550, bossEnemy: 'soul_leech',
+    stages: [
+      { name: 'Sea of Corpses',     enemies: ['zombie_knight', 'zombie_berserker', 'zombie_knight'] },
+      { name: 'Tide Wall',          enemies: ['shield_bearer', 'zombie_berserker', 'shield_bearer'] },
+      { name: 'Drowning March',     enemies: ['skeletal_warhorse', 'zombie_berserker', 'skeletal_warhorse'] },
+      { name: 'Wave of Bone',       enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
+      { name: 'Tide Boss: The Black Tide Caller', enemies: ['grave_channeler', 'soul_leech', 'fallen_captain'] },
+    ]}),
+
+  // Ch29 — The Last Wake (final chapter — the BoneWake itself)
+  ...mkChapter({ chapter: 29, baseLevel: 440, baseGold: 38000, baseExp: 18000, baseEnergy: 80, baseGems: 1700, bossEnemy: 'necromancer',
+    bossItems: { weapon_5: 1, armor_5: 1, amulet_5: 1 },
+    stages: [
+      { name: 'Dreaming Vault',     enemies: ['possessed_corpse', 'grave_channeler', 'possessed_corpse'] },
+      { name: "Wake's Edge",        enemies: ['plague_monk', 'grave_channeler', 'plague_monk'] },
+      { name: 'First Wake',         enemies: ['possessed_corpse', 'plague_monk', 'possessed_corpse'] },
+      { name: 'Final Procession',   enemies: ['plague_monk', 'fallen_captain', 'plague_monk'] },
+      { name: 'Final Boss: The BoneWake Itself', enemies: ['necromancer', 'soul_leech', 'necromancer'] },
+    ]}),
 ];
 
 export const STAGE_BY_ID = Object.fromEntries(STAGES.map(s => [s.id, s]));
