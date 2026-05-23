@@ -2,15 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
-import { TRIALS, buildTrialEnemyTeam, type TrialDef } from '../data/trials';
-import { resolveBattle } from '../lib/combat';
-import { toCombatUnit } from '../lib/stats';
+import { TRIALS, type TrialDef } from '../data/trials';
 import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
-import { recordEvent } from '../lib/lifetime';
-import { addMaterial } from '../lib/crafting';
-import { MAT_SOULSHARD } from '../data/ultimateGear';
-import { logBattle } from '../lib/battleLog';
 import { db } from '../lib/db';
 
 const SQUAD_KEY = 'bonewake_squad';
@@ -25,10 +19,8 @@ export default function TrialsPage() {
   const navigate = useNavigate();
   const profile = useProfile(s => s.profile);
   const heroes = useHeroes(s => s.heroes);
-  const equipment = useHeroes(s => s.equipment);
   const [busy, setBusy] = useState(false);
   const [usedToday, setUsedToday] = useState<Record<string, number>>({});
-  const [result, setResult] = useState<{ trial: TrialDef; won: boolean } | null>(null);
 
   async function refreshUsed() {
     const day = todayStr();
@@ -68,37 +60,14 @@ export default function TrialsPage() {
     if (!check.ok) { alert(check.reason); return; }
     setBusy(true);
     await useProfile.getState().spendEnergy(def.energyCost);
-    const squad = loadSquad().map(id => heroes.find(h => h.id === id)).filter((h): h is NonNullable<typeof h> => !!h);
-    const equipForCombat = def.restrict.noEquipment ? [] : equipment;
-    const playerUnits = squad
-      .map((h, i, arr) => toCombatUnit(h, equipForCombat, 'player', `p${i}`, arr.map(x => x.templateId)))
-      .filter((u): u is NonNullable<typeof u> => !!u);
-    const enemies = buildTrialEnemyTeam(def);
-    const battle = resolveBattle(playerUnits, enemies);
-    const won = battle.winner === 'player';
-    if (won) {
-      await useProfile.getState().addGold(def.rewards.gold);
-      await useProfile.getState().addGems(def.rewards.gems);
-      if (def.rewards.soulshard) await addMaterial(MAT_SOULSHARD, def.rewards.soulshard);
-      await recordEvent({ kind: 'battleWon' });
-      await recordEvent({ kind: 'goldEarned', amount: def.rewards.gold });
-    } else {
-      await recordEvent({ kind: 'battleLost' });
-    }
-    // Mark used
-    const day = todayStr();
-    await db.items.put({ templateId: TRIAL_USED_KEY(def.id, day), count: (usedToday[def.id] ?? 0) + 1 });
-    await refreshUsed();
-    await logBattle({
-      source: 'trial',
-      sourceId: def.id,
-      won,
-      damageDealt: battle.log.filter(a => a.dst.startsWith('trial_')).reduce((s, a) => s + a.dmg, 0),
-      squadIds: squad.map(h => h.templateId),
-      enemyTemplates: def.enemyTeam.map(e => e.templateId),
-      durationTicks: battle.log.length,
-    });
-    setResult({ trial: def, won });
+    // Trials now play through the regular BattlePlayPage with animations.
+    // BattlePlayPage detects the `trial-` prefix, builds a virtual stage
+    // from the TrialDef, grants the trial rewards on win, and marks the
+    // daily-limit ledger using the same key TrialsPage reads from.
+    // The noEquipment / squad restrictions were already validated above,
+    // but the gear-strip itself happens inside BattlePlayPage's combat
+    // unit build — see the trial branch there.
+    navigate(`/battle/play/trial-${def.id}`);
     setBusy(false);
   }
 
@@ -169,25 +138,6 @@ export default function TrialsPage() {
         </div>
       </div>
 
-      {result && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setResult(null)}>
-          <div className="bg-zinc-900 border-2 rounded-lg p-6 text-center max-w-xs"
-            style={{ borderColor: result.won ? '#22c55e' : '#ef4444' }}>
-            <div className="text-3xl mb-2">{result.won ? '🏆' : '💀'}</div>
-            <div className="font-pixel text-lg mb-2" style={{ color: result.won ? '#86efac' : '#f87171' }}>
-              {result.won ? 'CLEARED' : 'DEFEATED'}
-            </div>
-            {result.won && (
-              <div className="text-xs text-zinc-300 space-y-1 mb-3">
-                <div>+{result.trial.rewards.gold} 🪙</div>
-                <div>+{result.trial.rewards.gems} 💎</div>
-                {result.trial.rewards.soulshard && <div>+{result.trial.rewards.soulshard} 💠</div>}
-              </div>
-            )}
-            <button className="btn-pixel primary w-full" onClick={() => setResult(null)}>OK</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -2,6 +2,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { STAGE_BY_ID, STAGES } from '../data/stages';
+import { TRIAL_BY_ID } from '../data/trials';
+import type { TrialDef } from '../data/trials';
+import type { Stage } from '../types';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
 import { buildEnemyUnit, toCombatUnit, xpForLevel } from '../lib/stats';
@@ -38,10 +41,32 @@ interface FloatingNumber {
   id: number; x: number; y: number; value: string; color: string;
 }
 
+// Trial mode: BattlePlayPage receives a stageId like "trial-light_brigade".
+// We treat the trial as a virtual stage so the rest of the page (animations,
+// damage floaters, end-screen) doesn't need a second code path. Rewards
+// in endBattle() branch off `trialSource` instead of stage.rewards.
+function makeTrialVirtualStage(trial: TrialDef): Stage {
+  return {
+    id: `trial-${trial.id}`,
+    chapter: 99,                  // outside the chapter ladder
+    num: 99,
+    name: `Trial: ${trial.name}`,
+    energyCost: trial.energyCost,
+    enemyTeam: trial.enemyTeam,
+    rewards: { gold: trial.rewards.gold, exp: 0 },
+    firstClearBonus: { gems: trial.rewards.gems },
+  };
+}
+
 export default function BattlePlayPage() {
   const { stageId } = useParams();
   const navigate = useNavigate();
-  const stage = stageId ? STAGE_BY_ID[stageId] : null;
+  // Stage vs trial routing: ids prefixed "trial-" come from TrialsPage.
+  const trialId = stageId?.startsWith('trial-') ? stageId.slice(6) : null;
+  const trialSource: TrialDef | null = trialId ? (TRIAL_BY_ID[trialId] ?? null) : null;
+  const stage: Stage | null = trialSource
+    ? makeTrialVirtualStage(trialSource)
+    : (stageId ? STAGE_BY_ID[stageId] : null);
 
   // Remember the last stage played so the Story page can scroll back here
   // instead of resetting to chapter 1 every time.
@@ -59,8 +84,10 @@ export default function BattlePlayPage() {
       .map(id => heroes.find(h => h.id === id))
       .filter((h): h is NonNullable<typeof h> => !!h);
     if (squad.length === 0) return null;
+    // "Bare Hands" trial strips equipment so the player relies on raw stats.
+    const equipForCombat = trialSource?.restrict.noEquipment ? [] : equipment;
     const playerUnits = squad
-      .map((h, i, arr) => toCombatUnit(h, equipment, 'player', `p${i}`, arr.map(x => x.templateId)))
+      .map((h, i, arr) => toCombatUnit(h, equipForCombat, 'player', `p${i}`, arr.map(x => x.templateId)))
       .filter((u): u is NonNullable<typeof u> => !!u);
     const enemyUnits = stage.enemyTeam.map((e, i) => buildEnemyUnit(e.templateId, e.level, e.star, `e${i}`));
     return resolveBattle(playerUnits, enemyUnits);
@@ -183,6 +210,31 @@ export default function BattlePlayPage() {
     setDone(true);
     const won = battle.winner === 'player';
     sound.playSfx(won ? 'victory' : 'defeat');
+
+    // Trial mode short-circuit: trials don't drop chapter loot, don't track
+    // stage clears, and have a daily-limit ledger keyed in IndexedDB.
+    if (trialSource) {
+      if (won) {
+        await useProfile.getState().addGold(trialSource.rewards.gold);
+        await useProfile.getState().addGems(trialSource.rewards.gems);
+        if (trialSource.rewards.soulshard) {
+          await addMaterial(MAT_SOULSHARD, trialSource.rewards.soulshard);
+          await useItems.getState().refresh();
+        }
+        // Mark the trial used today (key matches TrialsPage's daily ledger)
+        const day = new Date().toISOString().slice(0, 10);
+        const usedKey = `trial_used_${trialSource.id}_${day}`;
+        const prev = await db.items.get(usedKey);
+        await db.items.put({ templateId: usedKey, count: (prev?.count ?? 0) + 1 });
+        await recordEvent({ kind: 'battleWon' });
+        await recordEvent({ kind: 'goldEarned', amount: trialSource.rewards.gold });
+      } else {
+        await recordEvent({ kind: 'battleLost' });
+      }
+      // Skip the rest of the stage-flavored reward pipeline.
+      return;
+    }
+
     if (won) {
       // count alive
       const alive = battle.initial.player.filter(u => units[u.id]?.alive).length;

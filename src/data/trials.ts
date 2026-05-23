@@ -23,20 +23,24 @@ export interface TrialDef {
   dailyLimit: number;
 }
 
+// Trial difficulty rebalanced: trials sit at *higher* power than the
+// equivalent chapter floor so even a fully-geared squad can lose.
+// Levels are picked above current end-game chapter so the existing player
+// stats can't trivialize them. Rewards scale with the new difficulty.
 export const TRIALS: TrialDef[] = [
   {
     id: 'light_brigade',
     name: 'Light Brigade',
     description: 'Only Light-element heroes allowed. Bring the dawn.',
     emoji: '☀️',
-    energyCost: 15,
+    energyCost: 30,
     restrict: { elementsAllowed: ['light'] },
     enemyTeam: [
-      { templateId: 'graveyardlich', level: 30, star: 5 },
-      { templateId: 'boneknight', level: 30, star: 5 },
-      { templateId: 'graveyardlich', level: 30, star: 5 },
+      { templateId: 'graveyardlich', level: 165, star: 5 },
+      { templateId: 'necromancer', level: 170, star: 6 },
+      { templateId: 'graveyardlich', level: 165, star: 5 },
     ],
-    rewards: { gold: 3500, gems: 100, soulshard: 10 },
+    rewards: { gold: 18000, gems: 400, soulshard: 40 },
     dailyLimit: 1,
   },
   {
@@ -44,14 +48,14 @@ export const TRIALS: TrialDef[] = [
     name: 'Shadow Pact',
     description: 'Only Dark-element heroes. Trade light for power.',
     emoji: '🌒',
-    energyCost: 15,
+    energyCost: 30,
     restrict: { elementsAllowed: ['dark'] },
     enemyTeam: [
-      { templateId: 'boneknight', level: 32, star: 5 },
-      { templateId: 'fastghoul', level: 32, star: 5 },
-      { templateId: 'boneknight', level: 32, star: 5 },
+      { templateId: 'phantom_knight', level: 165, star: 5 },
+      { templateId: 'fallen_captain', level: 170, star: 6 },
+      { templateId: 'phantom_knight', level: 165, star: 5 },
     ],
-    rewards: { gold: 3500, gems: 100, soulshard: 10 },
+    rewards: { gold: 18000, gems: 400, soulshard: 40 },
     dailyLimit: 1,
   },
   {
@@ -59,13 +63,13 @@ export const TRIALS: TrialDef[] = [
     name: 'Solo Duel',
     description: 'A single hero must conquer alone.',
     emoji: '⚔️',
-    energyCost: 20,
+    energyCost: 40,
     restrict: { maxSquadSize: 1 },
     enemyTeam: [
-      { templateId: 'graveyardlich', level: 35, star: 5 },
-      { templateId: 'boneknight', level: 35, star: 5 },
+      { templateId: 'soul_leech', level: 180, star: 6 },
+      { templateId: 'fallen_captain', level: 175, star: 5 },
     ],
-    rewards: { gold: 5000, gems: 150, soulshard: 15 },
+    rewards: { gold: 28000, gems: 700, soulshard: 70 },
     dailyLimit: 1,
   },
   {
@@ -73,14 +77,14 @@ export const TRIALS: TrialDef[] = [
     name: 'Bare Hands',
     description: 'No equipment may be worn. Skill alone.',
     emoji: '✋',
-    energyCost: 18,
+    energyCost: 35,
     restrict: { noEquipment: true },
     enemyTeam: [
-      { templateId: 'boneknight', level: 30, star: 5 },
-      { templateId: 'graveyardlich', level: 30, star: 5 },
-      { templateId: 'fastghoul', level: 30, star: 5 },
+      { templateId: 'boneknight', level: 175, star: 5 },
+      { templateId: 'graveyardlich', level: 175, star: 5 },
+      { templateId: 'fallen_captain', level: 180, star: 6 },
     ],
-    rewards: { gold: 4500, gems: 130, soulshard: 12 },
+    rewards: { gold: 25000, gems: 600, soulshard: 60 },
     dailyLimit: 1,
   },
   {
@@ -88,17 +92,19 @@ export const TRIALS: TrialDef[] = [
     name: 'Monk Circle',
     description: 'Only Warrior-archetype heroes. Fists and fury.',
     emoji: '🥋',
-    energyCost: 15,
+    energyCost: 30,
     restrict: { archetypesAllowed: ['warrior'] },
     enemyTeam: [
-      { templateId: 'boneknight', level: 28, star: 5 },
-      { templateId: 'boneknight', level: 28, star: 5 },
-      { templateId: 'graveyardlich', level: 28, star: 5 },
+      { templateId: 'phantom_knight', level: 165, star: 5 },
+      { templateId: 'fallen_captain', level: 170, star: 6 },
+      { templateId: 'zombie_berserker', level: 165, star: 5 },
     ],
-    rewards: { gold: 3000, gems: 80, soulshard: 8 },
+    rewards: { gold: 16000, gems: 350, soulshard: 35 },
     dailyLimit: 1,
   },
 ];
+
+export const TRIAL_BY_ID = Object.fromEntries(TRIALS.map(t => [t.id, t]));
 
 export function buildTrialEnemyTeam(def: TrialDef): CombatUnit[] {
   return def.enemyTeam.map((e, i) => buildEnemyUnit(e.templateId, e.level, e.star, `trial_${i}`));
