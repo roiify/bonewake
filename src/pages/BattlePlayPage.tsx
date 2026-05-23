@@ -752,6 +752,7 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill }: {
             rows={sprites!.rows}
             fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 18 : 14)))}
             loop={unit.alive && !hit}
+            paused={unit.alive && !attacker && !hit}
             size={heroSprites ? 234 : 176}
             className={side === 'enemy' ? 'scale-x-[-1]' : ''}
           />
