@@ -277,13 +277,17 @@ export const HERO_SPRITES: Record<string, {
   ult: string;       // full cinematic (fires at 100 energy)
   hit: string;
   death: string;
+  // Optional dedicated healing animation. Used when this hero's action is
+  // a heal (action.heal > 0). When omitted the renderer falls back to
+  // attack so the old behavior is preserved.
+  heal?: string;
   cols: number;
   rows: number;
 }> = {
   // New PixelLab mature-fantasy sprites. Static for now (all 5 poses point to the
   // same base) — multi-frame animation strips will replace these per-pose as the
   // animate-with-text pipeline produces them.
-  luna:   { idle: A('sprites/pixellab/heroes/luna_idle.png'), attack: A('sprites/pixellab/heroes/luna_attack.png'), skill: A('sprites/pixellab/heroes/luna_skill.png'), ult: A('sprites/pixellab/heroes/luna_ult.png'), hit: A('sprites/pixellab/heroes/luna_idle.png'), death: A('sprites/pixellab/heroes/luna_death.png'), cols: 43, rows: 1 },
+  luna:   { idle: A('sprites/pixellab/heroes/luna_idle.png'), attack: A('sprites/pixellab/heroes/luna_attack.png'), skill: A('sprites/pixellab/heroes/luna_skill.png'), ult: A('sprites/pixellab/heroes/luna_ult.png'), hit: A('sprites/pixellab/heroes/luna_idle.png'), death: A('sprites/pixellab/heroes/luna_death.png'), heal: A('sprites/pixellab/heroes/luna_heal.png'), cols: 43, rows: 1 },
   elara:  { idle: A('sprites/pixellab/heroes/elara_idle.png'),  attack: A('sprites/pixellab/heroes/elara_attack.png'),  skill: A('sprites/pixellab/heroes/elara_skill.png'),  ult: A('sprites/pixellab/heroes/elara_skill.png'),  hit: A('sprites/pixellab/heroes/elara_idle.png'),  death: A('sprites/pixellab/heroes/elara_death.png'),  cols: 43, rows: 1 },
   aelia:  { idle: A('sprites/pixellab/heroes/aelia_idle.png'),  attack: A('sprites/pixellab/heroes/aelia_attack.png'),  skill: A('sprites/pixellab/heroes/aelia_skill.png'),  ult: A('sprites/pixellab/heroes/aelia_skill.png'),  hit: A('sprites/pixellab/heroes/aelia_idle.png'),  death: A('sprites/pixellab/heroes/aelia_death.png'),  cols: 43, rows: 1 },
   kengo:  { idle: A('sprites/pixellab/heroes/kengo_idle.png'),  attack: A('sprites/pixellab/heroes/kengo_attack.png'),  skill: A('sprites/pixellab/heroes/kengo_skill.png'),  ult: A('sprites/pixellab/heroes/kengo_skill.png'),  hit: A('sprites/pixellab/heroes/kengo_idle.png'),  death: A('sprites/pixellab/heroes/kengo_death.png'),  cols: 43, rows: 1 },
