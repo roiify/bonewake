@@ -340,20 +340,22 @@ export function resolveBattle(
         const hit = applyOnHit(target, dmg, rng);
         dmg = hit.dmg;
         target.hp = Math.max(0, target.hp - dmg);
+        if (target.hp <= 0) target.alive = false;
         log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: false });
-        // Reflect damage back
-        if (hit.reflect > 0) {
+        // Reflect damage back — only triggers if target survived the swing.
+        // Otherwise we'd log a dead target "attacking" which renders the
+        // dead-unit attack animation in the UI.
+        if (hit.reflect > 0 && target.alive) {
           unit.hp = Math.max(0, unit.hp - hit.reflect);
           log.push({ tick: ++tick, src: target.id, dst: unit.id, dmg: hit.reflect, crit: false, ult: false });
           if (unit.hp <= 0) unit.alive = false;
         }
-        // On-attack lifesteal
-        const lifesteal = applyOnAttackHeal(unit, allies, dmg);
-        if (lifesteal) log.push({ tick: ++tick, src: unit.id, dst: lifesteal.dst, dmg: 0, crit: false, ult: false, heal: lifesteal.heal });
-        if (target.hp <= 0) {
-          target.alive = false;
-          applyOnKill(unit);
+        // On-attack lifesteal — same rule: dead units can't heal post-mortem.
+        if (unit.alive) {
+          const lifesteal = applyOnAttackHeal(unit, allies, dmg);
+          if (lifesteal) log.push({ tick: ++tick, src: unit.id, dst: lifesteal.dst, dmg: 0, crit: false, ult: false, heal: lifesteal.heal });
         }
+        if (!target.alive) applyOnKill(unit);
         unit.energy = Math.min(100, unit.energy + 20);
         target.energy = Math.min(100, target.energy + 30);
       }
