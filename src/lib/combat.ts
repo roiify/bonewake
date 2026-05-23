@@ -9,6 +9,15 @@ interface DamageMods {
   critBonus: number;          // added to crit chance
 }
 
+// Classic RPG damage mitigation: dmg = raw * 100 / (100 + def).
+// Replaces the old `max(1, atk - def)` formula that floored tanks (low
+// atk) at 1 damage against high-def bosses. Min damage is 5% of the
+// raw figure so no attack ever feels completely useless.
+function mitigatedDamage(raw: number, def: number): number {
+  const mitigated = raw * 100 / (100 + Math.max(0, def));
+  return Math.max(Math.floor(raw * 0.05), mitigated);
+}
+
 function getDamageMods(unit: CombatUnit): DamageMods {
   let damageMultiplier = 1.0;
   let critBonus = 0;
@@ -195,7 +204,7 @@ export function resolveBattle(
         if (target) {
           const eAdv = elementAdvantage(unit.element, target.element);
           const isCrit = rng() < unit.crit;
-          let dmg = Math.max(1, unit.atk * 2.5 - target.def);
+          let dmg = mitigatedDamage(unit.atk * 2.5, target.def);
           dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv);
           target.hp = Math.max(0, target.hp - dmg);
           log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: false, skill: true });
@@ -263,7 +272,7 @@ export function resolveBattle(
             if (!target.alive) continue;
             const eAdv = elementAdvantage(unit.element, target.element);
             const isCrit = rng() < unit.crit;
-            let dmg = Math.max(1, unit.atk * skill.damageMultiplier - target.def);
+            let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier, target.def);
             dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv * ultMult);
             target.hp = Math.max(0, target.hp - dmg);
             log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true, cont: !isFirst });
@@ -280,7 +289,7 @@ export function resolveBattle(
           if (target) {
             const eAdv = elementAdvantage(unit.element, target.element);
             const isCrit = rng() < unit.crit;
-            let dmg = Math.max(1, unit.atk * skill.damageMultiplier - target.def);
+            let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier, target.def);
             dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv * ultMult);
             target.hp = Math.max(0, target.hp - dmg);
             log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true });
@@ -313,7 +322,7 @@ export function resolveBattle(
         const eAdv = elementAdvantage(unit.element, target.element);
         const mods = getDamageMods(unit);
         const isCrit = rng() < (unit.crit + mods.critBonus);
-        let dmg = Math.max(1, unit.atk - target.def);
+        let dmg = mitigatedDamage(unit.atk, target.def);
         dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv * mods.damageMultiplier);
         // on_hit dodge/reflect
         const hit = applyOnHit(target, dmg, rng);
