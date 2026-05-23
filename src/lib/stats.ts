@@ -193,11 +193,21 @@ export function toCombatUnit(
   };
 }
 
-export function buildEnemyUnit(templateId: string, level: number, star: number, instanceId: string): CombatUnit {
+export function buildEnemyUnit(
+  templateId: string,
+  level: number,
+  star: number,
+  instanceId: string,
+  squadTemplateIds: string[] = []
+): CombatUnit {
   const fakeOwned: OwnedHero = {
     id: instanceId, templateId, level, exp: 0, star, equipped: {}, obtainedAt: 0,
   };
-  const u = toCombatUnit(fakeOwned, [], 'enemy', instanceId);
+  // Pass squad context so enemies with archetype='tank' get the same
+  // +15% DEF / +10% HP aura the player side enjoys. Without it, taunt
+  // pulls aggro to enemy tanks who lack the defensive buff they should
+  // have, so they die unnaturally fast.
+  const u = toCombatUnit(fakeOwned, [], 'enemy', instanceId, squadTemplateIds);
   if (!u) throw new Error(`Cannot build enemy: unknown template ${templateId}`);
   return u;
 }

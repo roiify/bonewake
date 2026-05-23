@@ -47,10 +47,11 @@ export default function StagePrebattlePage() {
     db.stageClears.get(stage.id).then(c => setStageClear(c ? { stars: c.stars } : null));
   }, [stage?.id]);
 
-  const enemies = useMemo(() =>
-    stage?.enemyTeam.map((e, i) => buildEnemyUnit(e.templateId, e.level, e.star, `e${i}`)) ?? [],
-    [stageId]
-  );
+  const enemies = useMemo(() => {
+    if (!stage) return [];
+    const tpls = stage.enemyTeam.map(e => e.templateId);
+    return stage.enemyTeam.map((e, i) => buildEnemyUnit(e.templateId, e.level, e.star, `e${i}`, tpls));
+  }, [stageId]);
 
   if (!stage) return <div className="p-6 text-center">Stage not found.</div>;
 
@@ -148,8 +149,10 @@ export default function StagePrebattlePage() {
     for (let i = 0; i < count; i++) {
       // Sim a battle for correctness (cheap — just to get the seed/log if needed for stats)
       const playerSquad = squad.map(id => heroes.find(h => h.id === id)).filter((h): h is NonNullable<typeof h> => !!h);
-      const playerUnitsSim = playerSquad.map((h, idx) => toCombatUnit(h, equipment, 'player', `p${idx}`)).filter((u): u is NonNullable<typeof u> => !!u);
-      const enemyUnits = stage.enemyTeam.map((e, idx) => buildEnemyUnit(e.templateId, e.level, e.star, `e${idx}`));
+      const playerTpls = playerSquad.map(h => h.templateId);
+      const playerUnitsSim = playerSquad.map((h, idx) => toCombatUnit(h, equipment, 'player', `p${idx}`, playerTpls)).filter((u): u is NonNullable<typeof u> => !!u);
+      const enemyTpls = stage.enemyTeam.map(e => e.templateId);
+      const enemyUnits = stage.enemyTeam.map((e, idx) => buildEnemyUnit(e.templateId, e.level, e.star, `e${idx}`, enemyTpls));
       const battle = resolveBattle(playerUnitsSim, enemyUnits);
       if (battle.winner !== 'player') {
         alert('Squad lost! Instant clear stopped. Strengthen your team.');

@@ -39,6 +39,11 @@ function loadSquad(): string[] {
 
 interface FloatingNumber {
   id: number; x: number; y: number; value: string; color: string;
+  // Owner unit id — used to render the float over the unit it actually
+  // belongs to. Without this, every UnitCard with hit===u.id was rendering
+  // the same global float list, so a slow-decaying float from tick N
+  // could appear over tick N+1's victim.
+  dstId: string;
 }
 
 // Trial mode: BattlePlayPage receives a stageId like "trial-light_brigade".
@@ -89,11 +94,17 @@ export default function BattlePlayPage() {
     const playerUnits = squad
       .map((h, i, arr) => toCombatUnit(h, equipForCombat, 'player', `p${i}`, arr.map(x => x.templateId)))
       .filter((u): u is NonNullable<typeof u> => !!u);
-    const enemyUnits = stage.enemyTeam.map((e, i) => buildEnemyUnit(e.templateId, e.level, e.star, `e${i}`));
+    const enemyTpls = stage.enemyTeam.map(e => e.templateId);
+    const enemyUnits = stage.enemyTeam.map((e, i) => buildEnemyUnit(e.templateId, e.level, e.star, `e${i}`, enemyTpls));
     return resolveBattle(playerUnits, enemyUnits);
   }, [stageId]);
 
   const [tick, setTick] = useState(0);
+  // Idempotency guard: tracks the last tick whose impact already fired.
+  // If the user pauses then resumes during the impact→end window, the
+  // tick effect re-runs and re-schedules timers; without this guard
+  // applyImpact would mutate unit state a second time.
+  const impactedTick = useRef(-1);
   const [units, setUnits] = useState<Record<string, CombatUnit>>(() => {
     if (!battle) return {};
     return Object.fromEntries([...battle.initial.player, ...battle.initial.enemy].map(u => [u.id, { ...u }]));
@@ -136,7 +147,13 @@ export default function BattlePlayPage() {
   useEffect(() => {
     if (!battle || done) return;
     if (tick >= battle.log.length) {
-      // finish: short pause then end
+      // finish: short pause then end. Clear caster flags so the last
+      // unit's attack/heal sprite doesn't freeze on its final frame
+      // while the end screen fades in over it.
+      setAttacker(null);
+      setHealCaster(null);
+      setSkillCaster(null);
+      setLungeOffset(null);
       const t = setTimeout(() => endBattle(), 600 / speed);
       return () => clearTimeout(t);
     }
@@ -200,6 +217,8 @@ export default function BattlePlayPage() {
   // the swing, then retreats during endAction's window.
   function applyImpact() {
     if (!battle) return;
+    if (impactedTick.current === tick) return; // already applied — guard pause/unpause race
+    impactedTick.current = tick;
     const action = battle.log[tick];
     if (action.ult) sound.playSfx('ult');
     else if (action.crit) sound.playSfx('hit');
@@ -227,6 +246,7 @@ export default function BattlePlayPage() {
       const isHeal = action.heal != null && action.heal > 0;
       setFloats(f => [...f, {
         id,
+        dstId: action.dst,
         x: 0, y: 0,
         value: isHeal ? `+${action.heal}` : action.dmg.toString(),
         color: isHeal ? '#22c55e' : action.crit ? '#fde047' : action.ult ? '#fb923c' : '#fca5a5',
@@ -536,7 +556,7 @@ export default function BattlePlayPage() {
         <div className="flex-1 flex flex-col justify-around items-start">
           {playerSlots.map((u, i) => (
             <div key={u.id} style={{ marginLeft: `${i % 2 === 0 ? 0 : 18}px` }}>
-              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} isHealing={healCaster === u.id} side="player" floats={floats.filter(() => hit === u.id)} lungeTo={attacker === u.id ? lungeOffset : null} setRef={el => { unitRefs.current[u.id] = el; }} />
+              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} isHealing={healCaster === u.id} side="player" floats={floats.filter(f => f.dstId === u.id)} lungeTo={attacker === u.id ? lungeOffset : null} setRef={el => { unitRefs.current[u.id] = el; }} />
             </div>
           ))}
         </div>
@@ -544,7 +564,7 @@ export default function BattlePlayPage() {
         <div className="flex-1 flex flex-col justify-around items-end">
           {enemySlots.map((u, i) => (
             <div key={u.id} style={{ marginRight: `${i % 2 === 0 ? 0 : 18}px` }}>
-              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} isHealing={healCaster === u.id} side="enemy" floats={floats.filter(() => hit === u.id)} lungeTo={attacker === u.id ? lungeOffset : null} setRef={el => { unitRefs.current[u.id] = el; }} />
+              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} isHealing={healCaster === u.id} side="enemy" floats={floats.filter(f => f.dstId === u.id)} lungeTo={attacker === u.id ? lungeOffset : null} setRef={el => { unitRefs.current[u.id] = el; }} />
             </div>
           ))}
         </div>

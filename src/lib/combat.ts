@@ -355,7 +355,8 @@ export function resolveBattle(
           const lifesteal = applyOnAttackHeal(unit, allies, dmg);
           if (lifesteal) log.push({ tick: ++tick, src: unit.id, dst: lifesteal.dst, dmg: 0, crit: false, ult: false, heal: lifesteal.heal });
         }
-        if (!target.alive) applyOnKill(unit);
+        // Lifesteal-on-kill only fires if the attacker is also still alive.
+        if (!target.alive && unit.alive) applyOnKill(unit);
         unit.energy = Math.min(100, unit.energy + 20);
         target.energy = Math.min(100, target.energy + 30);
       }
