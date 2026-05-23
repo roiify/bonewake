@@ -102,6 +102,10 @@ export interface OwnedHero {
   obtainedAt: number;
   talents?: string[];          // unlocked talent node IDs
   ultLevel?: number;           // ultimate skill level (0..10); adds multiplier to ult damage/heal
+  // Hero-bound gem sockets. Length = slots unlocked (see HERO_GEM_SLOTS for
+  // the level→slots curve). Each entry is a gemId or null. Gems live on the
+  // hero, NOT on the equipment, so they persist across gear swaps.
+  gems?: (string | null)[];
 }
 
 export interface OwnedEquipment {

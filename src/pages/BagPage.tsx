@@ -7,7 +7,6 @@ import { MYTHIC_COLOR } from '../data/ultimateGear';
 import { equipPower, equipStats } from '../lib/loot';
 import type { OwnedEquipment } from '../lib/db';
 import { salvageEquipment, bulkSalvageBelow, upgradeCost, upgradeEquipment, MAX_UPGRADE_LEVEL, salvageValue } from '../lib/equipmentMgmt';
-import { GEM_BY_ID } from '../data/gems';
 
 function itemDisplayName(eq: OwnedEquipment): string {
   if (eq.name) return eq.name;
@@ -183,16 +182,6 @@ export default function BagPage() {
                   ) : null}
                   {(eq.upgradeLevel ?? 0) > 0 && (
                     <div className="text-[10px] text-amber-400 font-pixel mt-0.5">+{eq.upgradeLevel}</div>
-                  )}
-                  {eq.sockets && eq.sockets.some(g => !!g) && (
-                    <div className="text-[10px] text-zinc-400 mt-0.5 flex items-center gap-1 flex-wrap">
-                      <span className="text-zinc-500">Gems:</span>
-                      {eq.sockets.map((gid, i) => {
-                        if (!gid) return <span key={i} className="opacity-30">○</span>;
-                        const g = GEM_BY_ID[gid];
-                        return <span key={i} title={g?.name ?? gid}>{g?.emoji ?? '💠'}</span>;
-                      })}
-                    </div>
                   )}
                   {eq.equippedTo && (() => {
                     const h = heroes.find(x => x.id === eq.equippedTo);

@@ -1,6 +1,96 @@
-import { db, type OwnedEquipment } from './db';
+import { db, type OwnedEquipment, type OwnedHero } from './db';
 import { GEM_BY_ID, SOCKETS_BY_RARITY, gemInventoryKey, type GemDef } from '../data/gems';
 import { useItems } from '../store/items';
+
+// Hero-bound socket count. Gems live on the hero, not the equipment, so
+// they persist across gear swaps. Capped at 4 per hero for now.
+export const HERO_GEM_SLOTS = 4;
+
+export function ensureHeroGems(hero: OwnedHero): (string | null)[] {
+  const g = hero.gems;
+  if (!g || g.length !== HERO_GEM_SLOTS) return Array(HERO_GEM_SLOTS).fill(null);
+  return g;
+}
+
+// Aggregate gem stat contribution for a hero's slotted gems.
+export function heroGemStats(hero: OwnedHero): Partial<Record<string, number>> {
+  const out: Record<string, number> = {};
+  const slots = hero.gems ?? [];
+  for (const gemId of slots) {
+    if (!gemId) continue;
+    const g = GEM_BY_ID[gemId];
+    if (!g) continue;
+    out[g.stat] = (out[g.stat] ?? 0) + g.value;
+    if (g.bonusStats) {
+      for (const [s, v] of Object.entries(g.bonusStats)) {
+        out[s] = (out[s] ?? 0) + (v as number);
+      }
+    }
+  }
+  return out;
+}
+
+export async function socketGemOnHero(
+  heroId: string,
+  slotIndex: number,
+  gemId: string,
+  updateHero: (id: string, patch: Partial<OwnedHero>) => Promise<void>,
+): Promise<{ ok: boolean; reason?: string }> {
+  const hero = await db.heroes.get(heroId);
+  if (!hero) return { ok: false, reason: 'hero not found' };
+  const def = GEM_BY_ID[gemId];
+  if (!def) return { ok: false, reason: 'unknown gem' };
+  // Ult gems (tier 5) are bound to a specific hero — enforce here.
+  if (def.heroId && def.heroId !== hero.templateId) {
+    return { ok: false, reason: `bound to ${def.heroId}` };
+  }
+  if (slotIndex < 0 || slotIndex >= HERO_GEM_SLOTS) return { ok: false, reason: 'invalid slot' };
+  const gems = [...ensureHeroGems(hero)];
+  const existing = gems[slotIndex];
+  if (existing) await addGemToInventory(existing, 1);
+  const removed = await removeGemFromInventory(gemId, 1);
+  if (!removed) {
+    if (existing) await removeGemFromInventory(existing, 1).catch(() => undefined);
+    return { ok: false, reason: 'not in inventory' };
+  }
+  gems[slotIndex] = gemId;
+  await updateHero(heroId, { gems });
+  await useItems.getState().refresh();
+  return { ok: true };
+}
+
+export async function unsocketGemFromHero(
+  heroId: string,
+  slotIndex: number,
+  updateHero: (id: string, patch: Partial<OwnedHero>) => Promise<void>,
+): Promise<boolean> {
+  const hero = await db.heroes.get(heroId);
+  if (!hero || !hero.gems) return false;
+  const gemId = hero.gems[slotIndex];
+  if (!gemId) return false;
+  await addGemToInventory(gemId, 1);
+  const gems = [...hero.gems];
+  gems[slotIndex] = null;
+  await updateHero(heroId, { gems });
+  await useItems.getState().refresh();
+  return true;
+}
+
+// One-time migration: walk all owned equipment, push any socketed gems
+// back to the player's inventory, and wipe equipment.sockets. Idempotent.
+export async function migrateEquipmentSocketsToInventory(): Promise<{ moved: number }> {
+  const all = await db.equipment.toArray();
+  let moved = 0;
+  for (const eq of all) {
+    if (!eq.sockets || eq.sockets.every(g => !g)) continue;
+    for (const gid of eq.sockets) {
+      if (gid) { await addGemToInventory(gid, 1); moved++; }
+    }
+    await db.equipment.put({ ...eq, sockets: [] });
+  }
+  if (moved > 0) await useItems.getState().refresh();
+  return { moved };
+}
 
 export function socketsAvailableFor(eq: OwnedEquipment): number {
   const rarity = (eq.rarity ?? 1) as number;
