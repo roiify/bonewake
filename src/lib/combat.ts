@@ -167,9 +167,13 @@ export function resolveBattle(
       const isPlayer = unit.side === 'player';
       const allies = isPlayer ? p : e;
       const enemies = isPlayer ? e : p;
+      // TEMPORARY: ultimates and skills disabled while we tune the new
+      // attack animations. Everyone fights with basic attacks only. Flip
+      // ULTS_AND_SKILLS_ENABLED back to true to restore the full kit.
+      const ULTS_AND_SKILLS_ENABLED = false;
       // Heal/revive ults are "wasted" if no ally needs them — keep energy
       // pegged at 100 and fall through to the basic-attack block.
-      const rawIsUlt = unit.energy >= 100;
+      const rawIsUlt = ULTS_AND_SKILLS_ENABLED && unit.energy >= 100;
       const rawSkill = rawIsUlt ? SKILL_BY_ID[unit.ultimateId] : undefined;
       const isHealUlt = rawSkill?.targeting === 'self' && rawSkill.effect?.type === 'heal';
       const isReviveUlt = rawSkill?.targeting === 'self' && rawSkill.effect?.type === 'revive';
@@ -184,7 +188,7 @@ export function resolveBattle(
       // Skill trigger — fires once per battle at 50+ energy, between
       // basic attacks and the ult. Single-target heavy nuke (250% ATK).
       // Drains 50 energy, so unit keeps building toward ult after.
-      const canSkill = !isUlt && unit.energy >= 50 && !(unit as any).skillUsed;
+      const canSkill = ULTS_AND_SKILLS_ENABLED && !isUlt && unit.energy >= 50 && !(unit as any).skillUsed;
       if (canSkill) {
         (unit as any).skillUsed = true;
         const target = pickEnemyTarget(enemies, rng);
