@@ -136,6 +136,22 @@ export function calcHeroStats(
     if (bonds.crit) crit += bonds.crit;
   }
 
+  // Tank aura: any tank-archetype hero in the squad gives non-tank
+  // allies +15% DEF and +10% HP. Tanks don't stack the aura on
+  // themselves so two tanks don't trade buffs into infinity, and
+  // multiple tanks only contribute one aura (lead by the front-most).
+  if (squadTemplateIds.length > 0 && tpl.archetype !== 'tank') {
+    const hasTank = squadTemplateIds.some(id => {
+      if (id === hero.templateId) return false;
+      const t = lookupTemplate(id);
+      return t?.archetype === 'tank';
+    });
+    if (hasTank) {
+      def = def * 1.15;
+      hp = hp * 1.10;
+    }
+  }
+
   hp = Math.round(hp); atk = Math.round(atk); def = Math.round(def);
   spd = Math.round(spd);
   const power = Math.round(hp / 4 + atk * 3 + def * 2 + spd * 5 + crit * 800);

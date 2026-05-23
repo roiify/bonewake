@@ -90,8 +90,9 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     rarity: 3,
     element: 'light',
     archetype: 'tank',
-    // Pure wall: highest HP + DEF, lowest ATK/SPD/CRIT
-    baseStats: stat(1800, 110, 145, 50, 0.08),
+    // Wall with respectable swings: highest HP/DEF, lower (but viable) ATK,
+    // bottom-tier SPD/CRIT. Atk bumped from 110 so he isn't a damage void.
+    baseStats: stat(1800, 145, 145, 50, 0.08),
     ultimateId: 'aegis_judgment',
     emoji: '🛡️',
     color: '#fbbf24',

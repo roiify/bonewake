@@ -124,6 +124,14 @@ function elementAdvantage(a: Element, b: Element): number {
 function pickEnemyTarget(enemies: CombatUnit[], rng: () => number): CombatUnit | undefined {
   const alive = enemies.filter(e => e.alive);
   if (!alive.length) return undefined;
+  // Taunt: tanks (Kaius and any future tank archetype) pull aggro 80% of
+  // the time when alive, so they actually function as the front line.
+  const tanks = alive.filter(e => e.archetype === 'tank');
+  if (tanks.length && rng() < 0.8) {
+    // Pick the lowest-HP tank (so multiple tanks share aggro proportionally
+    // to who's wounded).
+    return [...tanks].sort((a, b) => a.hp - b.hp)[0];
+  }
   // 70% lowest HP, 30% random
   if (rng() < 0.7) {
     return [...alive].sort((a, b) => a.hp - b.hp)[0];
