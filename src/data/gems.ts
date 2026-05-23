@@ -79,6 +79,12 @@ const ULT_GEM_SEEDS: UltGemSeed[] = [
   // Assassins — CRIT primary + spd bundle
   { heroId: 'len',    name: 'Eclipse Shard',    emoji: '🌒', primary: { stat: 'crit', value: 0.18 }, bonus: { atk: 200, spd: 50 }, cost: ULT_GEM_COST },
   { heroId: 'elara',  name: 'Worldweave Crystal', emoji: '🍃', primary: { stat: 'crit', value: 0.18 }, bonus: { atk: 200, spd: 50 }, cost: ULT_GEM_COST },
+  // Chino: warrior brawler — crit+spd bundle to match his drunken-CRIT identity
+  { heroId: 'chino',  name: 'Drunken Pearl',      emoji: '🍶', primary: { stat: 'crit', value: 0.16 }, bonus: { atk: 220, spd: 50 }, cost: ULT_GEM_COST },
+  // Reiji: dual-blade samurai — ATK primary with crit bundle
+  { heroId: 'reiji',  name: 'Eclipse Tear',       emoji: '☯️', primary: { stat: 'atk', value: 260 }, bonus: { crit: 0.10, spd: 40 }, cost: ULT_GEM_COST },
+  // Twins: yin-yang duo — ATK primary with hp bundle (two bodies share)
+  { heroId: 'twins',  name: 'Mirror Bond Stone',  emoji: '☯️', primary: { stat: 'atk', value: 240 }, bonus: { crit: 0.10, hp: 1200 }, cost: ULT_GEM_COST },
 ];
 
 export const ULT_GEMS: GemDef[] = ULT_GEM_SEEDS.map(s => ({

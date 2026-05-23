@@ -139,6 +139,39 @@ export const TALENT_TREE: TalentNode[] = [
   mk('manny', 'endurance', 1, { name: 'Phylactery', description: '+300 HP · soul anchored',              bonus: { hp: 300 } }),
   mk('manny', 'endurance', 2, { name: 'Lich Skin',  description: '+50 DEF · +350 HP',                    bonus: { def: 50, hp: 350 } }),
   mk('manny', 'endurance', 3, { name: 'Undying',    description: '+1200 HP · +80 DEF',                   bonus: { hp: 1200, def: 80 } }),
+
+  // ============ CHINO — Drunken Master ============
+  mk('chino', 'might', 1, { name: 'First Sip',       description: '+30 ATK · the first sting wakes him',   bonus: { atk: 30 } }),
+  mk('chino', 'might', 2, { name: 'Drunken Fist',    description: '+70 ATK · +6% CRIT',                    bonus: { atk: 70, crit: 0.06 } }),
+  mk('chino', 'might', 3, { name: 'Bottomless Cup',  description: '+160 ATK · +12% CRIT',                  bonus: { atk: 160, crit: 0.12 } }),
+  mk('chino', 'finesse', 1, { name: 'Wobble Step',   description: '+12 SPD · unpredictable',               bonus: { spd: 12 } }),
+  mk('chino', 'finesse', 2, { name: 'Stagger Sway',  description: '+25 SPD · +5% CRIT',                    bonus: { spd: 25, crit: 0.05 } }),
+  mk('chino', 'finesse', 3, { name: 'Reckless Dance',description: '+45 SPD · +10% CRIT',                   bonus: { spd: 45, crit: 0.10 } }),
+  mk('chino', 'endurance', 1, { name: 'Iron Liver',  description: '+350 HP · numbness is armor',           bonus: { hp: 350 } }),
+  mk('chino', 'endurance', 2, { name: 'Drunkard Grit', description: '+60 DEF · +400 HP',                    bonus: { def: 60, hp: 400 } }),
+  mk('chino', 'endurance', 3, { name: 'Unkillable Cup', description: '+1200 HP · +90 DEF',                   bonus: { hp: 1200, def: 90 } }),
+
+  // ============ REIJI — Twin-Blade Samurai ============
+  mk('reiji', 'might', 1, { name: 'White Cut',       description: '+35 ATK · light blade sings',           bonus: { atk: 35 } }),
+  mk('reiji', 'might', 2, { name: 'Black Cut',       description: '+80 ATK · +6% CRIT',                    bonus: { atk: 80, crit: 0.06 } }),
+  mk('reiji', 'might', 3, { name: 'Cross Eclipse',   description: '+180 ATK · +12% CRIT',                  bonus: { atk: 180, crit: 0.12 } }),
+  mk('reiji', 'finesse', 1, { name: 'Mirror Stance', description: '+10 SPD',                                bonus: { spd: 10 } }),
+  mk('reiji', 'finesse', 2, { name: 'Dual Draw',     description: '+22 SPD · +50 ATK',                     bonus: { spd: 22, atk: 50 } }),
+  mk('reiji', 'finesse', 3, { name: 'Iaido Lightning', description: '+45 SPD · +10% CRIT',                   bonus: { spd: 45, crit: 0.10 } }),
+  mk('reiji', 'endurance', 1, { name: 'Folded Stance', description: '+300 HP · braced',                      bonus: { hp: 300 } }),
+  mk('reiji', 'endurance', 2, { name: 'Half-Light Skin', description: '+55 DEF · +350 HP',                    bonus: { def: 55, hp: 350 } }),
+  mk('reiji', 'endurance', 3, { name: 'Two Souls One Body', description: '+1100 HP · +80 DEF',                  bonus: { hp: 1100, def: 80 } }),
+
+  // ============ TWINS — Tatiana & Roiify ============
+  mk('twins', 'might', 1, { name: 'Shared Strike',    description: '+30 ATK · they hit as one',             bonus: { atk: 30 } }),
+  mk('twins', 'might', 2, { name: 'Mirror Curse',     description: '+70 ATK · +6% CRIT',                    bonus: { atk: 70, crit: 0.06 } }),
+  mk('twins', 'might', 3, { name: 'Twin Wrath',       description: '+170 ATK · +12% CRIT',                  bonus: { atk: 170, crit: 0.12 } }),
+  mk('twins', 'finesse', 1, { name: 'Synced Step',    description: '+12 SPD · one breath',                  bonus: { spd: 12 } }),
+  mk('twins', 'finesse', 2, { name: 'Shadowstep Pair',description: '+22 SPD · +40 ATK',                     bonus: { spd: 22, atk: 40 } }),
+  mk('twins', 'finesse', 3, { name: 'Yin-Yang Tempo', description: '+45 SPD · +10% CRIT',                   bonus: { spd: 45, crit: 0.10 } }),
+  mk('twins', 'endurance', 1, { name: 'Two Hearts',    description: '+400 HP · two bodies endure',           bonus: { hp: 400 } }),
+  mk('twins', 'endurance', 2, { name: 'Sibling Shield',description: '+50 DEF · +500 HP',                     bonus: { def: 50, hp: 500 } }),
+  mk('twins', 'endurance', 3, { name: 'Unbroken Bond', description: '+1400 HP · +90 DEF',                    bonus: { hp: 1400, def: 90 } }),
 ];
 
 export const TALENT_BY_ID = Object.fromEntries(TALENT_TREE.map(t => [t.id, t]));

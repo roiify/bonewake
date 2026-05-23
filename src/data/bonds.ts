@@ -47,6 +47,21 @@ export const BONDS: BondDef[] = [
   // Death magic + assassin
   { id: 'silent_blade',    name: 'Silent Blade',    description: 'Necromancer and assassin slip past life.',
     heroIds: ['manny', 'len'],     bonus: { spd: 20, crit: 0.06 },        emoji: '🌑' },
+  // Drunken master + samurai — two reckless blades
+  { id: 'broken_oath',     name: 'Broken Oath',     description: 'Two warriors who refused to die clean.',
+    heroIds: ['chino', 'reiji'],   bonus: { atk: 60, crit: 0.05 },        emoji: '🍶' },
+  // Twins + healer — light alliance
+  { id: 'paired_dawn',     name: 'Paired Dawn',     description: 'Bound siblings find the priestess of dawn.',
+    heroIds: ['twins', 'luna'],    bonus: { hp: 600, atk: 40 },           emoji: '☯️' },
+  // Twins + tank — protector and the protected
+  { id: 'shield_of_bond',  name: 'Shield of Bond',  description: 'The paladin will not let the twins fall.',
+    heroIds: ['twins', 'kaius'],   bonus: { hp: 600, def: 50 },           emoji: '🛡️' },
+  // Samurai + monk — fellow disciplinarians
+  { id: 'iron_discipline', name: 'Iron Discipline', description: 'Same fire, different blade.',
+    heroIds: ['reiji', 'kengo'],   bonus: { atk: 50, hp: 500 },           emoji: '🥋' },
+  // Drunken master + assassin — chaotic strikers
+  { id: 'gutter_kings',    name: 'Gutter Kings',    description: 'A drunk and an assassin own every alley.',
+    heroIds: ['chino', 'len'],     bonus: { spd: 25, crit: 0.06 },        emoji: '🗡️' },
 
   // ============ TRIPLE BONDS (one per unique triple) ============
   { id: 'frost_court',     name: 'Frost Court',     description: 'Aelia leads a winter retinue.',
@@ -59,6 +74,15 @@ export const BONDS: BondDef[] = [
     heroIds: ['aelia', 'pyra', 'manny'],   bonus: { atk: 120, crit: 0.10 },          emoji: '🔮' },
   { id: 'crimson_choir',   name: 'Crimson Choir',   description: 'Death-callers sing the harvest.',
     heroIds: ['korvan', 'manny', 'luna'],  bonus: { atk: 70, hp: 700, crit: 0.05 },  emoji: '🩸' },
+  // Three-blade vanguard: chino + reiji + a third blade
+  { id: 'broken_vanguard', name: 'Broken Vanguard', description: 'Three blades that should not work together.',
+    heroIds: ['chino', 'reiji', 'kengo'],  bonus: { atk: 70, spd: 25, crit: 0.06 },  emoji: '⚔️' },
+  // Yin-yang court: twins + two casters
+  { id: 'duality_court',   name: 'Duality Court',   description: 'Light, shadow, and the mages who shape both.',
+    heroIds: ['twins', 'aelia', 'pyra'],   bonus: { atk: 90, crit: 0.08 },           emoji: '☯️' },
+  // Mirror tide: twins + healer + paladin (heavy support comp)
+  { id: 'mirror_tide',     name: 'Mirror Tide',     description: 'The twins, the priestess, the paladin — light unbroken.',
+    heroIds: ['twins', 'luna', 'kaius'],   bonus: { hp: 800, def: 40, atk: 50 },     emoji: '🌅' },
 
   // ============ UNIVERSAL BASELINE ============
   // Every full squad gets this. Smaller than pair/triple bonds so the

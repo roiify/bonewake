@@ -155,6 +155,57 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     flavor: 'Death Caller. Battles alone — his minions are his party.',
     pullWeight: 3,
   },
+  // ============ NEW V1 HEROES (Chino, Reiji, Twins) ============
+  // Power budgets target ~1300 base power (mid-upper of the existing band
+  // of 1100-1340) so they feel competitive without dominating.
+  {
+    id: 'chino',
+    name: 'Chino',
+    rarity: 3,
+    element: 'dark',
+    archetype: 'warrior',
+    // Drunken brawler — high SPD + CRIT, moderate HP/DEF. His "drunken
+    // ramp" is conveyed through high CRIT chance (he gets reckless and
+    // wild as he fights), not a stack mechanic.
+    baseStats: stat(1000, 140, 70, 90, 0.18),
+    ultimateId: 'drunken_palm',
+    emoji: '🍶',
+    color: '#d97706',
+    flavor: 'Drunken master. The deeper the drink, the wilder the strike.',
+    pullWeight: 5,
+  },
+  {
+    id: 'reiji',
+    name: 'Reiji',
+    rarity: 3,
+    element: 'dark',
+    archetype: 'warrior',
+    // Twin-blade samurai. Yin/yang duality means he can hit hard in any
+    // direction — modelled as AOE ult with high ATK/CRIT but glassier
+    // than Korvan (lower HP for the dramatic risk-reward feel).
+    baseStats: stat(950, 145, 60, 80, 0.16),
+    ultimateId: 'dual_eclipse',
+    emoji: '⚔️',
+    color: '#e5e7eb',
+    flavor: 'Half light, half shadow. His twin blades strike as one.',
+    pullWeight: 4,
+  },
+  {
+    id: 'twins',
+    name: 'Tatiana & Roiify',
+    rarity: 3,
+    element: 'light',
+    archetype: 'mage',
+    // Yin-yang twin duo — one squad slot, two fighters. Combined stats
+    // sit slightly above a solo mage to reflect the two bodies, but no
+    // higher than Pyra/Aelia top end so they stay fair.
+    baseStats: stat(1100, 145, 65, 80, 0.13),
+    ultimateId: 'yin_yang_strike',
+    emoji: '☯️',
+    color: '#f0abfc',
+    flavor: 'Bound siblings. They strike together, they fall together.',
+    pullWeight: 4,
+  },
   // ============ MANNY'S SUMMONS (hidden from gacha/roster) ============
   // These templates exist so the squad logic can fill Manny's solo team
   // with Bone King + Lich Sovereign. They're NOT pullable and don't show
@@ -212,6 +263,9 @@ export const HERO_PORTRAITS: Record<string, string> = {
   manny:  A('sprites/pixellab/heroes/portraits/manny.png'),
   bone_king:      A('sprites/pixellab/heroes/portraits/bone_king.png'),
   lich_sovereign: A('sprites/pixellab/heroes/portraits/lich_sovereign.png'),
+  chino:    A('sprites/pixellab/heroes/portraits/chino.png'),
+  reiji:    A('sprites/pixellab/heroes/portraits/samurai.png'),
+  twins:    A('sprites/pixellab/heroes/portraits/twins.png'),
 };
 
 export const HERO_SPRITES: Record<string, {
@@ -240,6 +294,9 @@ export const HERO_SPRITES: Record<string, {
   manny:  { idle: A('sprites/pixellab/heroes/manny_idle.png'),  attack: A('sprites/pixellab/heroes/manny_attack.png'),  skill: A('sprites/pixellab/heroes/manny_skill.png'),  ult: A('sprites/pixellab/heroes/manny_ult.png'),  hit: A('sprites/pixellab/heroes/manny_idle.png'),  death: A('sprites/pixellab/heroes/manny_death.png'), cols: 43, rows: 1 },
   bone_king:      { idle: A('sprites/pixellab/heroes/bone_king_idle.png'),      attack: A('sprites/pixellab/heroes/bone_king_attack.png'),      skill: A('sprites/pixellab/heroes/bone_king_skill.png'),      ult: A('sprites/pixellab/heroes/bone_king_ult.png'),      hit: A('sprites/pixellab/heroes/bone_king_idle.png'),      death: A('sprites/pixellab/heroes/bone_king_death.png'),      cols: 43, rows: 1 },
   lich_sovereign: { idle: A('sprites/pixellab/heroes/lich_sovereign_idle.png'), attack: A('sprites/pixellab/heroes/lich_sovereign_attack.png'), skill: A('sprites/pixellab/heroes/lich_sovereign_skill.png'), ult: A('sprites/pixellab/heroes/lich_sovereign_ult.png'), hit: A('sprites/pixellab/heroes/lich_sovereign_idle.png'), death: A('sprites/pixellab/heroes/lich_sovereign_death.png'), cols: 43, rows: 1 },
+  chino:   { idle: A('sprites/pixellab/heroes/chino_idle.png'),    attack: A('sprites/pixellab/heroes/chino_attack.png'),    skill: A('sprites/pixellab/heroes/chino_skill.png'),    ult: A('sprites/pixellab/heroes/chino_ult.png'),    hit: A('sprites/pixellab/heroes/chino_idle.png'),    death: A('sprites/pixellab/heroes/chino_death.png'),    cols: 43, rows: 1 },
+  reiji:   { idle: A('sprites/pixellab/heroes/samurai_idle.png'),  attack: A('sprites/pixellab/heroes/samurai_attack.png'),  skill: A('sprites/pixellab/heroes/samurai_skill.png'),  ult: A('sprites/pixellab/heroes/samurai_ult.png'),  hit: A('sprites/pixellab/heroes/samurai_idle.png'),  death: A('sprites/pixellab/heroes/samurai_death.png'),  cols: 43, rows: 1 },
+  twins:   { idle: A('sprites/pixellab/heroes/twins_idle.png'),    attack: A('sprites/pixellab/heroes/twins_attack.png'),    skill: A('sprites/pixellab/heroes/twins_skill.png'),    ult: A('sprites/pixellab/heroes/twins_ult.png'),    hit: A('sprites/pixellab/heroes/twins_idle.png'),    death: A('sprites/pixellab/heroes/twins_death.png'),    cols: 43, rows: 1 },
 };
 
 export const ENEMY_SPRITES: Record<string, {
