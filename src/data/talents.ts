@@ -170,7 +170,7 @@ export const TALENT_TREE: TalentNode[] = [
   mk('twins', 'finesse', 2, { name: 'Shadowstep Pair',description: '+22 SPD · +40 ATK',                     bonus: { spd: 22, atk: 40 } }),
   mk('twins', 'finesse', 3, { name: 'Yin-Yang Tempo', description: '+45 SPD · +10% CRIT',                   bonus: { spd: 45, crit: 0.10 } }),
   mk('twins', 'endurance', 1, { name: 'Two Hearts',    description: '+400 HP · two bodies endure',           bonus: { hp: 400 } }),
-  mk('twins', 'endurance', 2, { name: 'Sibling Shield',description: '+50 DEF · +500 HP',                     bonus: { def: 50, hp: 500 } }),
+  mk('twins', 'endurance', 2, { name: 'Spousal Shield', description: '+50 DEF · +500 HP',                    bonus: { def: 50, hp: 500 } }),
   mk('twins', 'endurance', 3, { name: 'Unbroken Bond', description: '+1400 HP · +90 DEF',                    bonus: { hp: 1400, def: 90 } }),
 ];
 

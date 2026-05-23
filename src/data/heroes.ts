@@ -204,7 +204,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     ultimateId: 'yin_yang_strike',
     emoji: '☯️',
     color: '#f0abfc',
-    flavor: 'Bound siblings. They strike together, they fall together.',
+    flavor: 'Husband and wife, bound as one. They strike together, they fall together.',
     pullWeight: 4,
   },
   // ============ MANNY'S SUMMONS (hidden from gacha/roster) ============
