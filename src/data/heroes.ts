@@ -315,7 +315,7 @@ export const ENEMY_SPRITES: Record<string, {
   rows: number;
 }> = {
   // World boss tier
-  worldboss_1:   { idle: A('sprites/echoes/enemies/worldboss_1_idle.png'),    attack: A('sprites/echoes/enemies/worldboss_1_attack.png'),   skill: A('sprites/echoes/enemies/worldboss_1_skill.png'),   hit: A('sprites/echoes/enemies/worldboss_1_hit.png'),   death: A('sprites/echoes/enemies/worldboss_1_death.png'),   cols: 43, rows: 1 },
+  worldboss_1:   { idle: A('sprites/echoes/enemies/worldboss_1_idle.png'),    attack: A('sprites/echoes/enemies/worldboss_1_idle.png'),   skill: A('sprites/echoes/enemies/worldboss_1_idle.png'),   hit: A('sprites/echoes/enemies/worldboss_1_idle.png'),   death: A('sprites/echoes/enemies/worldboss_1_idle.png'),   cols: 1, rows: 1 },
   shambler:      { idle: A('sprites/echoes/enemies/shambler_idle.png'),      attack: A('sprites/echoes/enemies/shambler_idle.png'), skill: A('sprites/echoes/enemies/shambler_idle.png'), hit: A('sprites/echoes/enemies/shambler_idle.png'), death: A('sprites/echoes/enemies/shambler_idle.png'),      cols: 1, rows: 1 },
   boneknight:    { idle: A('sprites/echoes/enemies/boneknight_idle.png'),    attack: A('sprites/echoes/enemies/boneknight_idle.png'), skill: A('sprites/echoes/enemies/boneknight_idle.png'), hit: A('sprites/echoes/enemies/boneknight_idle.png'), death: A('sprites/echoes/enemies/boneknight_idle.png'),    cols: 1, rows: 1 },
   fastghoul:     { idle: A('sprites/echoes/enemies/fastghoul_idle.png'),     attack: A('sprites/echoes/enemies/fastghoul_idle.png'), skill: A('sprites/echoes/enemies/fastghoul_idle.png'), hit: A('sprites/echoes/enemies/fastghoul_idle.png'), death: A('sprites/echoes/enemies/fastghoul_idle.png'),     cols: 1, rows: 1 },
