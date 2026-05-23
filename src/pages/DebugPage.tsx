@@ -12,6 +12,7 @@ import { HERO_BY_ID } from '../data/heroes';
 import { genLoot } from '../lib/loot';
 import { addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD, essenceItemId, ULTIMATE_SETS } from '../data/ultimateGear';
+import { STAGES } from '../data/stages';
 import { sendMail } from '../lib/mail';
 import { addGemToInventory, removeGemFromInventory, HERO_GEM_SLOTS } from '../lib/gems';
 import { GEMS, ULT_GEM_BY_HERO } from '../data/gems';
@@ -240,8 +241,22 @@ export default function DebugPage() {
       await db.heroes.update(hero.id, { equipped: newEquipped, gems: heroGems });
     }
 
+    // 6. Unlock every stage at 3 stars so the whole chapter map is open
+    // for testing. Idempotent — preserves existing higher clear counts.
+    const existingClears = await db.stageClears.toArray();
+    const clearByStage = new Map(existingClears.map(c => [c.stageId, c]));
+    for (const s of STAGES) {
+      const prev = clearByStage.get(s.id);
+      await db.stageClears.put({
+        stageId: s.id,
+        stars: Math.max(3, prev?.stars ?? 0),
+        clears: Math.max(1, prev?.clears ?? 0),
+        lastClearedAt: prev?.lastClearedAt ?? Date.now(),
+      });
+    }
+
     await reload();
-    alert('MAX EVERYTHING applied — all heroes maxed, ult gear crafted & equipped, hero gem slots filled (ult gem + tier-4 fillers).');
+    alert('MAX EVERYTHING applied — all heroes maxed, ult gear crafted & equipped, hero gem slots filled, every stage 3-starred.');
   }
 
   async function resetDaily() {
