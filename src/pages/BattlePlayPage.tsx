@@ -114,6 +114,11 @@ export default function BattlePlayPage() {
   const [matDrops, setMatDrops] = useState<{ kind: 'soulshard' | 'essence'; heroId?: string; count: number }[]>([]);
   const [gemDrops, setGemDrops] = useState<GemDef[]>([]);
   const floatId = useRef(0);
+  // Element refs keyed by unit id — used to compute the exact pixel offset
+  // between an attacker and its target so the lunge animation aims at the
+  // real on-screen position rather than a fixed forward translation.
+  const unitRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [lungeOffset, setLungeOffset] = useState<{ dx: number; dy: number } | null>(null);
 
   useEffect(() => {
     if (!stage || !battle) return;
@@ -136,6 +141,24 @@ export default function BattlePlayPage() {
     // just keep current attacker so the animation we already started keeps
     // playing while the additional targets apply.
     if (action.cont) return;
+    // Compute the real attacker→target offset so basic attacks lunge to the
+    // actual enemy position. Skills and ults stay rooted (cast in place).
+    if (!action.ult && !action.skill) {
+      const a = unitRefs.current[action.src];
+      const t = unitRefs.current[action.dst];
+      if (a && t) {
+        const aR = a.getBoundingClientRect();
+        const tR = t.getBoundingClientRect();
+        setLungeOffset({
+          dx: (tR.left + tR.width / 2) - (aR.left + aR.width / 2),
+          dy: (tR.top + tR.height / 2) - (aR.top + aR.height / 2),
+        });
+      } else {
+        setLungeOffset(null);
+      }
+    } else {
+      setLungeOffset(null);
+    }
     setAttacker(action.src);
     setSkillCaster(action.skill ? action.src : null);
     if (action.ult) {
@@ -178,6 +201,7 @@ export default function BattlePlayPage() {
     });
     setHit(action.dst);
     setAttacker(null);
+    setLungeOffset(null);
     // Screen-shake on damage hits (skip heals).
     if (action.dmg > 0) {
       const hard = action.crit || action.ult;
@@ -492,7 +516,7 @@ export default function BattlePlayPage() {
         <div className="flex-1 flex flex-col justify-around items-start">
           {playerSlots.map((u, i) => (
             <div key={u.id} style={{ marginLeft: `${i % 2 === 0 ? 0 : 18}px` }}>
-              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} side="player" floats={floats.filter(() => hit === u.id)} />
+              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} side="player" floats={floats.filter(() => hit === u.id)} lungeTo={attacker === u.id ? lungeOffset : null} setRef={el => { unitRefs.current[u.id] = el; }} />
             </div>
           ))}
         </div>
@@ -500,7 +524,7 @@ export default function BattlePlayPage() {
         <div className="flex-1 flex flex-col justify-around items-end">
           {enemySlots.map((u, i) => (
             <div key={u.id} style={{ marginRight: `${i % 2 === 0 ? 0 : 18}px` }}>
-              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} side="enemy" floats={floats.filter(() => hit === u.id)} />
+              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} side="enemy" floats={floats.filter(() => hit === u.id)} lungeTo={attacker === u.id ? lungeOffset : null} setRef={el => { unitRefs.current[u.id] = el; }} />
             </div>
           ))}
         </div>
@@ -667,8 +691,10 @@ export default function BattlePlayPage() {
   );
 }
 
-function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill }: {
+function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, lungeTo, setRef }: {
   unit: CombatUnit; attacker: boolean; hit: boolean; side: 'player' | 'enemy'; floats: FloatingNumber[]; isUlt: boolean; isSkill: boolean;
+  lungeTo: { dx: number; dy: number } | null;
+  setRef: (el: HTMLDivElement | null) => void;
 }) {
   // Resolve sprite set
   const heroSprites = HERO_SPRITES[unit.templateId];
@@ -690,17 +716,22 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill }: {
   const hpPct = (unit.hp / unit.maxHp) * 100;
   const hpColor = hpPct > 50 ? '#22c55e' : hpPct > 25 ? '#f59e0b' : '#ef4444';
 
-  // Lunge: on a basic attack the attacker pulls back slightly, dashes across
-  // the gap to make contact with the opposing column, holds the strike, then
-  // snaps back. Skills/ults stay rooted — they project AOE / cast in place.
-  const isLunge = attacker && !isUlt && !isSkill;
-  const lungeDist = side === 'player' ? 180 : -180;
+  // Lunge: on a basic attack the attacker pulls back slightly, dashes to the
+  // target's actual on-screen position to make contact, holds the strike,
+  // then snaps back. Stops at 88% so sprites overlap on contact rather than
+  // the attacker fully covering the target. Skills/ults stay rooted.
+  const isLunge = !!(attacker && !isUlt && !isSkill && lungeTo);
+  const dashX = isLunge && lungeTo ? lungeTo.dx * 0.88 : 0;
+  const dashY = isLunge && lungeTo ? lungeTo.dy * 0.88 : 0;
+  const windUpX = isLunge && lungeTo ? -lungeTo.dx * 0.06 : 0;
   return (
     <motion.div
+      ref={setRef}
       animate={{
         x: isLunge
-          ? [0, -lungeDist * 0.06, lungeDist, lungeDist, 0]
+          ? [0, windUpX, dashX, dashX, 0]
           : (attacker ? (side === 'player' ? 24 : -24) : 0),
+        y: isLunge ? [0, 0, dashY, dashY, 0] : 0,
         scale: attacker ? 1.12 : 1,
       }}
       transition={
