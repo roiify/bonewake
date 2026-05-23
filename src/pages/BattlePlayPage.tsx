@@ -176,15 +176,24 @@ export default function BattlePlayPage() {
     const a = battle.log[tick];
     // Continuation entries (extra targets of a multi-target ult) get a
     // very short wait — the animation already played on the first entry.
-    const baseDuration = a.cont ? 250 : (a.ult ? 6000 : a.skill ? 2400 : 1100);
-    const t = setTimeout(() => applyAction(), baseDuration / speed);
-    return () => clearTimeout(t);
+    const isBasic = !a.cont && !a.ult && !a.skill;
+    const baseDuration = a.cont ? 250 : (a.ult ? 6000 : a.skill ? 2400 : 1000);
+    // For basic attacks, the impact lands while the attacker is still
+    // at the target (after the dash, before the retreat) so the screen
+    // shake / damage number / SFX hit in sync with the swing rather than
+    // 0.5s after the visual. The remaining time covers the retreat back.
+    const impactDelay = isBasic ? 600 : baseDuration;
+    const tImpact = setTimeout(() => applyImpact(), impactDelay / speed);
+    const tEnd = setTimeout(() => endAction(), baseDuration / speed);
+    return () => { clearTimeout(tImpact); clearTimeout(tEnd); };
   }, [tick, battle, done, speed, paused]);
 
-  function applyAction() {
+  // Phase 1: damage/heal lands. Shake + float number + SFX fire here.
+  // Lunge animation keeps playing so the attacker holds at target during
+  // the swing, then retreats during endAction's window.
+  function applyImpact() {
     if (!battle) return;
     const action = battle.log[tick];
-    // SFX
     if (action.ult) sound.playSfx('ult');
     else if (action.crit) sound.playSfx('hit');
     else if (action.dmg > 0) sound.playSfx('hit');
@@ -200,9 +209,6 @@ export default function BattlePlayPage() {
       return next;
     });
     setHit(action.dst);
-    setAttacker(null);
-    setLungeOffset(null);
-    // Screen-shake on damage hits (skip heals).
     if (action.dmg > 0) {
       const hard = action.crit || action.ult;
       setShake(hard ? 'hard' : 'soft');
@@ -220,10 +226,15 @@ export default function BattlePlayPage() {
       }]);
       setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 900);
     }
+  }
+
+  // Phase 2: animation finishes. Clear attacker so the lunge returns to
+  // home position, clear hit + lunge offset, advance the tick.
+  function endAction() {
+    setAttacker(null);
+    setLungeOffset(null);
     setTimeout(() => setHit(null), 200 / speed);
-    // Give the eye a clear beat between turns so the battle reads as
-    // turn-based instead of "everyone moves at once".
-    setTimeout(() => setTick(t => t + 1), 350 / speed);
+    setTimeout(() => setTick(t => t + 1), 200 / speed);
   }
 
   async function endBattle() {
@@ -736,7 +747,9 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, lungeTo, 
       }}
       transition={
         isLunge
-          ? { duration: 0.6, times: [0, 0.12, 0.45, 0.7, 1] }
+          // 1.0s total: wind-up → dash → hold-at-target while impact lands → retreat
+          // Impact fires at 600ms (60%), retreat finishes by 1000ms.
+          ? { duration: 1.0, times: [0, 0.10, 0.35, 0.65, 1] }
           : { duration: 0.18 }
       }
       style={{ zIndex: attacker ? 15 : 5 }}
