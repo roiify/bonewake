@@ -33,6 +33,34 @@ export const ENEMY_TEMPLATES = {
   grave_digger:      { name: 'Grave Digger',    element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 2730, atk: 240, def: 125, spd: 55, crit: 0.12 }, color: '#78350f', ultimateId: 'enemy_basic' },
   plague_monk:       { name: 'Plague Monk',     element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 1950, atk: 265, def: 80,  spd: 75, crit: 0.16 }, color: '#16a34a', ultimateId: 'enemy_basic' },
   necromancer:       { name: 'Necromancer',     element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 5460, atk: 310, def: 170, spd: 80, crit: 0.22 }, color: '#7c3aed', ultimateId: 'enemy_basic' },
+
+  // ============ CH 10-14 — NECROPOLIS ROYALTY ============
+  royal_lich:        { name: 'Royal Lich',       element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 7200, atk: 360, def: 180, spd: 80, crit: 0.22 }, color: '#a855f7', ultimateId: 'enemy_basic' },
+  bone_executioner:  { name: 'Bone Executioner', element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 5800, atk: 380, def: 130, spd: 60, crit: 0.20 }, color: '#a16207', ultimateId: 'enemy_basic' },
+  gilded_revenant:   { name: 'Gilded Revenant',  element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 5400, atk: 320, def: 200, spd: 65, crit: 0.18 }, color: '#facc15', ultimateId: 'enemy_basic' },
+  crypt_assassin:    { name: 'Crypt Assassin',   element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 3200, atk: 360, def: 80,  spd: 120, crit: 0.30 }, color: '#7e22ce', ultimateId: 'enemy_basic' },
+  plague_priest:     { name: 'Plague Priest',    element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 4400, atk: 320, def: 100, spd: 75, crit: 0.18 }, color: '#84cc16', ultimateId: 'enemy_basic' },
+
+  // ============ CH 15-19 — ABYSSAL CRYPTS ============
+  void_zombie:       { name: 'Void Zombie',      element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 4800, atk: 350, def: 130, spd: 75, crit: 0.20 }, color: '#581c87', ultimateId: 'enemy_basic' },
+  abyssal_warden:    { name: 'Abyssal Warden',   element: 'dark' as const, archetype: 'tank' as const,     baseStats: { hp: 9000, atk: 280, def: 320, spd: 45, crit: 0.10 }, color: '#1e1b4b', ultimateId: 'enemy_basic' },
+  shade_caller:      { name: 'Shade Caller',     element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 4600, atk: 380, def: 110, spd: 80, crit: 0.20 }, color: '#6d28d9', ultimateId: 'enemy_basic' },
+  dread_knight:      { name: 'Dread Knight',     element: 'dark' as const, archetype: 'warrior' as const,  baseStats: { hp: 6400, atk: 400, def: 180, spd: 70, crit: 0.22 }, color: '#dc2626', ultimateId: 'enemy_basic' },
+  corpse_hound:      { name: 'Corpse Hound',     element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 3400, atk: 380, def: 90,  spd: 130, crit: 0.28 }, color: '#a3a3a3', ultimateId: 'enemy_basic' },
+
+  // ============ CH 20-24 — COSMIC CORRUPTION ============
+  starfall_lich:     { name: 'Starfall Lich',    element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 8400, atk: 460, def: 200, spd: 85, crit: 0.25 }, color: '#22d3ee', ultimateId: 'enemy_basic' },
+  void_juggernaut:   { name: 'Void Juggernaut',  element: 'dark' as const, archetype: 'tank' as const,     baseStats: { hp: 11000, atk: 360, def: 360, spd: 50, crit: 0.12 }, color: '#1e3a8a', ultimateId: 'enemy_basic' },
+  astral_archer:     { name: 'Astral Archer',    element: 'dark' as const, archetype: 'assassin' as const, baseStats: { hp: 4200, atk: 460, def: 110, spd: 130, crit: 0.32 }, color: '#67e8f9', ultimateId: 'enemy_basic' },
+  orb_caster:        { name: 'Orb Caster',       element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 5400, atk: 440, def: 130, spd: 85, crit: 0.22 }, color: '#06b6d4', ultimateId: 'enemy_basic' },
+  soul_devourer:     { name: 'Soul Devourer',    element: 'dark' as const, archetype: 'mage' as const,     baseStats: { hp: 7600, atk: 420, def: 200, spd: 90, crit: 0.24 }, color: '#0ea5e9', ultimateId: 'enemy_basic' },
+
+  // ============ CH 25-29 — FINAL APOCALYPSE ============
+  apocalypse_horror: { name: 'Apocalypse Horror', element: 'dark' as const, archetype: 'warrior' as const, baseStats: { hp: 14000, atk: 520, def: 220, spd: 60, crit: 0.25 }, color: '#b91c1c', ultimateId: 'enemy_basic' },
+  world_eater_husk:  { name: 'World-Eater Husk',  element: 'dark' as const, archetype: 'tank' as const,    baseStats: { hp: 18000, atk: 460, def: 420, spd: 45, crit: 0.15 }, color: '#78716c', ultimateId: 'enemy_basic' },
+  blood_titan:       { name: 'Blood Titan',       element: 'dark' as const, archetype: 'warrior' as const, baseStats: { hp: 13000, atk: 560, def: 250, spd: 65, crit: 0.28 }, color: '#dc2626', ultimateId: 'enemy_basic' },
+  ash_lord:          { name: 'Ash Lord',          element: 'dark' as const, archetype: 'mage' as const,    baseStats: { hp: 12000, atk: 580, def: 240, spd: 80, crit: 0.28 }, color: '#ea580c', ultimateId: 'enemy_basic' },
+  final_revenant:    { name: 'Final Revenant',    element: 'dark' as const, archetype: 'warrior' as const, baseStats: { hp: 16000, atk: 620, def: 280, spd: 95, crit: 0.32 }, color: '#7c3aed', ultimateId: 'enemy_basic' },
 };
 export type EnemyTemplateId = keyof typeof ENEMY_TEMPLATES;
 
@@ -249,204 +277,177 @@ export const STAGES: Stage[] = [
   // itself awakening for the final fight.
 
   // Ch10 — The Abyssal Maw
-  ...mkChapter({ chapter: 10, baseLevel: 155, baseGold: 8000, baseExp: 4500, baseEnergy: 42, baseGems: 650, bossEnemy: 'necromancer',
+  // === Ch 10-14: NECROPOLIS ROYALTY ===
+  // royal_lich, bone_executioner, gilded_revenant, crypt_assassin, plague_priest
+  ...mkChapter({ chapter: 10, baseLevel: 155, baseGold: 8000, baseExp: 4500, baseEnergy: 42, baseGems: 650, bossEnemy: 'royal_lich',
     stages: [
-      { name: 'Lip of the Maw',     enemies: ['shambler', 'fastghoul', 'boneknight'] },
-      { name: 'First Descent',      enemies: ['graveyardlich', 'zombie_mage', 'graveyardlich'] },
-      { name: 'The Hum Below',      enemies: ['rotwolf', 'carrion_spider', 'rotwolf'] },
-      { name: 'Marrow Spines',      enemies: ['shield_bearer', 'zombie_berserker', 'shield_bearer'] },
-      { name: 'Maw Boss: The Mouth Itself', enemies: ['graveyardlich', 'necromancer', 'possessed_corpse'] },
+      { name: 'Lip of the Maw',             enemies: ['crypt_assassin', 'plague_priest', 'crypt_assassin'] },
+      { name: 'First Descent',              enemies: ['plague_priest', 'crypt_assassin', 'plague_priest'] },
+      { name: 'The Hum Below',              enemies: ['bone_executioner', 'crypt_assassin', 'bone_executioner'] },
+      { name: 'Marrow Spines',              enemies: ['gilded_revenant', 'bone_executioner', 'gilded_revenant'] },
+      { name: 'Maw Boss: Royal Lich',       enemies: ['gilded_revenant', 'royal_lich', 'bone_executioner'] },
+    ]}),
+  ...mkChapter({ chapter: 11, baseLevel: 170, baseGold: 9500, baseExp: 5200, baseEnergy: 44, baseGems: 700, bossEnemy: 'bone_executioner',
+    stages: [
+      { name: 'Drowned Pier',               enemies: ['crypt_assassin', 'plague_priest', 'crypt_assassin'] },
+      { name: 'Bloated March',              enemies: ['plague_priest', 'gilded_revenant', 'plague_priest'] },
+      { name: 'Salt-Soaked Halls',          enemies: ['gilded_revenant', 'royal_lich', 'gilded_revenant'] },
+      { name: 'The Long Pier',              enemies: ['royal_lich', 'bone_executioner', 'royal_lich'] },
+      { name: 'Tide Boss: The Executioner', enemies: ['gilded_revenant', 'bone_executioner', 'royal_lich'] },
+    ]}),
+  ...mkChapter({ chapter: 12, baseLevel: 185, baseGold: 11000, baseExp: 5900, baseEnergy: 46, baseGems: 750, bossEnemy: 'gilded_revenant',
+    stages: [
+      { name: 'Burnt Wall',                 enemies: ['gilded_revenant', 'crypt_assassin', 'gilded_revenant'] },
+      { name: 'Starved Bailey',             enemies: ['plague_priest', 'bone_executioner', 'plague_priest'] },
+      { name: 'Watch of Bones',             enemies: ['royal_lich', 'gilded_revenant', 'royal_lich'] },
+      { name: 'The Iron Pyre',              enemies: ['bone_executioner', 'royal_lich', 'bone_executioner'] },
+      { name: 'Famine Boss: Gilded King',   enemies: ['royal_lich', 'gilded_revenant', 'bone_executioner'] },
+    ]}),
+  ...mkChapter({ chapter: 13, baseLevel: 200, baseGold: 12500, baseExp: 6600, baseEnergy: 48, baseGems: 800, bossEnemy: 'crypt_assassin',
+    stages: [
+      { name: 'First Spire',                enemies: ['crypt_assassin', 'plague_priest', 'crypt_assassin'] },
+      { name: 'Choking Stairs',             enemies: ['plague_priest', 'crypt_assassin', 'plague_priest'] },
+      { name: 'Coughing Throne',            enemies: ['gilded_revenant', 'crypt_assassin', 'gilded_revenant'] },
+      { name: 'Black Vein',                 enemies: ['plague_priest', 'royal_lich', 'plague_priest'] },
+      { name: 'Spire Boss: The Twin Daggers', enemies: ['crypt_assassin', 'crypt_assassin', 'royal_lich'] },
+    ]}),
+  ...mkChapter({ chapter: 14, baseLevel: 215, baseGold: 14000, baseExp: 7300, baseEnergy: 50, baseGems: 850, bossEnemy: 'plague_priest',
+    stages: [
+      { name: 'Twilight Walk',              enemies: ['plague_priest', 'plague_priest', 'crypt_assassin'] },
+      { name: 'Last Sunbeam',               enemies: ['plague_priest', 'royal_lich', 'plague_priest'] },
+      { name: 'Silent Choir',               enemies: ['gilded_revenant', 'plague_priest', 'gilded_revenant'] },
+      { name: 'Crown of Crows',             enemies: ['royal_lich', 'bone_executioner', 'royal_lich'] },
+      { name: 'Sun Boss: The Plague Saint', enemies: ['royal_lich', 'plague_priest', 'gilded_revenant'] },
     ]}),
 
-  // Ch11 — Tidewreck (drowned cities)
-  ...mkChapter({ chapter: 11, baseLevel: 170, baseGold: 9500, baseExp: 5200, baseEnergy: 44, baseGems: 700, bossEnemy: 'fallen_captain',
+  // === Ch 15-19: ABYSSAL CRYPTS ===
+  // void_zombie, abyssal_warden, shade_caller, dread_knight, corpse_hound
+  ...mkChapter({ chapter: 15, baseLevel: 230, baseGold: 15500, baseExp: 8000, baseEnergy: 52, baseGems: 900, bossEnemy: 'dread_knight',
     stages: [
-      { name: 'Drowned Pier',       enemies: ['carrion_spider', 'shambler', 'undead_archer'] },
-      { name: 'Bloated March',      enemies: ['shambler', 'shambler', 'zombie_knight'] },
-      { name: 'Salt-Soaked Halls',  enemies: ['wailing_wraith', 'graveyardlich', 'wailing_wraith'] },
-      { name: 'The Long Pier',      enemies: ['phantom_knight', 'shield_bearer', 'phantom_knight'] },
-      { name: 'Tide Boss: The Drowned Captain', enemies: ['skeletal_warhorse', 'fallen_captain', 'undead_archer'] },
+      { name: 'Ember Road',                 enemies: ['void_zombie', 'corpse_hound', 'void_zombie'] },
+      { name: 'Smouldering Hall',           enemies: ['shade_caller', 'void_zombie', 'shade_caller'] },
+      { name: 'Throne of Cinders',          enemies: ['abyssal_warden', 'shade_caller', 'abyssal_warden'] },
+      { name: 'Crown Spire',                enemies: ['dread_knight', 'abyssal_warden', 'dread_knight'] },
+      { name: 'Ash Boss: Dread Knight',     enemies: ['abyssal_warden', 'dread_knight', 'shade_caller'] },
+    ]}),
+  ...mkChapter({ chapter: 16, baseLevel: 245, baseGold: 17000, baseExp: 8700, baseEnergy: 54, baseGems: 950, bossEnemy: 'abyssal_warden',
+    stages: [
+      { name: 'Rotwood Trail',              enemies: ['corpse_hound', 'corpse_hound', 'void_zombie'] },
+      { name: 'Hollow Thicket',             enemies: ['void_zombie', 'shade_caller', 'void_zombie'] },
+      { name: 'Antler Glen',                enemies: ['shade_caller', 'dread_knight', 'shade_caller'] },
+      { name: 'Wormwood Gate',              enemies: ['dread_knight', 'abyssal_warden', 'dread_knight'] },
+      { name: 'March Boss: Abyssal Warden', enemies: ['dread_knight', 'abyssal_warden', 'corpse_hound'] },
+    ]}),
+  ...mkChapter({ chapter: 17, baseLevel: 260, baseGold: 18500, baseExp: 9400, baseEnergy: 56, baseGems: 1000, bossEnemy: 'shade_caller',
+    stages: [
+      { name: 'Wrecked Quay',               enemies: ['corpse_hound', 'shade_caller', 'corpse_hound'] },
+      { name: 'Ghost Galleon',              enemies: ['shade_caller', 'void_zombie', 'shade_caller'] },
+      { name: 'Black Tides',                enemies: ['void_zombie', 'shade_caller', 'void_zombie'] },
+      { name: 'Plague Wharf',               enemies: ['abyssal_warden', 'shade_caller', 'abyssal_warden'] },
+      { name: 'Harbor Boss: Shade Caller',  enemies: ['dread_knight', 'shade_caller', 'abyssal_warden'] },
+    ]}),
+  ...mkChapter({ chapter: 18, baseLevel: 275, baseGold: 20000, baseExp: 10100, baseEnergy: 58, baseGems: 1050, bossEnemy: 'corpse_hound',
+    stages: [
+      { name: 'Mirage Road',                enemies: ['corpse_hound', 'corpse_hound', 'void_zombie'] },
+      { name: 'Sand-Veiled Tomb',           enemies: ['void_zombie', 'corpse_hound', 'void_zombie'] },
+      { name: 'Pillared Necropolis',        enemies: ['shade_caller', 'corpse_hound', 'shade_caller'] },
+      { name: 'Withered Oasis',             enemies: ['dread_knight', 'corpse_hound', 'dread_knight'] },
+      { name: 'Salt Boss: Hound King',      enemies: ['abyssal_warden', 'corpse_hound', 'corpse_hound'] },
+    ]}),
+  ...mkChapter({ chapter: 19, baseLevel: 290, baseGold: 21500, baseExp: 10800, baseEnergy: 60, baseGems: 1100, bossEnemy: 'void_zombie',
+    stages: [
+      { name: 'Freezing Mouth',             enemies: ['void_zombie', 'shade_caller', 'void_zombie'] },
+      { name: 'Forge of Ice',               enemies: ['void_zombie', 'abyssal_warden', 'void_zombie'] },
+      { name: 'Anvil of Bone',              enemies: ['shade_caller', 'void_zombie', 'shade_caller'] },
+      { name: 'Black Bellows',              enemies: ['dread_knight', 'void_zombie', 'dread_knight'] },
+      { name: 'Forge Boss: The Void Risen', enemies: ['abyssal_warden', 'void_zombie', 'dread_knight'] },
     ]}),
 
-  // Ch12 — Iron Famine (ruined siege fortresses)
-  ...mkChapter({ chapter: 12, baseLevel: 185, baseGold: 11000, baseExp: 5900, baseEnergy: 46, baseGems: 750, bossEnemy: 'necromancer',
+  // === Ch 20-24: COSMIC CORRUPTION ===
+  // starfall_lich, void_juggernaut, astral_archer, orb_caster, soul_devourer
+  ...mkChapter({ chapter: 20, baseLevel: 305, baseGold: 23000, baseExp: 11500, baseEnergy: 62, baseGems: 1150, bossEnemy: 'starfall_lich',
     stages: [
-      { name: 'Burnt Wall',         enemies: ['boneknight', 'zombie_knight', 'boneknight'] },
-      { name: 'Starved Bailey',     enemies: ['grave_digger', 'grave_digger', 'zombie_berserker'] },
-      { name: 'Watch of Bones',     enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
-      { name: 'The Iron Pyre',      enemies: ['shield_bearer', 'fallen_captain', 'shield_bearer'] },
-      { name: 'Famine Boss: King Famine', enemies: ['zombie_knight', 'necromancer', 'grave_digger'] },
+      { name: 'Shard Plains',               enemies: ['astral_archer', 'orb_caster', 'astral_archer'] },
+      { name: 'Mirror Tomb',                enemies: ['orb_caster', 'soul_devourer', 'orb_caster'] },
+      { name: 'Reflecting Court',           enemies: ['void_juggernaut', 'orb_caster', 'void_juggernaut'] },
+      { name: 'Crystal Spine',              enemies: ['soul_devourer', 'void_juggernaut', 'soul_devourer'] },
+      { name: 'Glass Boss: Starfall Lich',  enemies: ['void_juggernaut', 'starfall_lich', 'orb_caster'] },
+    ]}),
+  ...mkChapter({ chapter: 21, baseLevel: 320, baseGold: 24500, baseExp: 12200, baseEnergy: 64, baseGems: 1200, bossEnemy: 'void_juggernaut',
+    stages: [
+      { name: 'Wing-Black Ridge',           enemies: ['astral_archer', 'astral_archer', 'orb_caster'] },
+      { name: 'Skyless Vault',              enemies: ['orb_caster', 'soul_devourer', 'orb_caster'] },
+      { name: 'Falling Cloister',           enemies: ['soul_devourer', 'starfall_lich', 'soul_devourer'] },
+      { name: 'The High Plague',            enemies: ['starfall_lich', 'void_juggernaut', 'starfall_lich'] },
+      { name: 'Sky Boss: Void Juggernaut',  enemies: ['void_juggernaut', 'void_juggernaut', 'starfall_lich'] },
+    ]}),
+  ...mkChapter({ chapter: 22, baseLevel: 335, baseGold: 26000, baseExp: 12900, baseEnergy: 66, baseGems: 1250, bossEnemy: 'astral_archer',
+    stages: [
+      { name: 'Dusk Road',                  enemies: ['astral_archer', 'astral_archer', 'orb_caster'] },
+      { name: 'Hollow Vespers',             enemies: ['astral_archer', 'soul_devourer', 'astral_archer'] },
+      { name: 'Final Dusk',                 enemies: ['orb_caster', 'astral_archer', 'orb_caster'] },
+      { name: 'Mourning Vault',             enemies: ['starfall_lich', 'astral_archer', 'starfall_lich'] },
+      { name: 'Dusk Boss: Astral Archer',   enemies: ['orb_caster', 'astral_archer', 'soul_devourer'] },
+    ]}),
+  ...mkChapter({ chapter: 23, baseLevel: 350, baseGold: 27500, baseExp: 13600, baseEnergy: 68, baseGems: 1300, bossEnemy: 'orb_caster',
+    stages: [
+      { name: 'Iron Vein',                  enemies: ['orb_caster', 'astral_archer', 'orb_caster'] },
+      { name: 'Pulse Tunnels',              enemies: ['astral_archer', 'orb_caster', 'astral_archer'] },
+      { name: 'Blood Atrium',               enemies: ['orb_caster', 'soul_devourer', 'orb_caster'] },
+      { name: 'Heart Chamber',              enemies: ['starfall_lich', 'orb_caster', 'starfall_lich'] },
+      { name: 'Vein Boss: Orb Conclave',    enemies: ['orb_caster', 'orb_caster', 'starfall_lich'] },
+    ]}),
+  ...mkChapter({ chapter: 24, baseLevel: 365, baseGold: 29000, baseExp: 14300, baseEnergy: 70, baseGems: 1350, bossEnemy: 'soul_devourer',
+    stages: [
+      { name: 'Ash Cloister',               enemies: ['soul_devourer', 'orb_caster', 'soul_devourer'] },
+      { name: 'Cinder Halls',               enemies: ['soul_devourer', 'astral_archer', 'soul_devourer'] },
+      { name: 'Burnt Confessional',         enemies: ['soul_devourer', 'starfall_lich', 'soul_devourer'] },
+      { name: 'Smoking Pews',               enemies: ['void_juggernaut', 'soul_devourer', 'void_juggernaut'] },
+      { name: 'Choir Boss: Soul Devourer',  enemies: ['starfall_lich', 'soul_devourer', 'void_juggernaut'] },
     ]}),
 
-  // Ch13 — Plaguespire (vertical disease city)
-  ...mkChapter({ chapter: 13, baseLevel: 200, baseGold: 12500, baseExp: 6600, baseEnergy: 48, baseGems: 800, bossEnemy: 'soul_leech',
+  // === Ch 25-29: FINAL APOCALYPSE ===
+  // apocalypse_horror, world_eater_husk, blood_titan, ash_lord, final_revenant
+  ...mkChapter({ chapter: 25, baseLevel: 380, baseGold: 30500, baseExp: 15000, baseEnergy: 72, baseGems: 1400, bossEnemy: 'apocalypse_horror',
     stages: [
-      { name: 'First Spire',        enemies: ['plague_caster', 'plague_monk', 'plague_caster'] },
-      { name: 'Choking Stairs',     enemies: ['plague_caster', 'plague_monk', 'plague_caster'] },
-      { name: 'Coughing Throne',    enemies: ['grave_channeler', 'plague_monk', 'grave_channeler'] },
-      { name: 'Black Vein',         enemies: ['plague_caster', 'grave_channeler', 'plague_caster'] },
-      { name: 'Spire Boss: Patient Zero', enemies: ['plague_caster', 'soul_leech', 'plague_monk'] },
+      { name: 'Threshold Plains',           enemies: ['blood_titan', 'ash_lord', 'blood_titan'] },
+      { name: 'Veiled Gate',                enemies: ['ash_lord', 'world_eater_husk', 'ash_lord'] },
+      { name: 'Beyond the Veil',            enemies: ['world_eater_husk', 'apocalypse_horror', 'world_eater_husk'] },
+      { name: 'Other Court',                enemies: ['apocalypse_horror', 'final_revenant', 'apocalypse_horror'] },
+      { name: 'Veil Boss: Apocalypse',      enemies: ['world_eater_husk', 'apocalypse_horror', 'blood_titan'] },
     ]}),
-
-  // Ch14 — Hollowed Sun (eclipse-bound fading light)
-  ...mkChapter({ chapter: 14, baseLevel: 215, baseGold: 14000, baseExp: 7300, baseEnergy: 50, baseGems: 850, bossEnemy: 'soul_leech',
+  ...mkChapter({ chapter: 26, baseLevel: 395, baseGold: 32000, baseExp: 15700, baseEnergy: 74, baseGems: 1450, bossEnemy: 'world_eater_husk',
     stages: [
-      { name: 'Twilight Walk',      enemies: ['wailing_wraith', 'undead_archer', 'wailing_wraith'] },
-      { name: 'Last Sunbeam',       enemies: ['graveyardlich', 'wailing_wraith', 'graveyardlich'] },
-      { name: 'Silent Choir',       enemies: ['phantom_knight', 'wailing_wraith', 'phantom_knight'] },
-      { name: 'Crown of Crows',     enemies: ['possessed_corpse', 'wailing_wraith', 'possessed_corpse'] },
-      { name: 'Sun Boss: The Cinder Sun', enemies: ['graveyardlich', 'soul_leech', 'possessed_corpse'] },
+      { name: 'Throne Approach',            enemies: ['blood_titan', 'world_eater_husk', 'blood_titan'] },
+      { name: 'Crimson Halls',              enemies: ['world_eater_husk', 'ash_lord', 'world_eater_husk'] },
+      { name: 'Sanguine Court',             enemies: ['apocalypse_horror', 'world_eater_husk', 'apocalypse_horror'] },
+      { name: 'Inner Wound',                enemies: ['world_eater_husk', 'final_revenant', 'world_eater_husk'] },
+      { name: 'Throne Boss: World-Eater',   enemies: ['blood_titan', 'world_eater_husk', 'apocalypse_horror'] },
     ]}),
-
-  // Ch15 — Crown of Ash (burned royal lands)
-  ...mkChapter({ chapter: 15, baseLevel: 230, baseGold: 15500, baseExp: 8000, baseEnergy: 52, baseGems: 900, bossEnemy: 'necromancer',
+  ...mkChapter({ chapter: 27, baseLevel: 410, baseGold: 33500, baseExp: 16400, baseEnergy: 76, baseGems: 1500, bossEnemy: 'blood_titan',
     stages: [
-      { name: 'Ember Road',         enemies: ['zombie_berserker', 'zombie_knight', 'zombie_berserker'] },
-      { name: 'Smouldering Hall',   enemies: ['boneknight', 'fallen_captain', 'boneknight'] },
-      { name: 'Throne of Cinders',  enemies: ['grave_digger', 'fallen_captain', 'grave_digger'] },
-      { name: 'Crown Spire',        enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
-      { name: 'Ash Boss: The Burnt King', enemies: ['zombie_berserker', 'necromancer', 'fallen_captain'] },
+      { name: 'Black Roots',                enemies: ['blood_titan', 'ash_lord', 'blood_titan'] },
+      { name: 'Worm Hollow',                enemies: ['ash_lord', 'blood_titan', 'ash_lord'] },
+      { name: 'Twisted Grove',              enemies: ['apocalypse_horror', 'blood_titan', 'apocalypse_horror'] },
+      { name: 'Mother Tree',                enemies: ['world_eater_husk', 'blood_titan', 'world_eater_husk'] },
+      { name: 'Wood Boss: Blood Titan',     enemies: ['ash_lord', 'blood_titan', 'apocalypse_horror'] },
     ]}),
-
-  // Ch16 — Whisper March (cursed forest)
-  ...mkChapter({ chapter: 16, baseLevel: 245, baseGold: 17000, baseExp: 8700, baseEnergy: 54, baseGems: 950, bossEnemy: 'bone_bear',
+  ...mkChapter({ chapter: 28, baseLevel: 425, baseGold: 35000, baseExp: 17100, baseEnergy: 78, baseGems: 1550, bossEnemy: 'ash_lord',
     stages: [
-      { name: 'Rotwood Trail',      enemies: ['rotwolf', 'bone_bear', 'rotwolf'] },
-      { name: 'Hollow Thicket',     enemies: ['carrion_spider', 'bone_bear', 'carrion_spider'] },
-      { name: 'Antler Glen',        enemies: ['rotwolf', 'bone_bear', 'rotwolf'] },
-      { name: 'Wormwood Gate',      enemies: ['carrion_spider', 'bone_bear', 'carrion_spider'] },
-      { name: 'March Boss: The Wild Hunt', enemies: ['rotwolf', 'bone_bear', 'skeletal_warhorse'] },
+      { name: 'Sea of Corpses',             enemies: ['ash_lord', 'blood_titan', 'ash_lord'] },
+      { name: 'Tide Wall',                  enemies: ['ash_lord', 'world_eater_husk', 'ash_lord'] },
+      { name: 'Drowning March',             enemies: ['ash_lord', 'apocalypse_horror', 'ash_lord'] },
+      { name: 'Wave of Bone',               enemies: ['ash_lord', 'final_revenant', 'ash_lord'] },
+      { name: 'Tide Boss: Ash Lord',        enemies: ['blood_titan', 'ash_lord', 'world_eater_husk'] },
     ]}),
-
-  // Ch17 — Boneharbor (undead pirate seas)
-  ...mkChapter({ chapter: 17, baseLevel: 260, baseGold: 18500, baseExp: 9400, baseEnergy: 56, baseGems: 1000, bossEnemy: 'fallen_captain',
-    stages: [
-      { name: 'Wrecked Quay',       enemies: ['skeletal_warhorse', 'undead_archer', 'skeletal_warhorse'] },
-      { name: 'Ghost Galleon',      enemies: ['undead_archer', 'phantom_knight', 'undead_archer'] },
-      { name: 'Black Tides',        enemies: ['carrion_spider', 'undead_archer', 'carrion_spider'] },
-      { name: 'Plague Wharf',       enemies: ['plague_caster', 'shield_bearer', 'plague_caster'] },
-      { name: 'Harbor Boss: Captain Driftbone', enemies: ['skeletal_warhorse', 'fallen_captain', 'undead_archer'] },
-    ]}),
-
-  // Ch18 — Salt Wastes (desert necropolis)
-  ...mkChapter({ chapter: 18, baseLevel: 275, baseGold: 20000, baseExp: 10100, baseEnergy: 58, baseGems: 1050, bossEnemy: 'necromancer',
-    stages: [
-      { name: 'Mirage Road',        enemies: ['fastghoul', 'shambler', 'fastghoul'] },
-      { name: 'Sand-Veiled Tomb',   enemies: ['graveyardlich', 'boneknight', 'graveyardlich'] },
-      { name: 'Pillared Necropolis', enemies: ['boneknight', 'phantom_knight', 'boneknight'] },
-      { name: 'Withered Oasis',     enemies: ['carrion_spider', 'plague_caster', 'carrion_spider'] },
-      { name: 'Salt Boss: The Salt King', enemies: ['graveyardlich', 'necromancer', 'possessed_corpse'] },
-    ]}),
-
-  // Ch19 — Frostforge (frozen black smith)
-  ...mkChapter({ chapter: 19, baseLevel: 290, baseGold: 21500, baseExp: 10800, baseEnergy: 60, baseGems: 1100, bossEnemy: 'soul_leech',
-    stages: [
-      { name: 'Freezing Mouth',     enemies: ['zombie_knight', 'boneknight', 'zombie_knight'] },
-      { name: 'Forge of Ice',       enemies: ['zombie_knight', 'fallen_captain', 'zombie_knight'] },
-      { name: 'Anvil of Bone',      enemies: ['boneknight', 'fallen_captain', 'boneknight'] },
-      { name: 'Black Bellows',      enemies: ['phantom_knight', 'shield_bearer', 'phantom_knight'] },
-      { name: 'Forge Boss: The Pale Smith', enemies: ['fallen_captain', 'soul_leech', 'shield_bearer'] },
-    ]}),
-
-  // Ch20 — Glass Desert (shattered mirror world)
-  ...mkChapter({ chapter: 20, baseLevel: 305, baseGold: 23000, baseExp: 11500, baseEnergy: 62, baseGems: 1150, bossEnemy: 'necromancer',
-    stages: [
-      { name: 'Shard Plains',       enemies: ['wailing_wraith', 'phantom_knight', 'wailing_wraith'] },
-      { name: 'Mirror Tomb',        enemies: ['graveyardlich', 'phantom_knight', 'graveyardlich'] },
-      { name: 'Reflecting Court',   enemies: ['possessed_corpse', 'phantom_knight', 'possessed_corpse'] },
-      { name: 'Crystal Spine',      enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
-      { name: 'Glass Boss: The Shattered King', enemies: ['phantom_knight', 'necromancer', 'possessed_corpse'] },
-    ]}),
-
-  // Ch21 — Hungry Sky (flying parasites)
-  ...mkChapter({ chapter: 21, baseLevel: 320, baseGold: 24500, baseExp: 12200, baseEnergy: 64, baseGems: 1200, bossEnemy: 'soul_leech',
-    stages: [
-      { name: 'Wing-Black Ridge',   enemies: ['carrion_spider', 'wailing_wraith', 'carrion_spider'] },
-      { name: 'Skyless Vault',      enemies: ['wailing_wraith', 'plague_caster', 'wailing_wraith'] },
-      { name: 'Falling Cloister',   enemies: ['grave_channeler', 'plague_caster', 'grave_channeler'] },
-      { name: 'The High Plague',    enemies: ['plague_caster', 'grave_channeler', 'plague_caster'] },
-      { name: 'Sky Boss: The Sky Devourer', enemies: ['plague_caster', 'soul_leech', 'wailing_wraith'] },
-    ]}),
-
-  // Ch22 — Long Twilight (endless dusk realm)
-  ...mkChapter({ chapter: 22, baseLevel: 335, baseGold: 26000, baseExp: 12900, baseEnergy: 66, baseGems: 1250, bossEnemy: 'necromancer',
-    stages: [
-      { name: 'Dusk Road',          enemies: ['undead_archer', 'wailing_wraith', 'undead_archer'] },
-      { name: 'Hollow Vespers',     enemies: ['wailing_wraith', 'phantom_knight', 'wailing_wraith'] },
-      { name: 'Final Dusk',         enemies: ['plague_caster', 'wailing_wraith', 'plague_caster'] },
-      { name: 'Mourning Vault',     enemies: ['possessed_corpse', 'wailing_wraith', 'possessed_corpse'] },
-      { name: 'Dusk Boss: The Last Vespers', enemies: ['wailing_wraith', 'necromancer', 'possessed_corpse'] },
-    ]}),
-
-  // Ch23 — Veined Earth (underground rivers of blood)
-  ...mkChapter({ chapter: 23, baseLevel: 350, baseGold: 27500, baseExp: 13600, baseEnergy: 68, baseGems: 1300, bossEnemy: 'soul_leech',
-    stages: [
-      { name: 'Iron Vein',          enemies: ['bone_bear', 'carrion_spider', 'bone_bear'] },
-      { name: 'Pulse Tunnels',      enemies: ['carrion_spider', 'rotwolf', 'carrion_spider'] },
-      { name: 'Blood Atrium',       enemies: ['rotwolf', 'bone_bear', 'rotwolf'] },
-      { name: 'Heart Chamber',      enemies: ['bone_bear', 'grave_digger', 'bone_bear'] },
-      { name: 'Vein Boss: The Hungry Vein', enemies: ['bone_bear', 'soul_leech', 'rotwolf'] },
-    ]}),
-
-  // Ch24 — Cinder Choir (burning monastery)
-  ...mkChapter({ chapter: 24, baseLevel: 365, baseGold: 29000, baseExp: 14300, baseEnergy: 70, baseGems: 1350, bossEnemy: 'soul_leech',
-    stages: [
-      { name: 'Ash Cloister',       enemies: ['plague_monk', 'plague_caster', 'plague_monk'] },
-      { name: 'Cinder Halls',       enemies: ['plague_monk', 'grave_channeler', 'plague_monk'] },
-      { name: 'Burnt Confessional', enemies: ['plague_monk', 'plague_caster', 'plague_monk'] },
-      { name: 'Smoking Pews',       enemies: ['plague_monk', 'grave_channeler', 'plague_monk'] },
-      { name: 'Choir Boss: The Burning Saint', enemies: ['plague_monk', 'soul_leech', 'grave_channeler'] },
-    ]}),
-
-  // Ch25 — Iron Veil (curtain between worlds)
-  ...mkChapter({ chapter: 25, baseLevel: 380, baseGold: 30500, baseExp: 15000, baseEnergy: 72, baseGems: 1400, bossEnemy: 'necromancer',
-    stages: [
-      { name: 'Threshold Plains',   enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
-      { name: 'Veiled Gate',        enemies: ['phantom_knight', 'shield_bearer', 'phantom_knight'] },
-      { name: 'Beyond the Veil',    enemies: ['possessed_corpse', 'phantom_knight', 'possessed_corpse'] },
-      { name: 'Other Court',        enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
-      { name: 'Veil Boss: The Veilwarden', enemies: ['fallen_captain', 'necromancer', 'phantom_knight'] },
-    ]}),
-
-  // Ch26 — Bleeding Throne (new dark king)
-  ...mkChapter({ chapter: 26, baseLevel: 395, baseGold: 32000, baseExp: 15700, baseEnergy: 74, baseGems: 1450, bossEnemy: 'necromancer',
-    stages: [
-      { name: 'Throne Approach',    enemies: ['zombie_knight', 'fallen_captain', 'zombie_knight'] },
-      { name: 'Crimson Halls',      enemies: ['grave_digger', 'fallen_captain', 'grave_digger'] },
-      { name: 'Sanguine Court',     enemies: ['possessed_corpse', 'fallen_captain', 'possessed_corpse'] },
-      { name: 'Inner Wound',        enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
-      { name: 'Throne Boss: The Bleeding King', enemies: ['fallen_captain', 'necromancer', 'possessed_corpse'] },
-    ]}),
-
-  // Ch27 — Wormwood (corrupted apocalypse trees)
-  ...mkChapter({ chapter: 27, baseLevel: 410, baseGold: 33500, baseExp: 16400, baseEnergy: 76, baseGems: 1500, bossEnemy: 'soul_leech',
-    stages: [
-      { name: 'Black Roots',        enemies: ['carrion_spider', 'rotwolf', 'carrion_spider'] },
-      { name: 'Worm Hollow',        enemies: ['rotwolf', 'bone_bear', 'rotwolf'] },
-      { name: 'Twisted Grove',      enemies: ['bone_bear', 'grave_digger', 'bone_bear'] },
-      { name: 'Mother Tree',        enemies: ['carrion_spider', 'plague_caster', 'carrion_spider'] },
-      { name: 'Wood Boss: The Wormwood Mother', enemies: ['bone_bear', 'soul_leech', 'carrion_spider'] },
-    ]}),
-
-  // Ch28 — Black Tide (the final assault before the last wake)
-  ...mkChapter({ chapter: 28, baseLevel: 425, baseGold: 35000, baseExp: 17100, baseEnergy: 78, baseGems: 1550, bossEnemy: 'soul_leech',
-    stages: [
-      { name: 'Sea of Corpses',     enemies: ['zombie_knight', 'zombie_berserker', 'zombie_knight'] },
-      { name: 'Tide Wall',          enemies: ['shield_bearer', 'zombie_berserker', 'shield_bearer'] },
-      { name: 'Drowning March',     enemies: ['skeletal_warhorse', 'zombie_berserker', 'skeletal_warhorse'] },
-      { name: 'Wave of Bone',       enemies: ['phantom_knight', 'fallen_captain', 'phantom_knight'] },
-      { name: 'Tide Boss: The Black Tide Caller', enemies: ['grave_channeler', 'soul_leech', 'fallen_captain'] },
-    ]}),
-
-  // Ch29 — The Last Wake (final chapter — the BoneWake itself)
-  ...mkChapter({ chapter: 29, baseLevel: 440, baseGold: 38000, baseExp: 18000, baseEnergy: 80, baseGems: 1700, bossEnemy: 'necromancer',
+  ...mkChapter({ chapter: 29, baseLevel: 440, baseGold: 38000, baseExp: 18000, baseEnergy: 80, baseGems: 1700, bossEnemy: 'final_revenant',
     bossItems: { weapon_5: 1, armor_5: 1, amulet_5: 1 },
     stages: [
-      { name: 'Dreaming Vault',     enemies: ['possessed_corpse', 'grave_channeler', 'possessed_corpse'] },
-      { name: "Wake's Edge",        enemies: ['plague_monk', 'grave_channeler', 'plague_monk'] },
-      { name: 'First Wake',         enemies: ['possessed_corpse', 'plague_monk', 'possessed_corpse'] },
-      { name: 'Final Procession',   enemies: ['plague_monk', 'fallen_captain', 'plague_monk'] },
-      { name: 'Final Boss: The BoneWake Itself', enemies: ['necromancer', 'soul_leech', 'necromancer'] },
+      { name: 'Dreaming Vault',             enemies: ['apocalypse_horror', 'world_eater_husk', 'apocalypse_horror'] },
+      { name: "Wake's Edge",                enemies: ['blood_titan', 'ash_lord', 'blood_titan'] },
+      { name: 'First Wake',                 enemies: ['world_eater_husk', 'final_revenant', 'world_eater_husk'] },
+      { name: 'Final Procession',           enemies: ['ash_lord', 'final_revenant', 'ash_lord'] },
+      { name: 'Final Boss: The BoneWake Itself', enemies: ['blood_titan', 'final_revenant', 'apocalypse_horror'] },
     ]}),
 ];
 
