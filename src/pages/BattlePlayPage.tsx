@@ -690,13 +690,25 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill }: {
   const hpPct = (unit.hp / unit.maxHp) * 100;
   const hpColor = hpPct > 50 ? '#22c55e' : hpPct > 25 ? '#f59e0b' : '#ef4444';
 
+  // Lunge: on a basic attack the attacker pulls back slightly, dashes across
+  // the gap to make contact with the opposing column, holds the strike, then
+  // snaps back. Skills/ults stay rooted — they project AOE / cast in place.
+  const isLunge = attacker && !isUlt && !isSkill;
+  const lungeDist = side === 'player' ? 180 : -180;
   return (
     <motion.div
       animate={{
-        x: attacker ? (side === 'player' ? 24 : -24) : 0,
-        scale: attacker ? 1.15 : 1,
+        x: isLunge
+          ? [0, -lungeDist * 0.06, lungeDist, lungeDist, 0]
+          : (attacker ? (side === 'player' ? 24 : -24) : 0),
+        scale: attacker ? 1.12 : 1,
       }}
-      transition={{ duration: 0.18 }}
+      transition={
+        isLunge
+          ? { duration: 0.6, times: [0, 0.12, 0.45, 0.7, 1] }
+          : { duration: 0.18 }
+      }
+      style={{ zIndex: attacker ? 15 : 5 }}
       className={`relative ${hit ? 'animate-shake' : ''} ${unit.alive ? '' : 'grayscale opacity-60'}`}
     >
       {/* Floating HP bar + name above the unit */}
@@ -740,7 +752,7 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill }: {
             rows={sprites!.rows}
             fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 18 : 14)))}
             loop={unit.alive && !hit}
-            size={heroSprites ? 260 : 176}
+            size={heroSprites ? 234 : 176}
             className={side === 'enemy' ? 'scale-x-[-1]' : ''}
           />
         ) : (
