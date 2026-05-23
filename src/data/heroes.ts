@@ -20,7 +20,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     element: 'earth',
     archetype: 'warrior',
     // Bruiser balance: solid HP/ATK/DEF, moderate SPD/CRIT
-    baseStats: stat(1100, 125, 75, 60, 0.12),
+    baseStats: stat(1100, 135, 85, 70, 0.13),
     ultimateId: 'iron_palm',
     emoji: '🥋',
     color: '#a16207',
@@ -34,7 +34,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     element: 'earth',
     archetype: 'assassin',
     // Ranger assassin: fragile, blazing SPD + very high CRIT
-    baseStats: stat(720, 130, 45, 90, 0.28),
+    baseStats: stat(820, 140, 55, 90, 0.20),
     ultimateId: 'arrow_volley',
     emoji: '🏹',
     color: '#65a30d',
@@ -48,7 +48,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     element: 'dark',
     archetype: 'assassin',
     // Pure speed-crit dagger assassin: highest SPD/CRIT in the roster
-    baseStats: stat(750, 140, 45, 95, 0.32),
+    baseStats: stat(820, 145, 55, 95, 0.22),
     ultimateId: 'shadow_dance',
     emoji: '🗡️',
     color: '#7c3aed',
@@ -63,7 +63,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     archetype: 'healer',
     // Survivable support: bumped HP + DEF (per "healer = more defense + heal");
     // value comes from her passive heals + ult, not raw ATK
-    baseStats: stat(1000, 95, 95, 60, 0.08),
+    baseStats: stat(1200, 110, 110, 65, 0.10),
     ultimateId: 'dawn_resurrection',
     emoji: '✨',
     color: '#fde047',
@@ -77,7 +77,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     element: 'water',
     archetype: 'mage',
     // Frost caster: high ATK, fragile, moderate CRIT
-    baseStats: stat(770, 165, 50, 70, 0.15),
+    baseStats: stat(850, 170, 60, 75, 0.14),
     ultimateId: 'frost_crystal',
     emoji: '❄️',
     color: '#60a5fa',
@@ -91,7 +91,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     element: 'light',
     archetype: 'tank',
     // Pure wall: highest HP + DEF, lowest ATK/SPD/CRIT
-    baseStats: stat(1900, 90, 150, 40, 0.05),
+    baseStats: stat(1800, 110, 145, 50, 0.08),
     ultimateId: 'aegis_judgment',
     emoji: '🛡️',
     color: '#fbbf24',
@@ -105,7 +105,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     element: 'fire',
     archetype: 'mage',
     // Burn DPS: highest ATK among mages, fragile
-    baseStats: stat(720, 170, 45, 75, 0.16),
+    baseStats: stat(850, 170, 55, 75, 0.14),
     ultimateId: 'infernal_cataclysm',
     emoji: '🔥',
     color: '#f97316',
@@ -119,7 +119,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     element: 'dark',
     archetype: 'warrior',
     // Crit-warrior: scythe wielder, balanced HP/ATK/DEF, above-average CRIT
-    baseStats: stat(1050, 135, 70, 65, 0.18),
+    baseStats: stat(1080, 140, 75, 70, 0.17),
     ultimateId: 'soul_harvest',
     emoji: '🌑',
     color: '#9f1239',
@@ -133,7 +133,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     element: 'earth',
     archetype: 'warrior',
     // Beefy shapeshifter frontline: highest warrior HP, solid DEF
-    baseStats: stat(1200, 120, 85, 60, 0.10),
+    baseStats: stat(1280, 130, 95, 65, 0.10),
     ultimateId: 'primal_form',
     emoji: '🐺',
     color: '#16a34a',
@@ -148,7 +148,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     archetype: 'mage',
     // Necromancer caster: high ATK, fragile, moderate CRIT
     // Solo lineup: Manny battles alone with his summons. No party slots.
-    baseStats: stat(820, 160, 55, 65, 0.14),
+    baseStats: stat(880, 165, 65, 70, 0.14),
     ultimateId: 'army_of_the_dead',
     emoji: '💀',
     color: '#7c3aed',
@@ -167,7 +167,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     // Drunken brawler — high SPD + CRIT, moderate HP/DEF. His "drunken
     // ramp" is conveyed through high CRIT chance (he gets reckless and
     // wild as he fights), not a stack mechanic.
-    baseStats: stat(1000, 140, 70, 90, 0.18),
+    baseStats: stat(1050, 135, 75, 85, 0.16),
     ultimateId: 'drunken_palm',
     emoji: '🍶',
     color: '#d97706',
@@ -183,7 +183,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     // Twin-blade samurai. Yin/yang duality means he can hit hard in any
     // direction — modelled as AOE ult with high ATK/CRIT but glassier
     // than Korvan (lower HP for the dramatic risk-reward feel).
-    baseStats: stat(950, 145, 60, 80, 0.16),
+    baseStats: stat(1000, 150, 70, 80, 0.15),
     ultimateId: 'dual_eclipse',
     emoji: '⚔️',
     color: '#e5e7eb',
@@ -196,10 +196,11 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     rarity: 3,
     element: 'light',
     archetype: 'mage',
-    // Yin-yang twin duo — one squad slot, two fighters. Combined stats
-    // sit slightly above a solo mage to reflect the two bodies, but no
-    // higher than Pyra/Aelia top end so they stay fair.
-    baseStats: stat(1100, 145, 65, 80, 0.13),
+    // Yin-yang twin duo — one squad slot, two fighters. Per user balance
+    // note: Twins sit SLIGHTLY above the rest of the roster (~15-20%
+    // higher base power) to reflect that they're two combatants sharing
+    // one slot. Combined HP/ATK/SPD pushed up; CRIT moderate.
+    baseStats: stat(1300, 175, 80, 90, 0.15),
     ultimateId: 'yin_yang_strike',
     emoji: '☯️',
     color: '#f0abfc',
