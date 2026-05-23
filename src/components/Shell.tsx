@@ -5,6 +5,7 @@ import { Home, Swords, Users, Sparkles, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EnergyModal from './EnergyModal';
 import { TITLE_BY_ID } from '../data/titles';
+import { formatCompact } from '../lib/format';
 
 function CurrencyChip({ icon, value, color, onClick }: { icon: string; value: number; color: string; onClick?: () => void }) {
   const inner = (
@@ -18,8 +19,9 @@ function CurrencyChip({ icon, value, color, onClick }: { icon: string; value: nu
           exit={{ y: 8, opacity: 0 }}
           transition={{ duration: 0.15 }}
           className="text-xs font-pixel text-zinc-200"
+          title={value.toLocaleString()}
         >
-          {value.toLocaleString()}
+          {formatCompact(value)}
         </motion.span>
       </AnimatePresence>
     </>
