@@ -81,3 +81,24 @@ Massive zombie butcher in a once-white apron now drenched in old and fresh blood
 ```
 Feral zombie still wearing torn prison rags and rusted iron manacles dragging broken chains, mouth foaming with black saliva, deep self-inflicted gouges across his chest, head shaved with weeping scalp wounds, eyes bulging with mindless rage
 ```
+
+---
+
+# Endgame Bosses
+
+## 13. alpha_voidlord — cosmic endgame boss (final chapter)
+
+Reference: cosmic warlord figure haloed by eight glowing orbs beneath a runic "Alpha" sigil, wielding a chain-bound lightning lance.
+
+**Override the house suffix for this one** — it's a cosmic boss, not a rotting zombie. Use this suffix instead:
+
+```
+pixel art, side-view east-facing full body, epic dark fantasy cosmic horror, deep violet and indigo palette with electric cyan highlights, glowing arcane runes, starfield backdrop, painterly detail with crisp pixel edges
+```
+
+Prompt:
+
+```
+Towering void-armored archlord floating above the battlefield, ornate galaxy-textured plate mail swirling with nebula clouds and constellations, void-black hooded mantle trailing wisps of purple flame and ribbon-banners inscribed with glowing runes, single piercing white eye burning from the shadow of his hood, halo of eight floating orbs of pure white starlight orbiting his head beneath an alpha-sigil sun-disc of runic gold, gauntleted hand gripping a massive crystalline greatsword crackling with arcs of violet lightning and wrapped in rattling iron chains, a smaller horned demonic familiar tethered at his hip glaring with twin blue eyes, weightless cape billowing in a cosmic wind
+```
+
