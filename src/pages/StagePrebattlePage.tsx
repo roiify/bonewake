@@ -8,8 +8,9 @@ import { ensureMannySummons, MANNY_TPL } from '../lib/mannySummons';
 import { buildEnemyUnit, calcHeroStats, toCombatUnit, xpForLevel } from '../lib/stats';
 import { tierLabel } from '../lib/tier';
 import { resolveBattle } from '../lib/combat';
-import { db } from '../lib/db';
+import { db, type OwnedEquipment } from '../lib/db';
 import { genLoot } from '../lib/loot';
+import type { LootRarity } from '../data/loot';
 import { recordEvent } from '../lib/lifetime';
 import { incrementTask } from '../lib/tasks';
 import { rollClearDrops, addMaterial } from '../lib/crafting';
@@ -141,7 +142,9 @@ export default function StagePrebattlePage() {
     // TESTING: energy check disabled (unlimited energy mode).
     setInstantBusy(true);
     let totalGold = 0, totalExp = 0;
-    const droppedItems: number[] = [];
+    let totalSoulshards = 0;
+    const essenceCounts: Record<string, number> = {};
+    const allDrops: OwnedEquipment[] = [];
     for (let i = 0; i < count; i++) {
       // Sim a battle for correctness (cheap — just to get the seed/log if needed for stats)
       const playerSquad = squad.map(id => heroes.find(h => h.id === id)).filter((h): h is NonNullable<typeof h> => !!h);
@@ -175,15 +178,32 @@ export default function StagePrebattlePage() {
         clears: (existing?.clears ?? 0) + 1,
         lastClearedAt: Date.now(),
       });
-      // Loot — 1 item (no boss bonus on instant)
+      // Loot — match the manual 3-star drop logic (was 1 item; now 2 on
+      // normal stages, 3 on boss stages, with the first drop's rarity
+      // bumped). Instant clear requires 3 stars so we always use that
+      // tier of drops.
+      const isBoss = stage.num === 5;
       const ilvl = Math.max(1, (stage.chapter - 1) * 10 + stage.num * 2);
-      const item = genLoot({ itemLevel: ilvl, minRarity: 1, luckBoost: stage.chapter * 0.08 });
-      await addEquipment(item);
-      droppedItems.push(item.rarity ?? 1);
+      const dropCount = isBoss ? 3 : 2;
+      const luckBoost = stage.chapter * 0.08;
+      for (let d = 0; d < dropCount; d++) {
+        const minRarity: LootRarity = isBoss
+          ? (d === 0 ? 3 : 2)
+          : (d === 0 ? 2 : 1);
+        const item = genLoot({ itemLevel: ilvl, minRarity, luckBoost });
+        await addEquipment(item);
+        allDrops.push(item);
+      }
       // 3-star mats
-      const mats = rollClearDrops(stage.chapter, stage.num === 5);
-      if (mats.soulshards > 0) await addMaterial(MAT_SOULSHARD, mats.soulshards);
-      for (const ess of mats.essences) await addMaterial(essenceItemId(ess.heroId), ess.count);
+      const mats = rollClearDrops(stage.chapter, isBoss);
+      if (mats.soulshards > 0) {
+        await addMaterial(MAT_SOULSHARD, mats.soulshards);
+        totalSoulshards += mats.soulshards;
+      }
+      for (const ess of mats.essences) {
+        await addMaterial(essenceItemId(ess.heroId), ess.count);
+        essenceCounts[ess.heroId] = (essenceCounts[ess.heroId] ?? 0) + ess.count;
+      }
       await recordEvent({ kind: 'battleWon' });
       await recordEvent({ kind: 'stageCleared', stars: 3 });
       await recordEvent({ kind: 'goldEarned', amount: stage.rewards.gold });
@@ -191,7 +211,35 @@ export default function StagePrebattlePage() {
       await incrementTask('daily_threestar', 1);
     }
     setInstantBusy(false);
-    alert(`Instant-cleared ${count}× · +${totalGold.toLocaleString()} 🪙 · +${totalExp.toLocaleString()} xp · ${droppedItems.length} drops`);
+    // Build a readable drop summary. Group identical names (same drop on
+    // multi-clear runs is common) and show rarity tier per line.
+    const grouped = new Map<string, { count: number; rarity: number }>();
+    for (const d of allDrops) {
+      const name = d.name ?? 'Unknown';
+      const r = d.rarity ?? 1;
+      const key = `${name}|${r}`;
+      const prev = grouped.get(key);
+      grouped.set(key, { count: (prev?.count ?? 0) + 1, rarity: r });
+    }
+    const rarityName = (r: number) =>
+      r === 6 ? 'Mythic' : ['Common', 'Magic', 'Rare', 'Epic', 'Legendary'][r - 1] ?? 'Common';
+    const dropLines = Array.from(grouped.entries())
+      .sort((a, b) => b[1].rarity - a[1].rarity)
+      .map(([key, v]) => `  • ${rarityName(v.rarity)} ${key.split('|')[0]}${v.count > 1 ? ` ×${v.count}` : ''}`);
+    const matLines: string[] = [];
+    if (totalSoulshards > 0) matLines.push(`  • Soulshard ×${totalSoulshards}`);
+    for (const [heroId, c] of Object.entries(essenceCounts)) {
+      matLines.push(`  • ${heroId} essence ×${c}`);
+    }
+    const summary = [
+      `Instant-cleared ${count}×`,
+      `+${totalGold.toLocaleString()} 🪙   +${totalExp.toLocaleString()} xp`,
+      '',
+      `Loot (${allDrops.length}):`,
+      ...dropLines,
+      ...(matLines.length ? ['', 'Materials:', ...matLines] : []),
+    ].join('\n');
+    alert(summary);
   }
 
   return (
