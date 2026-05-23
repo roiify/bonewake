@@ -167,16 +167,19 @@ export function resolveBattle(
       const isPlayer = unit.side === 'player';
       const allies = isPlayer ? p : e;
       const enemies = isPlayer ? e : p;
-      // Heal-all ults are "wasted" if no ally is below max HP — in that
-      // case keep energy at 100 and fall through to the basic-attack block.
+      // Heal/revive ults are "wasted" if no ally needs them — keep energy
+      // pegged at 100 and fall through to the basic-attack block.
       const rawIsUlt = unit.energy >= 100;
       const rawSkill = rawIsUlt ? SKILL_BY_ID[unit.ultimateId] : undefined;
-      const wastedHeal = rawSkill
-        && rawSkill.targeting === 'self'
-        && rawSkill.effect?.type === 'heal'
+      const isHealUlt = rawSkill?.targeting === 'self' && rawSkill.effect?.type === 'heal';
+      const isReviveUlt = rawSkill?.targeting === 'self' && rawSkill.effect?.type === 'revive';
+      const wastedHeal = isHealUlt && !allies.some(a => a.alive && a.hp < a.maxHp);
+      // Revive is wasted only if no one is dead AND nobody needs healing.
+      const wastedRevive = isReviveUlt
+        && !allies.some(a => !a.alive)
         && !allies.some(a => a.alive && a.hp < a.maxHp);
-      const isUlt = rawIsUlt && !wastedHeal;
-      const skill = wastedHeal ? undefined : rawSkill;
+      const isUlt = rawIsUlt && !wastedHeal && !wastedRevive;
+      const skill = (wastedHeal || wastedRevive) ? undefined : rawSkill;
 
       // Skill trigger — fires once per battle at 50+ energy, between
       // basic attacks and the ult. Single-target heavy nuke (250% ATK).
@@ -211,6 +214,40 @@ export function resolveBattle(
             if (!ally.alive) continue;
             const before = ally.hp;
             ally.hp = Math.min(ally.maxHp, ally.hp + healValue);
+            log.push({ tick: ++tick, src: unit.id, dst: ally.id, dmg: 0, crit: false, ult: true, heal: ally.hp - before, cont: !isFirst });
+            isFirst = false;
+          }
+          unit.energy = 0;
+          continue;
+        } else if (skill.targeting === 'self' && skill.effect?.type === 'revive') {
+          // Revive one dead ally to value% of maxHp (NOT full health),
+          // then top up living allies by a flat amount. If no one is dead,
+          // the spell falls back to a pure team heal so the ult is never
+          // a complete waste.
+          const revivePct = Math.max(1, skill.effect.value) / 100;
+          const livingHeal = Math.floor((700 + Math.floor(unit.atk * 0.4)) * ultMult);
+          let isFirst = true;
+
+          // Pick the first dead ally (preserves squad order — the front-
+          // line picks the front-line first). Only one ally revives per
+          // cast so the skill stays meaningful, not infinite respawn.
+          const deadAlly = allies.find(a => !a.alive);
+          if (deadAlly) {
+            const reviveHp = Math.max(1, Math.floor(deadAlly.maxHp * revivePct * ultMult));
+            deadAlly.alive = true;
+            deadAlly.hp = Math.min(deadAlly.maxHp, reviveHp);
+            // skillUsed reset so the revived ally can use their skill again
+            (deadAlly as any).skillUsed = false;
+            // log as a "heal" event so the UI shows the green floater + revive sparkle
+            log.push({ tick: ++tick, src: unit.id, dst: deadAlly.id, dmg: 0, crit: false, ult: true, heal: deadAlly.hp });
+            isFirst = false;
+          }
+          // Top up living allies
+          for (const ally of allies) {
+            if (!ally.alive) continue;
+            if (ally.hp >= ally.maxHp) continue;
+            const before = ally.hp;
+            ally.hp = Math.min(ally.maxHp, ally.hp + livingHeal);
             log.push({ tick: ++tick, src: unit.id, dst: ally.id, dmg: 0, crit: false, ult: true, heal: ally.hp - before, cont: !isFirst });
             isFirst = false;
           }

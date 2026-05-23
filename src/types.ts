@@ -22,7 +22,7 @@ export interface Skill {
   description: string;
   damageMultiplier: number;
   targeting: 'single' | 'all' | 'lowest' | 'self';
-  effect?: { type: 'heal' | 'shield' | 'burn' | 'stun' | 'buff_atk'; value: number; duration?: number };
+  effect?: { type: 'heal' | 'shield' | 'burn' | 'stun' | 'buff_atk' | 'revive'; value: number; duration?: number };
 }
 
 export interface EquipmentTemplate {

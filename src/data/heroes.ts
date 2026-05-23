@@ -64,7 +64,7 @@ export const HERO_TEMPLATES: (HeroTemplate & { pullWeight: number })[] = [
     // Survivable support: bumped HP + DEF (per "healer = more defense + heal");
     // value comes from her passive heals + ult, not raw ATK
     baseStats: stat(1000, 95, 95, 60, 0.08),
-    ultimateId: 'dawn_blessing',
+    ultimateId: 'dawn_resurrection',
     emoji: '✨',
     color: '#fde047',
     flavor: 'Priestess of the dawn. Mends what is broken.',
