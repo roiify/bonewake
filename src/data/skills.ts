@@ -26,11 +26,10 @@ export const SKILLS: Skill[] = [
   // Lowest-HP multi-hit (single target but seeks weakest — useful for finishing)
   { id: 'shadow_dance',       name: 'Shadow Dance',       description: 'Multi-hit on lowest-HP target.',                       damageMultiplier: 6.5, targeting: 'lowest' },
   // Healer / self-targeting
-  // Luna's ult: revives one fallen ally at partial HP (40% of maxHP) AND
-  // tops up living allies. If no one is dead, falls back to a pure heal.
-  // The `value` here is the revive HP percent (40 = 40% of maxHp). The
-  // living-ally heal is hardcoded inside combat.ts (700 HP).
-  { id: 'dawn_resurrection',  name: 'Dawn Resurrection',  description: 'Revives one fallen ally at 40% HP and heals living allies.', damageMultiplier: 0, targeting: 'self', effect: { type: 'revive', value: 40 } },
+  // Luna's ult: pure team heal — does NOT revive fallen allies. (Pulled the
+  // revive because dead toons popping back wasn't landing right.) Value is
+  // per-ally HP topped up.
+  { id: 'dawn_resurrection',  name: 'Dawn Resurrection',  description: 'Heals all living allies for a large amount.', damageMultiplier: 0, targeting: 'self', effect: { type: 'heal', value: 1200 } },
 ];
 
 export const SKILL_BY_ID = Object.fromEntries(SKILLS.map(s => [s.id, s]));
