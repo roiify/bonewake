@@ -13,7 +13,7 @@ import { genLoot } from '../lib/loot';
 import { addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD, essenceItemId, ULTIMATE_SETS } from '../data/ultimateGear';
 import { sendMail } from '../lib/mail';
-import { addGemToInventory, ensureSockets, socketsAvailableFor, removeGemFromInventory } from '../lib/gems';
+import { addGemToInventory, removeGemFromInventory, HERO_GEM_SLOTS } from '../lib/gems';
 import { GEMS, ULT_GEM_BY_HERO } from '../data/gems';
 import { MAX_STAR } from '../lib/fragments';
 import { maxLevelForStar } from '../lib/stats';
@@ -208,63 +208,40 @@ export default function DebugPage() {
       if (g.tier === 4) await addGemToInventory(g.id, 30);
     }
 
-    // 5. For each hero: equip their five set pieces, then socket ult gem
-    // into the ult weapon and fill remaining sockets with the best
-    // matching tier-4 gem available.
+    // 5. For each hero: equip their five set pieces, then fill the hero's
+    // 4 gem slots — slot 0 = the hero's ult gem, slots 1-3 = tier-4 gems
+    // tuned to a sensible spread (atk / hp / crit). Gems are hero-bound now.
     const allHeroes = await db.heroes.toArray();
     const heroByTpl = new Map(allHeroes.map(h => [h.templateId, h]));
     for (const set of ULTIMATE_SETS) {
       const hero = heroByTpl.get(set.heroId);
       if (!hero) continue;
       const newEquipped: Partial<Record<string, string>> = {};
-      let ultWeaponId: string | null = null;
       for (const piece of set.pieces) {
         const eq = (await db.equipment.toArray()).find(e => e.craftedPieceId === piece.id);
         if (!eq) continue;
         await db.equipment.update(eq.id, { equippedTo: hero.id });
         newEquipped[piece.slot] = eq.id;
-        if (eq.isUltimateWeapon) ultWeaponId = eq.id;
       }
-      await db.heroes.update(hero.id, { equipped: newEquipped });
 
-      // Socket the hero's ult gem into the ult weapon, plus tier-4 gems
-      // into remaining sockets across all equipped pieces.
-      for (const [slot, eqId] of Object.entries(newEquipped)) {
-        if (!eqId) continue;
-        const eq = await db.equipment.get(eqId);
-        if (!eq) continue;
-        const total = socketsAvailableFor(eq);
-        if (total === 0) continue;
-        const sockets: (string | null)[] = [...(ensureSockets(eq).sockets ?? Array(total).fill(null))];
-        const primaryStat = (eq.primary?.stat ?? 'atk') as LootStat;
-
-        // First socket of the ult weapon: insert the hero's ult gem
-        let startIdx = 0;
-        if (eqId === ultWeaponId) {
-          const ultGem = ULT_GEM_BY_HERO[set.heroId];
-          if (ultGem) {
-            const ok = await removeGemFromInventory(ultGem.id, 1);
-            if (ok) {
-              sockets[0] = ultGem.id;
-              startIdx = 1;
-            }
-          }
-        }
-        // Fill remaining sockets with a tier-4 gem matching the item's primary stat.
-        const fillerId = `gem_${primaryStat}_4`;
-        for (let i = startIdx; i < total; i++) {
-          if (sockets[i]) continue;
-          const ok = await removeGemFromInventory(fillerId, 1);
-          if (!ok) break;
-          sockets[i] = fillerId;
-        }
-        await db.equipment.update(eqId, { sockets });
-        void slot;
+      // Fill hero gem slots: 0 = ult gem, then atk/crit/hp tier-4 fillers.
+      const heroGems: (string | null)[] = Array(HERO_GEM_SLOTS).fill(null);
+      const ultGem = ULT_GEM_BY_HERO[set.heroId];
+      if (ultGem) {
+        const ok = await removeGemFromInventory(ultGem.id, 1);
+        if (ok) heroGems[0] = ultGem.id;
       }
+      const fillers: LootStat[] = ['atk', 'crit', 'hp'];
+      for (let i = 0; i < fillers.length && (1 + i) < HERO_GEM_SLOTS; i++) {
+        const gid = `gem_${fillers[i]}_4`;
+        const ok = await removeGemFromInventory(gid, 1);
+        if (ok) heroGems[1 + i] = gid;
+      }
+      await db.heroes.update(hero.id, { equipped: newEquipped, gems: heroGems });
     }
 
     await reload();
-    alert('MAX EVERYTHING applied — all heroes maxed, ult gear crafted & equipped, ult sockets installed.');
+    alert('MAX EVERYTHING applied — all heroes maxed, ult gear crafted & equipped, hero gem slots filled (ult gem + tier-4 fillers).');
   }
 
   async function resetDaily() {
