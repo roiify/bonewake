@@ -1,0 +1,31 @@
+{
+  "_note": "Pro-mode enemy creation queue. submitted = in flight + completed. pending = not yet started. The queue worker submits one from pending whenever active < 8.",
+  "submitted": [
+    { "slug": "shambler",          "char_id": "ae345aa8-5765-45e6-9549-f92f0f5cc6af" },
+    { "slug": "fastghoul",         "char_id": "e2778ba0-6b36-47f9-ba65-2168d745dbef" },
+    { "slug": "boneknight",        "char_id": "4a0a3c47-d092-421f-98b9-cea4cc915fb8" },
+    { "slug": "graveyardlich",     "char_id": "6311a8f2-a669-406a-b625-a9134c056259" },
+    { "slug": "worldboss_1",       "char_id": "b55d0a77-abbb-4660-970b-9f8e63829529" },
+    { "slug": "undead_archer",     "char_id": "8bb76ab3-ef6c-4833-a91b-9740331ac2f8" },
+    { "slug": "plague_caster",     "char_id": "48e107e6-84e3-4e39-9d12-33f1252ba724" },
+    { "slug": "fallen_captain",    "char_id": "8d94a57c-531e-493e-896a-a1d69904e55f" }
+  ],
+  "pending": [
+    { "slug": "skeletal_warhorse", "name": "Skeletal Warhorse — pro", "description": "Skeletal warhorse rendered as a humanoid horse-headed undead warrior, bony equine skull, ribbed skeletal torso, battered cavalry tabard, holding a broken cavalry lance, gritty mature dark fantasy gory survival horror" },
+    { "slug": "carrion_spider",    "name": "Carrion Spider — pro",   "description": "Carrion spider humanoid, hunched figure with eight chitinous spider legs sprouting from a rotted hooded torso, eight glowing red eyes under the hood, venom dripping from mandibles, gritty mature dark fantasy gory survival horror" },
+    { "slug": "phantom_knight",    "name": "Phantom Knight — pro",   "description": "Phantom knight, translucent cyan-glowing specter clad in ghostly plate armor, helm with glowing eye slits, holding a spectral longsword, ethereal trailing cape, gritty mature dark fantasy ghost horror" },
+    { "slug": "wailing_wraith",    "name": "Wailing Wraith — pro",   "description": "Wailing wraith, translucent floating ghost in shredded burial shroud, mouth opened wide in a perpetual scream, hollow black eye sockets, skeletal hands reaching forward, pale cyan glow, gritty mature dark fantasy ghost horror" },
+    { "slug": "zombie_knight",     "name": "Zombie Knight — pro",    "description": "Corrupted zombie legionnaire, rotting soldier in tarnished bronze armor with chipped rusted sword, decayed face with peeling green-gray skin, tattered legion tabard, gritty mature dark fantasy gory survival horror" },
+    { "slug": "zombie_berserker",  "name": "Zombie Berserker — pro", "description": "Zombie berserker raging revenant, shirtless rotting muscle-bound corpse with bulging veins, twin rusted cleavers raised overhead, jaw permanently open in a roar, blood-streaked torso, gritty mature dark fantasy gory survival horror" },
+    { "slug": "shield_bearer",     "name": "Shield Bearer — pro",    "description": "Shield-bearer undying defender, hulking armored zombie hunched behind a massive iron tower-shield, spiked mace in his off-hand, faceless visored helm with glowing red slit, blood-streaked armor, gritty mature dark fantasy gory survival horror" },
+    { "slug": "zombie_mage",       "name": "Zombie Mage — pro",      "description": "Rotting zombie mage, decayed sorcerer in moth-eaten purple robes, withered hand extended summoning black necrotic orb, half-skeletal face with glowing violet eye, bone-tipped staff, gritty mature dark fantasy gory survival horror" },
+    { "slug": "grave_channeler",   "name": "Grave Channeler — pro",  "description": "Grave channeler ground-based summoner, gaunt zombie hunched in a deep crouch with both palms slammed against the ground, bone shards bursting from earth around him, ragged dark robes, glowing cyan rune-markings, gritty mature dark fantasy gory survival horror" },
+    { "slug": "soul_leech",        "name": "Soul Leech — pro",       "description": "Soul leech, emaciated translucent ghoul-like figure with elongated tendril arms, floating slightly off the ground, glowing cyan soul-energy leaking from its open ribcage, tattered shroud, gritty mature dark fantasy gory survival horror" },
+    { "slug": "rotwolf",           "name": "Rotwolf — pro",          "description": "Rotwolf humanoid, bony wolf-headed undead with bare wolf skull, sinewy rotted body with exposed ribs, claws elongated, blood-matted gray fur scraps, gritty mature dark fantasy gory survival horror" },
+    { "slug": "bone_bear",         "name": "Bone Bear — pro",        "description": "Bone bear hulking horror, massive humanoid bear-headed undead, bony bear skull, ribbed skeletal torso with shredded fur, two massive bony paw-fists raised, gritty mature dark fantasy gory survival horror" },
+    { "slug": "possessed_corpse",  "name": "Possessed Corpse — pro", "description": "Possessed corpse vessel of shadow, gaunt humanoid corpse leaking black smoky shadow-tendrils from eyes mouth and chest, tattered purple robes, elongated shadow-claws, gritty mature dark fantasy occult horror" },
+    { "slug": "grave_digger",      "name": "Grave Digger — pro",     "description": "Grave digger earth-clawing husk, hunched zombie in dirt-caked tattered overalls, mud-streaked face with hollow eyes, gripping a rusted iron shovel, dirt and worms falling from hands, gritty mature dark fantasy gory survival horror" },
+    { "slug": "plague_monk",       "name": "Plague Monk — pro",      "description": "Plague monk ritual spreader, hooded zombie monk in soiled gray-green robes, holding a chain censer wreathed in sickly green plague smoke, bone-mask with green glow, gritty mature dark fantasy gory survival horror" },
+    { "slug": "necromancer",       "name": "Necromancer — pro",      "description": "Necromancer corpse animator, towering hooded skeletal necromancer in deep purple robes covered in occult runes, glowing purple eye sockets, raising a bone-tipped staff with a floating purple orb, summoning shadow-mist around feet, gritty mature dark fantasy gory survival horror" }
+  ]
+}

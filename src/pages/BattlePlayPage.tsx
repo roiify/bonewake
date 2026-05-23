@@ -522,7 +522,7 @@ export default function BattlePlayPage() {
       </AnimatePresence>
 
       {/* Battlefield: heroes on left facing right, enemies on right facing left */}
-      <div className={`absolute inset-0 flex flex-row p-3 pt-12 pb-28 gap-2 ${shake === 'hard' ? 'animate-screen-shake-hard' : shake === 'soft' ? 'animate-screen-shake' : ''}`}>
+      <div className={`absolute inset-0 flex flex-row p-3 pt-24 pb-28 gap-2 ${shake === 'hard' ? 'animate-screen-shake-hard' : shake === 'soft' ? 'animate-screen-shake' : ''}`}>
         {/* Player column (left) */}
         <div className="flex-1 flex flex-col justify-around items-start">
           {playerSlots.map((u, i) => (

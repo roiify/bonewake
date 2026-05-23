@@ -176,7 +176,11 @@ export function resolveBattle(
     }
   }
 
-  while (p.some(u => u.alive) && e.some(u => u.alive) && round < 30) {
+  // Round cap bumped from 30 → 60. With ults disabled, basic attacks need
+  // more turns to grind through high-HP bosses; 30 rounds was timing out
+  // mid-fight, which used to silently mark a player "win" even though
+  // enemies were alive.
+  while (p.some(u => u.alive) && e.some(u => u.alive) && round < 60) {
     const order = [...p, ...e].filter(u => u.alive).sort((a, b) => b.spd - a.spd);
     for (const unit of order) {
       if (!unit.alive) continue;
@@ -357,6 +361,12 @@ export function resolveBattle(
     round++;
   }
 
-  const winner = p.some(u => u.alive) ? 'player' : 'enemy';
+  // Player only wins if every enemy is dead. If the round cap hits and
+  // both sides still have units alive, the run counts as a loss (enemies
+  // survived). The old logic granted a fake 3-star win on timeout because
+  // it only checked whether the player side had survivors.
+  const enemyAlive = e.some(u => u.alive);
+  const playerAlive = p.some(u => u.alive);
+  const winner = !enemyAlive ? 'player' : !playerAlive ? 'enemy' : 'enemy';
   return { seed: s, winner, log, initial };
 }
