@@ -65,9 +65,9 @@ for slug, prefix in MAP.items():
     folders = list(SRC_ROOT.glob(f"{prefix}*"))
     if not folders:
         fail.append((slug, "no folder")); continue
-    candidates = list(folders[0].rglob("east.png"))
+    candidates = list(folders[0].rglob("west.png"))
     if not candidates:
-        fail.append((slug, "no east.png")); continue
+        fail.append((slug, "no west.png")); continue
     img = Image.open(candidates[0]).convert("RGBA")
     w, h = img.size
     strip = Image.new("RGBA", (w * TARGET_COLS, h), (0, 0, 0, 0))
