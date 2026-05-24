@@ -748,7 +748,6 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
   let animSrc: string | null = sprites?.idle ?? null;
   if (sprites) {
     if (!unit.alive) animSrc = (heroSprites?.death ?? enemySprites?.death) ?? animSrc;
-    else if (hit) animSrc = (heroSprites?.hit ?? enemySprites?.hit) ?? animSrc;
     else if (attacker && isHealing && heroSprites?.heal) animSrc = heroSprites.heal;
     else if (attacker && isUlt && (heroSprites?.ult || enemySprites?.skill)) animSrc = heroSprites?.ult ?? heroSprites?.skill ?? enemySprites?.skill ?? animSrc;
     else if (attacker && isSkill && (heroSprites?.skill || enemySprites?.skill)) animSrc = heroSprites?.skill ?? enemySprites?.skill ?? animSrc;
