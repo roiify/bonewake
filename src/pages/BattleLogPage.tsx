@@ -77,7 +77,7 @@ export default function BattleLogPage() {
                     const sprite = ENEMY_SPRITES[tid as keyof typeof ENEMY_SPRITES];
                     return (
                       <div key={i} className="w-7 h-7 rounded bg-zinc-950 flex items-center justify-center overflow-hidden">
-                        {sprite ? <StaticSprite src={sprite.idle} size={28} className="scale-x-[-1]" /> : <span className="text-sm">💀</span>}
+                        {sprite ? <StaticSprite src={sprite.idle} size={28} /> : <span className="text-sm">💀</span>}
                       </div>
                     );
                   })}

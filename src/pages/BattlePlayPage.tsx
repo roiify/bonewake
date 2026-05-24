@@ -829,7 +829,6 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
             loop={unit.alive && !hit}
             paused={unit.alive && !attacker && !hit}
             size={heroSprites ? 234 : 220}
-            className={side === 'enemy' ? 'scale-x-[-1]' : ''}
           />
         ) : (
           <div className="text-5xl">{unit.emoji}</div>
