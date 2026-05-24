@@ -11,9 +11,9 @@
     },
     {
       "slug": "elara",
-      "id": "e8115aad-e7fc-4a49-9cf4-131cbc17fba1",
+      "id": "63a50166-763b-47f9-bb9c-11cc2e6dfe24",
       "account": "kidbot",
-      "attack": "frost witch raises both palms and fires a frozen ice shard, no walking, stays in place, ice projectile launches right",
+      "attack": "plague archer draws bow and looses an arrow right, no walking, stays in place, arrow flies east",
       "submitted": true
     },
     {
@@ -32,9 +32,9 @@
     },
     {
       "slug": "aelia",
-      "id": "63a50166-763b-47f9-bb9c-11cc2e6dfe24",
+      "id": "e8115aad-e7fc-4a49-9cf4-131cbc17fba1",
       "account": "kidbot",
-      "attack": "plague archer draws bow and looses an arrow right, no walking, stays in place, arrow flies east",
+      "attack": "frost witch raises both palms and fires a frozen ice shard, no walking, stays in place, ice projectile launches right",
       "submitted": true
     },
     {
