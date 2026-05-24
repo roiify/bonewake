@@ -827,7 +827,7 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
             fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 18 : 14)))}
             loop={unit.alive && !hit}
             paused={unit.alive && !attacker && !hit}
-            size={heroSprites ? 234 : 300}
+            size={heroSprites ? 234 : 220}
           />
         ) : (
           <div className="text-5xl">{unit.emoji}</div>
