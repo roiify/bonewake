@@ -276,9 +276,9 @@ export default function StagePrebattlePage() {
             const sprite = ENEMY_SPRITES[e.templateId as keyof typeof ENEMY_SPRITES];
             return (
               <div key={e.id} className="rounded border-2 p-2 text-center bg-zinc-950" style={{ borderColor: e.color }}>
-                <div className="aspect-square flex items-center justify-center overflow-hidden relative">
+                <div className="aspect-square flex items-center justify-center overflow-hidden">
                   {sprite
-                    ? <img src={sprite.portrait ?? sprite.idle} alt={e.name} className="absolute inset-0 m-auto" style={{ imageRendering: 'pixelated', width: '220%', height: '220%', objectFit: 'contain' }} />
+                    ? <img src={sprite.portrait ?? sprite.idle} alt={e.name} className="w-[90%] h-[90%] object-contain" style={{ imageRendering: 'pixelated', transform: 'scale(2.2)', transformOrigin: 'center' }} />
                     : <div className="text-3xl">{e.emoji}</div>}
                 </div>
                 <div className="text-[10px] mt-1 truncate" style={{ color: e.color }}>{e.name}</div>
