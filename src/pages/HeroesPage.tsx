@@ -32,6 +32,10 @@ export default function HeroesPage() {
   const [autoEquipMsg, setAutoEquipMsg] = useState<string | null>(null);
 
   function itemSlot(eq: OwnedEquipment): EquipSlot | null {
+    // Crafted Mythic pieces store the slot directly on the equipment
+    // instance (no baseType / templateId). Check that first so ult gear
+    // is never invisibly filtered out by Auto Equip All.
+    if (eq.slot) return eq.slot as EquipSlot;
     if (eq.baseType) return BASE_BY_ID[eq.baseType]?.slot ?? null;
     if (eq.templateId) return EQUIP_BY_ID[eq.templateId]?.slot ?? null;
     return null;
@@ -49,16 +53,30 @@ export default function HeroesPage() {
     for (const h of allHeroes) {
       if (Object.keys(h.equipped).length > 0) await updateHero(h.id, { equipped: {} });
     }
-    // Now assign from a shared pool
+    // Now assign from a shared pool. Mythic set pieces are bound to a
+    // specific hero via setRestrictedTo — never let the wrong hero claim
+    // them, otherwise Kaius's Aegis ends up on Tatiana.
     const claimed = new Set<string>();
     const slots: EquipSlot[] = ['weapon', 'armor', 'helm', 'boots', 'accessory'];
     let totalEquipped = 0;
     for (const hero of order) {
       const newEquipped: Partial<Record<string, string>> = {};
       for (const slot of slots) {
-        const candidates = equipment.filter(e => !claimed.has(e.id) && itemSlot(e) === slot);
+        const candidates = equipment.filter(e => {
+          if (claimed.has(e.id)) return false;
+          if (itemSlot(e) !== slot) return false;
+          if (e.setRestrictedTo && e.setRestrictedTo !== hero.templateId) return false;
+          return true;
+        });
         if (candidates.length === 0) continue;
-        const best = [...candidates].sort((a, b) => equipPower(b) - equipPower(a))[0];
+        // Prefer bound Mythic pieces first so each hero gets their own
+        // set before non-bound chapter loot is distributed.
+        const best = [...candidates].sort((a, b) => {
+          const boundA = a.setRestrictedTo === hero.templateId ? 1 : 0;
+          const boundB = b.setRestrictedTo === hero.templateId ? 1 : 0;
+          if (boundA !== boundB) return boundB - boundA;
+          return equipPower(b) - equipPower(a);
+        })[0];
         claimed.add(best.id);
         newEquipped[slot] = best.id;
         await updateEquipment(best.id, { equippedTo: hero.id });
