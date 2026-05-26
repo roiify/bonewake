@@ -123,7 +123,7 @@ export default function SpiritBombPage() {
       <div className="rounded-lg border-2 border-rose-700 bg-gradient-to-b from-rose-950/40 to-zinc-900 p-4">
         <div className="flex items-center gap-3">
           {ENEMY_SPRITES[boss.templateId as keyof typeof ENEMY_SPRITES] ? (
-            <StaticSprite src={ENEMY_SPRITES[boss.templateId as keyof typeof ENEMY_SPRITES]!.idle} size={80} />
+            <StaticSprite src={ENEMY_SPRITES[boss.templateId as keyof typeof ENEMY_SPRITES]!.portrait ?? ENEMY_SPRITES[boss.templateId as keyof typeof ENEMY_SPRITES]!.idle} size={80} />
           ) : <div className="text-5xl">{boss.emoji}</div>}
           <div className="flex-1 min-w-0">
             <div className="font-pixel text-sm text-rose-200">{boss.name}</div>

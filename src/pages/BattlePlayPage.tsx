@@ -1028,9 +1028,55 @@ export default function BattlePlayPage() {
               </div>
             )}
             {(() => {
+              const won = battle.winner === 'player';
+              // Per-mode end-screen actions — tower goes Next Floor on win
+              // (no "retry" — that floor is done); world boss / shatter go
+              // back to their pages; dungeons retry the same tier; stages
+              // get the classic back / retry / next-stage triad.
+              if (towerSource) {
+                const nextFloor = towerSource.floor + 1;
+                return (
+                  <div className="flex gap-2 flex-wrap justify-center">
+                    <button className="btn-pixel" onClick={() => navigate('/tower')}>← Tower</button>
+                    {won && (
+                      <button className="btn-pixel primary" onClick={() => navigate(`/battle/play/tower-${nextFloor}`)}>
+                        ▶ Next Floor ({nextFloor})
+                      </button>
+                    )}
+                    {!won && (
+                      <button className="btn-pixel" onClick={() => navigate(`/battle/play/tower-${towerSource.floor}`)}>Retry</button>
+                    )}
+                  </div>
+                );
+              }
+              if (isWorldBoss || isSpiritBomb) {
+                const back = isWorldBoss ? '/worldboss' : '/spirit';
+                return (
+                  <div className="flex gap-2 flex-wrap justify-center">
+                    <button className="btn-pixel primary" onClick={() => navigate(back)}>← Back</button>
+                  </div>
+                );
+              }
+              if (dungeonSource) {
+                return (
+                  <div className="flex gap-2 flex-wrap justify-center">
+                    <button className="btn-pixel" onClick={() => navigate('/dungeons')}>← Dungeons</button>
+                    <button className="btn-pixel" onClick={() => navigate(`/battle/play/dungeon-${dungeonSource.def.id}-${dungeonSource.tier.tier}`)}>
+                      {won ? '▶ Run Again' : 'Retry'}
+                    </button>
+                  </div>
+                );
+              }
+              if (trialSource) {
+                return (
+                  <div className="flex gap-2 flex-wrap justify-center">
+                    <button className="btn-pixel primary" onClick={() => navigate('/trials')}>← Trials</button>
+                  </div>
+                );
+              }
+              // Default: campaign stage
               const idx = STAGES.findIndex(s => s.id === stage.id);
               const next = idx >= 0 ? STAGES[idx + 1] : undefined;
-              const won = battle.winner === 'player';
               return (
                 <div className="flex gap-2 flex-wrap justify-center">
                   <button className="btn-pixel" onClick={() => navigate('/battle')}>Back</button>

@@ -117,14 +117,17 @@ export default function WorldBossPage() {
       {/* Boss — big-sprite hero shot */}
       <div className="rounded-lg border-2 border-rose-700 bg-gradient-to-b from-rose-950/40 to-zinc-900 p-4">
         <div className="flex flex-col items-center text-center gap-2">
-          {ENEMY_SPRITES[boss.templateId as keyof typeof ENEMY_SPRITES] ? (
-            <img
-              src={ENEMY_SPRITES[boss.templateId as keyof typeof ENEMY_SPRITES]!.idle}
-              alt={boss.name}
-              className="w-48 h-48 object-contain"
-              style={{ imageRendering: 'pixelated' }}
-            />
-          ) : <div className="text-7xl">{boss.emoji}</div>}
+          {(() => {
+            const s = ENEMY_SPRITES[boss.templateId as keyof typeof ENEMY_SPRITES];
+            return s ? (
+              <img
+                src={s.portrait ?? s.idle}
+                alt={boss.name}
+                className="w-48 h-48 object-contain"
+                style={{ imageRendering: 'pixelated' }}
+              />
+            ) : <div className="text-7xl">{boss.emoji}</div>;
+          })()}
           <div className="font-pixel text-base text-rose-200">{boss.name}</div>
           <div className="text-[11px] text-zinc-400 italic">"{boss.description}"</div>
           <div className="text-[10px] text-zinc-500">LVL:{boss.level} · {bossHp.toLocaleString()} HP</div>
