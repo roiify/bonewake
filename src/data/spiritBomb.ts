@@ -1,8 +1,10 @@
-// Spirit Bomb event — weekly multi-attempt charge boss.
-// Each attempt's damage carries over and permanently weakens the boss this week.
-// Tiered rewards based on cumulative % damage dealt. Boss "explodes" at 100%.
+// Shatter event — DAILY rotation across 7 painted humanoid bosses
+// (PixelLab batch). Cumulative damage carries between attempts and
+// across the day. Boss "shatters" at 100%.
 
 import { buildEnemyUnit } from '../lib/stats';
+import { ENEMY_TEMPLATES } from './stages';
+import { SHATTER_BOSS_BY_DAY } from './heroes';
 import type { CombatUnit } from '../types';
 
 export const SPIRIT_BOMB_ATTEMPTS_PER_WEEK = 5;
@@ -18,42 +20,51 @@ export interface SpiritBossDef {
   star: number;
 }
 
-export const SPIRIT_BOSSES: SpiritBossDef[] = [
-  { id: 'lich_titan', name: 'Lich Titan',
-    description: 'A risen colossus. Damage carries — break it across attempts.',
-    emoji: '⛰️', templateId: 'graveyardlich', hp: 4_000_000, level: 40, star: 5 },
-  { id: 'bone_leviathan', name: 'Bone Leviathan',
-    description: 'Walking siege engine of bone. Chip it down.',
-    emoji: '🐉', templateId: 'boneknight', hp: 5_000_000, level: 45, star: 5 },
-  { id: 'ghoul_swarm_alpha', name: 'Ghoul Swarm Alpha',
-    description: 'Faster than mountains erode. Bleed it out.',
-    emoji: '🌀', templateId: 'fastghoul', hp: 3_500_000, level: 38, star: 5 },
-];
+const BOSS_FLAVOR: Record<string, { name: string; description: string; emoji: string; hp: number }> = {
+  lich_king:     { name: 'The Lich King',  description: 'The crown decides who lasts.',                                  emoji: '👑', hp: 8_000_000 },
+  bone_titan:    { name: 'Bone Titan',     description: 'Built from those who walked too far.',                          emoji: '💀', hp: 12_000_000 },
+  plague_doctor: { name: 'The Plague Doctor', description: 'It treats the strong first.',                                emoji: '⚕️', hp: 6_500_000 },
+  ash_empress:   { name: 'Ash Empress',    description: 'Said with her last breath. Heard for a thousand years.',        emoji: '👸', hp: 7_500_000 },
+  soul_reaper:   { name: 'The Soul Reaper', description: 'It does not take. It receives.',                               emoji: '🗡', hp: 6_000_000 },
+  voidlord:      { name: 'Voidlord',       description: 'Where the blade lands, nothing was.',                            emoji: '🌑', hp: 9_500_000 },
+  worm_god:      { name: 'The Worm God',   description: 'It already knew the ending.',                                    emoji: '🪱', hp: 14_000_000 },
+};
 
-export function currentSpiritBoss(weekIso: string): SpiritBossDef {
-  let hash = 0;
-  for (let i = 0; i < weekIso.length; i++) hash = (hash * 31 + weekIso.charCodeAt(i)) | 0;
-  const idx = Math.abs(hash) % SPIRIT_BOSSES.length;
-  return SPIRIT_BOSSES[idx];
+export const SPIRIT_BOSSES: SpiritBossDef[] = SHATTER_BOSS_BY_DAY.map(templateId => {
+  const f = BOSS_FLAVOR[templateId];
+  return {
+    id: templateId,
+    name: f.name,
+    description: f.description,
+    emoji: f.emoji,
+    templateId,
+    hp: f.hp,
+    level: 200,
+    star: 6,
+  };
+});
+
+// Daily rotation by day-of-week (Sun=0..Sat=6). weekIso kept for API compat.
+export function currentSpiritBoss(_weekIso: string): SpiritBossDef {
+  const day = new Date().getDay();
+  return SPIRIT_BOSSES[day] ?? SPIRIT_BOSSES[0];
 }
 
 export function buildSpiritBossUnit(boss: SpiritBossDef, remainingHp: number): CombatUnit {
   const u = buildEnemyUnit(boss.templateId, boss.level, boss.star, 'spirit_boss');
   u.hp = Math.max(1, remainingHp);
   u.maxHp = boss.hp;
-  u.atk = Math.floor(u.atk * 2.0);
-  u.def = Math.floor(u.def * 1.3);
-  return [u][0];
+  return u;
 }
 
 // Reward tiers based on cumulative damage as % of max HP
+// Economy alignment: soulshard rewards +50% (matches World Boss bump).
 export interface SpiritTier {
   pct: number;
   name: string;
   rewards: { gold: number; gems: number; soulshard: number };
 }
 
-// Economy alignment: soulshard rewards +50% (matches World Boss bump).
 export const SPIRIT_TIERS: SpiritTier[] = [
   { pct: 0.10, name: 'Spark',   rewards: { gold: 1000, gems: 20,  soulshard: 5 } },
   { pct: 0.25, name: 'Surge',   rewards: { gold: 2500, gems: 60,  soulshard: 15 } },
@@ -69,3 +80,5 @@ export function spiritTierFor(pct: number): SpiritTier | null {
   }
   return best;
 }
+
+void ENEMY_TEMPLATES;

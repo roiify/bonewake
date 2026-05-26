@@ -1,7 +1,10 @@
-// Solo World Boss — weekly super-tough boss. 3 free attempts per week. Damage scored;
-// boss returns to full HP each attempt (best damage of any attempt counts).
+// Solo World Boss — DAILY rotation across 7 painted boss-tier sprites
+// (the mythical creatures from the PixelLab boss batch). One boss per
+// day of week. Best-single-attempt damage decides reward tier.
 
 import { buildEnemyUnit } from '../lib/stats';
+import { ENEMY_TEMPLATES } from './stages';
+import { WORLD_BOSS_BY_DAY } from './heroes';
 import type { CombatUnit } from '../types';
 
 export const WORLD_BOSS_ATTEMPTS_PER_WEEK = 3;
@@ -11,42 +14,55 @@ export interface WorldBossDef {
   name: string;
   description: string;
   emoji: string;
-  templateId: string;        // which enemy sprite
-  hpMillions: number;        // total HP in millions
+  templateId: string;
+  hpMillions: number;
   level: number;
   star: number;
 }
 
-// 4 bosses rotate weekly (one per week). HP / level cranked up so the
-// fight is a real challenge instead of a tap-and-pass.
-export const WORLD_BOSSES: WorldBossDef[] = [
-  { id: 'apostate',    name: 'The Crimson Apostate', description: 'A hooded blood-mage whose every gesture costs you blood.', emoji: '🩸',
-    templateId: 'worldboss_1',   hpMillions: 4.0, level: 60, star: 6 },
-  { id: 'ironknight',  name: 'Ironclad Knight',    description: 'Plate so thick it eats your blows.',                       emoji: '🛡️',
-    templateId: 'boneknight',    hpMillions: 5.0, level: 65, star: 6 },
-  { id: 'plagueghoul', name: 'Plague Ghoul Alpha', description: 'Faster than the wind. Mean as a curse.',                    emoji: '🧟',
-    templateId: 'fastghoul',     hpMillions: 3.5, level: 55, star: 6 },
-  { id: 'crowned',     name: 'The Crowned Lich',   description: 'It speaks no words. The cold answers.',                     emoji: '👑',
-    templateId: 'graveyardlich', hpMillions: 7.0, level: 80, star: 6 },
-];
+// Flavor + HP override per painted boss. HP intentionally varies so
+// each day's boss feels distinct (tanks have more, glass cannons less).
+const BOSS_FLAVOR: Record<string, { name: string; description: string; emoji: string; hpMillions: number }> = {
+  bonewake_dragon:  { name: 'Bonewake Dragon',  description: 'Its first roar still ignites the air it left.',           emoji: '🐉', hpMillions: 8.0 },
+  plague_hydra:     { name: 'Plague Hydra',     description: 'Three skulls. Three fangs. Three openings to bleed.',     emoji: '🐍', hpMillions: 6.5 },
+  rot_phoenix:      { name: 'Rot Phoenix',      description: 'A dying ember refuses to be quiet.',                       emoji: '🔥', hpMillions: 5.0 },
+  bone_cerberus:    { name: 'Bone Cerberus',    description: 'Untouched, it strikes hardest.',                           emoji: '🐺', hpMillions: 5.5 },
+  wraith_kraken:    { name: 'Wraith Kraken',    description: 'The mist clings. Strikes pass through.',                   emoji: '🐙', hpMillions: 10.0 },
+  necro_sphinx:     { name: 'Necro Sphinx',     description: 'It asks. It already knows.',                               emoji: '🦁', hpMillions: 7.0 },
+  crimson_centaur:  { name: 'Crimson Centaur',  description: 'Hoofbeats heard before the dawn line.',                    emoji: '🐎', hpMillions: 7.5 },
+};
 
-export function currentBoss(weekIso: string): WorldBossDef {
-  // Hash the iso week to pick a boss deterministically
-  let hash = 0;
-  for (let i = 0; i < weekIso.length; i++) hash = (hash * 31 + weekIso.charCodeAt(i)) | 0;
-  const idx = Math.abs(hash) % WORLD_BOSSES.length;
-  return WORLD_BOSSES[idx];
+export const WORLD_BOSSES: WorldBossDef[] = WORLD_BOSS_BY_DAY.map(templateId => {
+  const flavor = BOSS_FLAVOR[templateId];
+  return {
+    id: templateId,
+    name: flavor.name,
+    description: flavor.description,
+    emoji: flavor.emoji,
+    templateId,
+    hpMillions: flavor.hpMillions,
+    level: 200,
+    star: 6,
+  };
+});
+
+// Daily rotation — picks by JS day-of-week (Sun=0..Sat=6) so the boss
+// switches at local midnight. (The weekIso argument is kept for API
+// compatibility but no longer used; it's a no-op param now.)
+export function currentBoss(_weekIso: string): WorldBossDef {
+  const day = new Date().getDay();
+  return WORLD_BOSSES[day] ?? WORLD_BOSSES[0];
 }
 
 export function buildBossTeam(boss: WorldBossDef): CombatUnit[] {
-  // Single mega-unit with massive HP (we scale HP separately because buildEnemyUnit caps via star multiplier)
+  // Single mega-unit. buildEnemyUnit uses ENEMY_TEMPLATES base stats × star
+  // mult × level mult, so the new painted-boss templates (which already
+  // have ~50-100k base HP) end up with millions of HP — we still clamp
+  // to the boss-def `hpMillions` so the bar reads cleanly.
   const u = buildEnemyUnit(boss.templateId, boss.level, boss.star, 'wb_boss');
   const targetHp = Math.floor(boss.hpMillions * 1_000_000);
   u.hp = targetHp;
   u.maxHp = targetHp;
-  // Slight damage scaling so they aren't trivial
-  u.atk = Math.floor(u.atk * 2.5);
-  u.def = Math.floor(u.def * 1.5);
   return [u];
 }
 
@@ -75,3 +91,6 @@ export function tierFor(damagePct: number): RewardTier {
   }
   return best;
 }
+
+// Suppress unused-import warning on ENEMY_TEMPLATES (kept for type completeness).
+void ENEMY_TEMPLATES;

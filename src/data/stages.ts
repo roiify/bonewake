@@ -61,6 +61,24 @@ export const ENEMY_TEMPLATES = {
   blood_titan:       { name: 'Blood Titan',       element: 'dark' as const, archetype: 'warrior' as const, baseStats: { hp: 13000, atk: 560, def: 250, spd: 65, crit: 0.28 }, color: '#dc2626', ultimateId: 'enemy_basic' },
   ash_lord:          { name: 'Ash Lord',          element: 'dark' as const, archetype: 'mage' as const,    baseStats: { hp: 12000, atk: 580, def: 240, spd: 80, crit: 0.28 }, color: '#ea580c', ultimateId: 'enemy_basic' },
   final_revenant:    { name: 'Final Revenant',    element: 'dark' as const, archetype: 'warrior' as const, baseStats: { hp: 16000, atk: 620, def: 280, spd: 95, crit: 0.32 }, color: '#7c3aed', ultimateId: 'enemy_basic' },
+
+  // ============ NEW BOSS-TIER (painted in PixelLab/Nano Banana) ============
+  // 7 mythical creatures for World Boss daily rotation
+  bonewake_dragon:  { name: 'Bonewake Dragon',  element: 'fire' as const,  archetype: 'warrior' as const, baseStats: { hp: 90000, atk: 1100, def: 380, spd: 60, crit: 0.30 }, color: '#a16207', ultimateId: 'enemy_basic' },
+  plague_hydra:     { name: 'Plague Hydra',     element: 'earth' as const, archetype: 'mage'    as const, baseStats: { hp: 75000, atk: 950,  def: 280, spd: 80, crit: 0.25 }, color: '#84cc16', ultimateId: 'enemy_basic' },
+  rot_phoenix:      { name: 'Rot Phoenix',      element: 'fire' as const,  archetype: 'mage'    as const, baseStats: { hp: 60000, atk: 1300, def: 200, spd: 110, crit: 0.40 }, color: '#dc2626', ultimateId: 'enemy_basic' },
+  bone_cerberus:    { name: 'Bone Cerberus',    element: 'dark' as const,  archetype: 'assassin' as const,baseStats: { hp: 65000, atk: 1200, def: 240, spd: 130, crit: 0.45 }, color: '#a8a29e', ultimateId: 'enemy_basic' },
+  wraith_kraken:    { name: 'Wraith Kraken',    element: 'water' as const, archetype: 'tank'    as const, baseStats: { hp:120000, atk: 800,  def: 500, spd: 50, crit: 0.20 }, color: '#1e40af', ultimateId: 'enemy_basic' },
+  necro_sphinx:     { name: 'Necro Sphinx',     element: 'light' as const, archetype: 'mage'    as const, baseStats: { hp: 80000, atk: 1050, def: 320, spd: 95, crit: 0.30 }, color: '#fde047', ultimateId: 'enemy_basic' },
+  crimson_centaur:  { name: 'Crimson Centaur',  element: 'dark' as const,  archetype: 'warrior' as const, baseStats: { hp: 85000, atk: 1150, def: 340, spd: 100, crit: 0.32 }, color: '#dc2626', ultimateId: 'enemy_basic' },
+  // 7 humanoid overlords for Shatter daily rotation
+  lich_king:        { name: 'The Lich King',    element: 'dark' as const,  archetype: 'mage'    as const, baseStats: { hp: 95000, atk: 1250, def: 360, spd: 85, crit: 0.35 }, color: '#a855f7', ultimateId: 'enemy_basic' },
+  bone_titan:       { name: 'Bone Titan',       element: 'earth' as const, archetype: 'tank'    as const, baseStats: { hp:140000, atk: 900,  def: 580, spd: 45, crit: 0.18 }, color: '#71717a', ultimateId: 'enemy_basic' },
+  plague_doctor:    { name: 'Plague Doctor',    element: 'dark' as const,  archetype: 'mage'    as const, baseStats: { hp: 70000, atk: 1150, def: 280, spd: 90, crit: 0.30 }, color: '#84cc16', ultimateId: 'enemy_basic' },
+  ash_empress:      { name: 'Ash Empress',      element: 'fire' as const,  archetype: 'mage'    as const, baseStats: { hp: 85000, atk: 1300, def: 300, spd: 80, crit: 0.35 }, color: '#f97316', ultimateId: 'enemy_basic' },
+  soul_reaper:      { name: 'Soul Reaper',      element: 'dark' as const,  archetype: 'assassin' as const,baseStats: { hp: 75000, atk: 1450, def: 220, spd: 120, crit: 0.50 }, color: '#a78bfa', ultimateId: 'enemy_basic' },
+  voidlord:         { name: 'Voidlord',         element: 'dark' as const,  archetype: 'warrior' as const, baseStats: { hp:100000, atk: 1200, def: 400, spd: 75, crit: 0.30 }, color: '#581c87', ultimateId: 'enemy_basic' },
+  worm_god:         { name: 'The Worm God',     element: 'earth' as const, archetype: 'tank'    as const, baseStats: { hp:160000, atk: 950,  def: 540, spd: 40, crit: 0.20 }, color: '#16a34a', ultimateId: 'enemy_basic' },
 };
 export type EnemyTemplateId = keyof typeof ENEMY_TEMPLATES;
 

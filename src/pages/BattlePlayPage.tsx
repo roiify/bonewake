@@ -20,7 +20,7 @@ import { incrementTask } from '../lib/tasks';
 import type { CombatUnit, BattleResult } from '../types';
 import type { OwnedEquipment } from '../lib/db';
 import { CHAPTER_BG } from '../data/auraMap';
-import { HERO_SPRITES, ENEMY_SPRITES } from '../data/heroes';
+import { HERO_SPRITES, ENEMY_SPRITES, PAINTED_BOSS_IDS } from '../data/heroes';
 import SpriteAnimator from '../components/SpriteAnimator';
 import { genLoot } from '../lib/loot';
 import { LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/loot';
@@ -1198,23 +1198,31 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
       {/* Character sprite — heroes face right naturally, enemies mirrored.
           Hero sprite atlases are PixelLab 124×124 frames with significant
           padding for walk/attack motion; enemy portraits are tightly cropped
-          1024×1024. Rendering both at the same px makes heroes look small,
-          so we upscale the hero render size to match enemy visual weight. */}
-      <div className="relative w-44 h-44 flex items-end justify-center">
-        {animSrc ? (
-          <SpriteAnimator
-            src={animSrc}
-            cols={sprites!.cols}
-            rows={sprites!.rows}
-            fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 18 : 14)))}
-            loop={unit.alive && !hit}
-            paused={unit.alive && !attacker && !hit}
-            size={heroSprites ? 234 : 220}
-          />
-        ) : (
-          <div className="text-5xl">{unit.emoji}</div>
-        )}
-      </div>
+          1024×1024. Painted boss-tier sprites (Bonewake Dragon, Lich King,
+          etc.) render almost 2× the size to telegraph "this is a BOSS,
+          not a regular enemy". */}
+      {(() => {
+        const isPaintedBoss = PAINTED_BOSS_IDS.has(unit.templateId);
+        const containerSize = isPaintedBoss ? 'w-72 h-72' : 'w-44 h-44';
+        const renderSize = isPaintedBoss ? 400 : (heroSprites ? 234 : 220);
+        return (
+          <div className={`relative ${containerSize} flex items-end justify-center`}>
+            {animSrc ? (
+              <SpriteAnimator
+                src={animSrc}
+                cols={sprites!.cols}
+                rows={sprites!.rows}
+                fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 18 : 14)))}
+                loop={unit.alive && !hit}
+                paused={unit.alive && !attacker && !hit}
+                size={renderSize}
+              />
+            ) : (
+              <div className="text-5xl">{unit.emoji}</div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Floating damage numbers */}
       <AnimatePresence>

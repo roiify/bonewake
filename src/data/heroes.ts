@@ -372,4 +372,52 @@ export const ENEMY_SPRITES: Record<string, {
   blood_titan: { idle: A('sprites/echoes/enemies/blood_titan_idle.png'), attack: A('sprites/echoes/enemies/blood_titan_attack.png'), skill: A('sprites/echoes/enemies/blood_titan_idle.png'), hit: A('sprites/echoes/enemies/blood_titan_hit.png'), death: A('sprites/echoes/enemies/blood_titan_idle.png'), portrait: A('sprites/echoes/enemies/blood_titan_portrait.png'), cols: 17, rows: 1 },
   ash_lord: { idle: A('sprites/echoes/enemies/ash_lord_idle.png'), attack: A('sprites/echoes/enemies/ash_lord_attack.png'), skill: A('sprites/echoes/enemies/ash_lord_idle.png'), hit: A('sprites/echoes/enemies/ash_lord_hit.png'), death: A('sprites/echoes/enemies/ash_lord_idle.png'), portrait: A('sprites/echoes/enemies/ash_lord_portrait.png'), cols: 17, rows: 1 },
   final_revenant: { idle: A('sprites/echoes/enemies/final_revenant_idle.png'), attack: A('sprites/echoes/enemies/final_revenant_attack.png'), skill: A('sprites/echoes/enemies/final_revenant_idle.png'), hit: A('sprites/echoes/enemies/final_revenant_hit.png'), death: A('sprites/echoes/enemies/final_revenant_idle.png'), portrait: A('sprites/echoes/enemies/final_revenant_portrait.png'), cols: 17, rows: 1 },
+
+  // ============ NEW BOSS-TIER PAINTED SPRITES (PixelLab) ============
+  // Single-frame 400×400 PNGs — no atlas. Same image is reused for idle/
+  // attack/hit/death since these are one-shot weekly bosses (animation
+  // budget went into the painting detail, not the frame count).
+  bonewake_dragon:  { idle: A('sprites/bosses/bonewake_dragon_idle.png'),  attack: A('sprites/bosses/bonewake_dragon_idle.png'),  skill: A('sprites/bosses/bonewake_dragon_idle.png'),  hit: A('sprites/bosses/bonewake_dragon_idle.png'),  death: A('sprites/bosses/bonewake_dragon_idle.png'),  portrait: A('sprites/bosses/bonewake_dragon_idle.png'),  cols: 1, rows: 1 },
+  plague_hydra:     { idle: A('sprites/bosses/plague_hydra_idle.png'),     attack: A('sprites/bosses/plague_hydra_idle.png'),     skill: A('sprites/bosses/plague_hydra_idle.png'),     hit: A('sprites/bosses/plague_hydra_idle.png'),     death: A('sprites/bosses/plague_hydra_idle.png'),     portrait: A('sprites/bosses/plague_hydra_idle.png'),     cols: 1, rows: 1 },
+  rot_phoenix:      { idle: A('sprites/bosses/rot_phoenix_idle.png'),      attack: A('sprites/bosses/rot_phoenix_idle.png'),      skill: A('sprites/bosses/rot_phoenix_idle.png'),      hit: A('sprites/bosses/rot_phoenix_idle.png'),      death: A('sprites/bosses/rot_phoenix_idle.png'),      portrait: A('sprites/bosses/rot_phoenix_idle.png'),      cols: 1, rows: 1 },
+  bone_cerberus:    { idle: A('sprites/bosses/bone_cerberus_idle.png'),    attack: A('sprites/bosses/bone_cerberus_idle.png'),    skill: A('sprites/bosses/bone_cerberus_idle.png'),    hit: A('sprites/bosses/bone_cerberus_idle.png'),    death: A('sprites/bosses/bone_cerberus_idle.png'),    portrait: A('sprites/bosses/bone_cerberus_idle.png'),    cols: 1, rows: 1 },
+  wraith_kraken:    { idle: A('sprites/bosses/wraith_kraken_idle.png'),    attack: A('sprites/bosses/wraith_kraken_idle.png'),    skill: A('sprites/bosses/wraith_kraken_idle.png'),    hit: A('sprites/bosses/wraith_kraken_idle.png'),    death: A('sprites/bosses/wraith_kraken_idle.png'),    portrait: A('sprites/bosses/wraith_kraken_idle.png'),    cols: 1, rows: 1 },
+  necro_sphinx:     { idle: A('sprites/bosses/necro_sphinx_idle.png'),     attack: A('sprites/bosses/necro_sphinx_idle.png'),     skill: A('sprites/bosses/necro_sphinx_idle.png'),     hit: A('sprites/bosses/necro_sphinx_idle.png'),     death: A('sprites/bosses/necro_sphinx_idle.png'),     portrait: A('sprites/bosses/necro_sphinx_idle.png'),     cols: 1, rows: 1 },
+  crimson_centaur:  { idle: A('sprites/bosses/crimson_centaur_idle.png'),  attack: A('sprites/bosses/crimson_centaur_idle.png'),  skill: A('sprites/bosses/crimson_centaur_idle.png'),  hit: A('sprites/bosses/crimson_centaur_idle.png'),  death: A('sprites/bosses/crimson_centaur_idle.png'),  portrait: A('sprites/bosses/crimson_centaur_idle.png'),  cols: 1, rows: 1 },
+  lich_king:        { idle: A('sprites/bosses/lich_king_idle.png'),        attack: A('sprites/bosses/lich_king_idle.png'),        skill: A('sprites/bosses/lich_king_idle.png'),        hit: A('sprites/bosses/lich_king_idle.png'),        death: A('sprites/bosses/lich_king_idle.png'),        portrait: A('sprites/bosses/lich_king_idle.png'),        cols: 1, rows: 1 },
+  bone_titan:       { idle: A('sprites/bosses/bone_titan_idle.png'),       attack: A('sprites/bosses/bone_titan_idle.png'),       skill: A('sprites/bosses/bone_titan_idle.png'),       hit: A('sprites/bosses/bone_titan_idle.png'),       death: A('sprites/bosses/bone_titan_idle.png'),       portrait: A('sprites/bosses/bone_titan_idle.png'),       cols: 1, rows: 1 },
+  plague_doctor:    { idle: A('sprites/bosses/plague_doctor_idle.png'),    attack: A('sprites/bosses/plague_doctor_idle.png'),    skill: A('sprites/bosses/plague_doctor_idle.png'),    hit: A('sprites/bosses/plague_doctor_idle.png'),    death: A('sprites/bosses/plague_doctor_idle.png'),    portrait: A('sprites/bosses/plague_doctor_idle.png'),    cols: 1, rows: 1 },
+  ash_empress:      { idle: A('sprites/bosses/ash_empress_idle.png'),      attack: A('sprites/bosses/ash_empress_idle.png'),      skill: A('sprites/bosses/ash_empress_idle.png'),      hit: A('sprites/bosses/ash_empress_idle.png'),      death: A('sprites/bosses/ash_empress_idle.png'),      portrait: A('sprites/bosses/ash_empress_idle.png'),      cols: 1, rows: 1 },
+  soul_reaper:      { idle: A('sprites/bosses/soul_reaper_idle.png'),      attack: A('sprites/bosses/soul_reaper_idle.png'),      skill: A('sprites/bosses/soul_reaper_idle.png'),      hit: A('sprites/bosses/soul_reaper_idle.png'),      death: A('sprites/bosses/soul_reaper_idle.png'),      portrait: A('sprites/bosses/soul_reaper_idle.png'),      cols: 1, rows: 1 },
+  voidlord:         { idle: A('sprites/bosses/voidlord_idle.png'),         attack: A('sprites/bosses/voidlord_idle.png'),         skill: A('sprites/bosses/voidlord_idle.png'),         hit: A('sprites/bosses/voidlord_idle.png'),         death: A('sprites/bosses/voidlord_idle.png'),         portrait: A('sprites/bosses/voidlord_idle.png'),         cols: 1, rows: 1 },
+  worm_god:         { idle: A('sprites/bosses/worm_god_idle.png'),         attack: A('sprites/bosses/worm_god_idle.png'),         skill: A('sprites/bosses/worm_god_idle.png'),         hit: A('sprites/bosses/worm_god_idle.png'),         death: A('sprites/bosses/worm_god_idle.png'),         portrait: A('sprites/bosses/worm_god_idle.png'),         cols: 1, rows: 1 },
 };
+
+// IDs of the painted boss-tier templates — used by combat to render
+// significantly larger and by world/shatter rotations to populate the
+// daily-rotation pool. Order MATCHES the day-of-week (Sun-Sat) for each
+// list so currentBoss/currentSpiritBoss can pick by `date.getDay()`.
+export const PAINTED_BOSS_IDS = new Set<string>([
+  'bonewake_dragon', 'plague_hydra', 'rot_phoenix', 'bone_cerberus',
+  'wraith_kraken', 'necro_sphinx', 'crimson_centaur',
+  'lich_king', 'bone_titan', 'plague_doctor', 'ash_empress',
+  'soul_reaper', 'voidlord', 'worm_god',
+]);
+export const WORLD_BOSS_BY_DAY = [
+  'bonewake_dragon',  // Sun
+  'plague_hydra',     // Mon
+  'rot_phoenix',      // Tue
+  'bone_cerberus',    // Wed
+  'wraith_kraken',    // Thu
+  'necro_sphinx',     // Fri
+  'crimson_centaur',  // Sat
+];
+export const SHATTER_BOSS_BY_DAY = [
+  'lich_king',     // Sun
+  'bone_titan',    // Mon
+  'plague_doctor', // Tue
+  'ash_empress',   // Wed
+  'soul_reaper',   // Thu
+  'voidlord',      // Fri
+  'worm_god',      // Sat
+];
