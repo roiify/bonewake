@@ -60,14 +60,39 @@ export default function SquadPicker({ title = 'Your Squad', onChange }: Props) {
     if (squad.length < 3) setSquad([...squad, hid]);
   }
 
+  async function autoFill() {
+    const eligible = heroes
+      .filter(h => !HIDDEN_HERO_IDS.has(h.templateId))
+      .filter(h => !!HERO_BY_ID[h.templateId])
+      .map(h => ({ h, power: calcHeroStats(h, equipment).power }))
+      .sort((a, b) => b.power - a.power);
+    if (eligible.length === 0) return;
+    // If Manny is in the top picks, special-case: he occupies the squad
+    // alone (with his two summons auto-included via toggleHero).
+    const topManny = eligible.find(e => e.h.templateId === MANNY_TPL);
+    if (topManny && eligible[0].h.id === topManny.h.id) {
+      const summonIds = await ensureMannySummons();
+      setSquad([topManny.h.id, ...summonIds]);
+      return;
+    }
+    setSquad(eligible.slice(0, 3).filter(e => e.h.templateId !== MANNY_TPL).map(e => e.h.id).slice(0, 3));
+  }
+
   return (
     <div className="rounded-md border border-emerald-900/50 bg-emerald-950/20 p-3">
       <div className="flex items-center justify-between mb-2">
         <div className="font-pixel text-[10px] text-emerald-300">{title} ({squad.length}/3)</div>
-        <button
-          className="btn-pixel text-[10px] px-2 py-1"
-          onClick={() => setEditing(e => !e)}
-        >{editing ? 'Done' : 'Edit'}</button>
+        <div className="flex gap-1">
+          <button
+            className="btn-pixel text-[10px] px-2 py-1"
+            onClick={autoFill}
+            title="Auto-pick the top-3 heroes by power"
+          >Auto</button>
+          <button
+            className="btn-pixel text-[10px] px-2 py-1"
+            onClick={() => setEditing(e => !e)}
+          >{editing ? 'Done' : 'Edit'}</button>
+        </div>
       </div>
       <div className="grid grid-cols-3 gap-2">
         {[0, 1, 2].map(i => {
