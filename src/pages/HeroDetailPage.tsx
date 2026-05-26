@@ -8,6 +8,7 @@ import { EQUIP_BY_ID } from '../data/equipment';
 import { BASE_BY_ID, LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/loot';
 import { equipPower, equipQuality, affixTier, tierColor as affixTierColor } from '../lib/loot';
 import { HeroBadges } from '../components/ui/HeroBadges';
+import HeroFrame from '../components/ui/HeroFrame';
 import { db, type OwnedEquipment } from '../lib/db';
 import { MYTHIC_COLOR, SET_BY_HERO } from '../data/ultimateGear';
 import { GEMS, GEM_BY_ID, GEM_TIER_COLOR, ULT_GEM_BY_HERO, gemInventoryKey } from '../data/gems';
@@ -259,28 +260,53 @@ export default function HeroDetailPage() {
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400 hover:text-zinc-200">← Back</button>
 
-      {/* Portrait card */}
-      <div className="rounded-lg border-2 bg-zinc-900 p-4 text-center" style={{ borderColor: tpl.color }}>
-        <div className="relative aspect-square w-40 mx-auto rounded-lg flex items-center justify-center mb-2 overflow-hidden"
-          style={{ background: `radial-gradient(circle, ${tpl.color}40, transparent)` }}
+      {/* Painted hero card frame — Nano Banana asset. Portrait lives
+          inside the transparent center; gilded plate at bottom is the
+          name label. Badges + tier overlay the corners. */}
+      <div className="relative -mx-1">
+        {/* Radial color wash behind the frame for ambient rarity glow */}
+        <div
+          className="absolute inset-0 rounded-lg pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse at center, ${tpl.color}1f 0%, transparent 65%)`,
+          }}
+        />
+        <HeroFrame
+          nameLabel={tpl.name}
+          nameColor={tpl.color}
+          className="mx-auto max-w-[280px]"
         >
           {HERO_PORTRAITS[tpl.id] ? (
-            <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="relative w-[90%] h-[90%] object-contain drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]" style={{ imageRendering: 'pixelated' }} />
+            <img
+              src={HERO_PORTRAITS[tpl.id]}
+              alt={tpl.name}
+              className="w-full h-full object-contain drop-shadow-[0_3px_6px_rgba(0,0,0,0.85)]"
+              style={{ imageRendering: 'pixelated' }}
+            />
           ) : (
-            <div className="relative text-6xl drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]">{tpl.emoji}</div>
+            <div className="text-7xl drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]">{tpl.emoji}</div>
           )}
-          <div className="absolute top-1 right-1 z-10">
-            <HeroBadges archetype={tpl.archetype} element={tpl.element} size={22} />
+        </HeroFrame>
+        {/* Badges in top-right of the frame */}
+        <div className="absolute top-2 right-3 z-10">
+          <HeroBadges archetype={tpl.archetype} element={tpl.element} size={22} />
+        </div>
+        {/* Star tier in top-left */}
+        <div className="absolute top-2 left-3 z-10">
+          <div
+            className="rounded-full px-2 py-1 font-pixel text-[10px]"
+            style={{
+              background: '#0a0a0aee',
+              border: `1px solid ${tierColor(hero.star)}`,
+              color: tierColor(hero.star),
+              boxShadow: `0 0 6px ${tierColor(hero.star)}88`,
+            }}
+          >
+            {tierLabel(hero.star)}
           </div>
         </div>
-        <div className="font-pixel text-base text-zinc-100">{tpl.name}</div>
-        <div className="text-sm font-pixel" style={{ color: tierColor(hero.star) }}>{tierLabel(hero.star)}</div>
-        <div className="text-[10px] text-zinc-500 italic mt-1">"{tpl.flavor}"</div>
-        <div className="flex justify-center gap-2 mt-2 text-[10px]">
-          <span className="px-2 py-0.5 rounded bg-zinc-800 capitalize" style={{ color: tpl.color }}>{tpl.element}</span>
-          <span className="px-2 py-0.5 rounded bg-zinc-800 capitalize">{tpl.archetype}</span>
-        </div>
       </div>
+      <div className="text-[10px] text-zinc-500 italic text-center -mt-1 mb-1">"{tpl.flavor}"</div>
 
       {/* Stats */}
       <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
