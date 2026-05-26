@@ -57,10 +57,6 @@ export interface Profile {
 }
 
 export interface GameSettings {
-  master: number;
-  bgm: number;
-  sfx: number;
-  muted: boolean;
   defaultBattleSpeed: 1 | 2 | 4 | 8;
   showScanlines: boolean;
   reduceMotion: boolean;
@@ -68,15 +64,23 @@ export interface GameSettings {
 }
 
 export const DEFAULT_SETTINGS: GameSettings = {
-  master: 0.6,
-  bgm: 0.5,
-  sfx: 0.8,
-  muted: false,
   defaultBattleSpeed: 2,
   showScanlines: false,
   reduceMotion: false,
   manualUltTrigger: false,
 };
+
+export function normalizeSettings(settings?: Partial<GameSettings> | null): GameSettings {
+  const speed = settings?.defaultBattleSpeed;
+  return {
+    defaultBattleSpeed: speed === 1 || speed === 2 || speed === 4 || speed === 8
+      ? speed
+      : DEFAULT_SETTINGS.defaultBattleSpeed,
+    showScanlines: settings?.showScanlines ?? DEFAULT_SETTINGS.showScanlines,
+    reduceMotion: settings?.reduceMotion ?? DEFAULT_SETTINGS.reduceMotion,
+    manualUltTrigger: settings?.manualUltTrigger ?? DEFAULT_SETTINGS.manualUltTrigger,
+  };
+}
 
 export interface LifetimeStats {
   battlesWon: number;

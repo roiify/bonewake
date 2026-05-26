@@ -1,29 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '../store/profile';
-import { DEFAULT_SETTINGS, type GameSettings } from '../lib/db';
-import { sound } from '../lib/audio';
+import { DEFAULT_SETTINGS, normalizeSettings, type GameSettings } from '../lib/db';
 import { useEffect, useRef, useState } from 'react';
 import BackupsPanel from '../components/BackupsPanel';
-
-function Slider({ label, value, onChange, suffix }: { label: string; value: number; onChange: (n: number) => void; suffix?: string }) {
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-[11px]">
-        <span className="text-zinc-300">{label}</span>
-        <span className="font-pixel text-amber-300">{Math.round(value * 100)}{suffix ?? '%'}</span>
-      </div>
-      <input
-        type="range"
-        min={0}
-        max={1}
-        step={0.05}
-        value={value}
-        onChange={e => onChange(Number(e.target.value))}
-        className="w-full accent-amber-400"
-      />
-    </div>
-  );
-}
 
 function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -41,17 +20,9 @@ export default function SettingsPage() {
   const navigate = useNavigate();
   const profile = useProfile(s => s.profile);
   const patch = useProfile(s => s.patch);
-  const [s, setS] = useState<GameSettings>(profile.settings ?? DEFAULT_SETTINGS);
+  const [s, setS] = useState<GameSettings>(normalizeSettings(profile.settings));
   const latestRef = useRef(s);
   latestRef.current = s;
-
-  // Persist + apply on change. Audio settings are debounced (sliders fire fast);
-  // everything else is written immediately so taps survive a fast nav-away.
-  useEffect(() => {
-    sound.applySettings({ master: s.master, bgm: s.bgm, sfx: s.sfx, muted: s.muted });
-    const t = setTimeout(() => { patch({ settings: latestRef.current }); }, 200);
-    return () => clearTimeout(t);
-  }, [s]);
 
   // Flush any pending write on unmount so quick taps + navigate-away still save.
   useEffect(() => {
@@ -61,28 +32,20 @@ export default function SettingsPage() {
   function update<K extends keyof GameSettings>(key: K, value: GameSettings[K]) {
     setS(prev => {
       const next = { ...prev, [key]: value };
-      // Non-slider settings: write immediately, don't rely on debounce.
-      if (key !== 'master' && key !== 'bgm' && key !== 'sfx') {
-        patch({ settings: next });
-      }
+      patch({ settings: next });
       return next;
     });
+  }
+
+  function resetSettings() {
+    setS({ ...DEFAULT_SETTINGS });
+    patch({ settings: { ...DEFAULT_SETTINGS } });
   }
 
   return (
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
       <h2 className="font-pixel text-sm">⚙️ Settings</h2>
-
-      {/* Audio */}
-      <div className="rounded-md border border-zinc-800 bg-zinc-900 p-3 space-y-3">
-        <div className="font-pixel text-xs text-amber-300">Audio</div>
-        <Toggle label="Mute all audio" value={s.muted} onChange={v => update('muted', v)} />
-        <Slider label="Master Volume"   value={s.master} onChange={v => update('master', v)} />
-        <Slider label="Music"           value={s.bgm}    onChange={v => update('bgm', v)} />
-        <Slider label="Sound Effects"   value={s.sfx}    onChange={v => update('sfx', v)} />
-        <button className="btn-pixel w-full" onClick={() => sound.playSfx('click')}>Test SFX</button>
-      </div>
 
       {/* Battle */}
       <div className="rounded-md border border-zinc-800 bg-zinc-900 p-3 space-y-3">
@@ -113,11 +76,11 @@ export default function SettingsPage() {
 
       <button
         className="btn-pixel danger w-full"
-        onClick={() => setS({ ...DEFAULT_SETTINGS })}
+        onClick={resetSettings}
       >Reset settings to defaults</button>
 
       <div className="text-[9px] text-zinc-600 text-center pt-2">
-        Settings save automatically. Audio unlocks after first tap.
+        Settings save automatically.
       </div>
     </div>
   );

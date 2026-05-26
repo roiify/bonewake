@@ -1,7 +1,6 @@
 import { create } from 'zustand';
-import { db, type Profile, DEFAULT_PROFILE } from '../lib/db';
+import { db, type Profile, DEFAULT_PROFILE, normalizeSettings } from '../lib/db';
 import { xpForLevel } from '../lib/stats';
-import { sound } from '../lib/audio';
 
 interface ProfileState {
   profile: Profile;
@@ -23,8 +22,13 @@ export const useProfile = create<ProfileState>((set, get) => ({
   loaded: false,
   load: async () => {
     const p = await db.profile.get({ id: 'me' });
-    if (p) set({ profile: p, loaded: true });
-    else set({ loaded: true });
+    if (p) {
+      const normalized = { ...p, settings: normalizeSettings(p.settings) };
+      if (JSON.stringify(p.settings) !== JSON.stringify(normalized.settings)) {
+        await db.profile.put(normalized);
+      }
+      set({ profile: normalized, loaded: true });
+    } else set({ loaded: true });
   },
   patch: async (p) => {
     const current = get().profile;
@@ -77,7 +81,6 @@ export const useProfile = create<ProfileState>((set, get) => ({
     }
     // On level-up, refill energy to cap (common gacha pattern, keeps players playing)
     const leveledUp = level > startLevel;
-    if (leveledUp) sound.playSfx('levelup');
     await get().patch({
       level,
       exp,

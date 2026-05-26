@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { sound } from '../lib/audio';
 
 export interface ChestReward {
   icon: string;       // emoji
@@ -29,7 +28,6 @@ export default function ChestOpen({ open, rarity = 'rare', rewards, onClose }: P
   useEffect(() => {
     if (!open) return;
     setPhase('shake');
-    sound.playSfx('pull');
     const t1 = setTimeout(() => setPhase('burst'), 900);
     const t2 = setTimeout(() => setPhase('reveal'), 1300);
     return () => { clearTimeout(t1); clearTimeout(t2); };

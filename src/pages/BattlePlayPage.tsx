@@ -29,7 +29,6 @@ import { recordEvent } from '../lib/lifetime';
 import { maybeRollGem, addGemToInventory } from '../lib/gems';
 import { GEM_TIER_COLOR, GEM_TIER_NAME } from '../data/gems';
 import type { GemDef } from '../data/gems';
-import { sound } from '../lib/audio';
 
 const SQUAD_KEY = 'bonewake_squad';
 
@@ -220,9 +219,6 @@ export default function BattlePlayPage() {
     if (impactedTick.current === tick) return; // already applied — guard pause/unpause race
     impactedTick.current = tick;
     const action = battle.log[tick];
-    if (action.ult) sound.playSfx('ult');
-    else if (action.crit) sound.playSfx('hit');
-    else if (action.dmg > 0) sound.playSfx('hit');
     setUnits(prev => {
       const next = { ...prev };
       const dst = { ...next[action.dst] };
@@ -270,7 +266,6 @@ export default function BattlePlayPage() {
     if (done || !battle || !stage) return;
     setDone(true);
     const won = battle.winner === 'player';
-    sound.playSfx(won ? 'victory' : 'defeat');
 
     // Trial mode short-circuit: trials don't drop chapter loot, don't track
     // stage clears, and have a daily-limit ledger keyed in IndexedDB.

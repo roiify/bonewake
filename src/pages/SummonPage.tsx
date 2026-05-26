@@ -12,7 +12,6 @@ import type { HeroTemplate, Rarity, SummonPool } from '../types';
 import { uid } from '../lib/id';
 import { addFragments, DUP_FRAGMENT_VALUE } from '../lib/fragments';
 import { recordEvent } from '../lib/lifetime';
-import { sound } from '../lib/audio';
 import { tierLabel, tierColor } from '../lib/tier';
 
 function rarityGlow(star: number) {
@@ -94,7 +93,6 @@ export default function SummonPage() {
 
     setStage('capsule');
     setReveal(enriched);
-    sound.playSfx('pull');
     setTimeout(() => setStage('reveal'), 900);
   }
 

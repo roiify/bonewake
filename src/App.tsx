@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { initSave, DEFAULT_SETTINGS } from './lib/db';
+import { initSave } from './lib/db';
 import { useProfile } from './store/profile';
-import { ensureAudioInit, sound } from './lib/audio';
 import { sendMail } from './lib/mail';
 import { maybeAutoBackup, maybeNagToExportBackup, maybeOfferGhostWipeRescue, restoreFromMirror } from './lib/backup';
 import { maybeNotifyPatchNotes } from './lib/patchNotes';
@@ -38,7 +37,6 @@ import ShopPage from './pages/ShopPage';
 import DungeonsPage from './pages/DungeonsPage';
 import WorldBossPage from './pages/WorldBossPage';
 import TalentsPage from './pages/TalentsPage';
-import { BgmRouter } from './components/BgmRouter';
 import ResetPage from './pages/ResetPage';
 
 export default function App() {
@@ -53,12 +51,6 @@ export default function App() {
       await loadProfile();
       await loadHeroes();
       await loadItems();
-      // Apply audio settings from profile
-      const s = useProfile.getState().profile.settings ?? DEFAULT_SETTINGS;
-      sound.applySettings(s);
-      // Audio inits on first user gesture
-      const unlock = () => { ensureAudioInit(); sound.applySettings(s); window.removeEventListener('pointerdown', unlock); };
-      window.addEventListener('pointerdown', unlock, { once: true });
       // One-time: any gems that ended up on hero.gems (during the brief
       // hero-bound experiment) come back to the player's inventory. Gems
       // live on equipment again — re-socket them per-piece.
@@ -126,7 +118,6 @@ export default function App() {
 
   return (
     <BrowserRouter basename={basename || undefined}>
-      <BgmRouter />
       <Routes>
         <Route element={<Shell />}>
           <Route path="/" element={<HomePage />} />
