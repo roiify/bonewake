@@ -18,7 +18,7 @@ import { genLoot } from '../lib/loot';
 import { GEMS, GEM_TIER_NAME, GEM_TIER_COLOR } from '../data/gems';
 import { addGemToInventory } from '../lib/gems';
 import { addMaterial } from '../lib/crafting';
-import { MAT_SOULSHARD, essenceItemId } from '../data/ultimateGear';
+import { MAT_SOULSHARD, MAT_SCRAP, MAT_ARCANE_DUST, MAT_RELIC_SHARD, MATERIAL_META, essenceItemId } from '../data/ultimateGear';
 import { useHeroes as useHeroesStore } from '../store/heroes';
 
 // Generic reveal item — every pool kind boils down to one of these so
@@ -189,9 +189,29 @@ export default function SummonPage() {
       const lo = pool.materialSoulshardMin ?? 5;
       const hi = pool.materialSoulshardMax ?? 15;
       const essenceChance = pool.materialEssenceChance ?? 0;
+      // Forge-mat drop chances — rolled BEFORE essence so they don't compete
+      // with the essence chance. Scrap 25% / Arcane Dust 10% / Relic Shard 3%.
+      // Independent rolls — a pull can land both a Scrap pile AND essence.
       for (let i = 0; i < count; i++) {
+        // Forge mat (independent roll)
+        const matRoll = Math.random();
+        if (matRoll < 0.03) {
+          await addMaterial(MAT_RELIC_SHARD, 1);
+          enriched.push({ kind: 'material', name: MATERIAL_META[MAT_RELIC_SHARD].name, emoji: MATERIAL_META[MAT_RELIC_SHARD].emoji, color: '#fb7185', sub: '+1' });
+          continue;
+        } else if (matRoll < 0.13) {
+          const n = 1 + Math.floor(Math.random() * 2);
+          await addMaterial(MAT_ARCANE_DUST, n);
+          enriched.push({ kind: 'material', name: MATERIAL_META[MAT_ARCANE_DUST].name, emoji: MATERIAL_META[MAT_ARCANE_DUST].emoji, color: '#a855f7', sub: `+${n}` });
+          continue;
+        } else if (matRoll < 0.38) {
+          const n = 3 + Math.floor(Math.random() * 4);
+          await addMaterial(MAT_SCRAP, n);
+          enriched.push({ kind: 'material', name: MATERIAL_META[MAT_SCRAP].name, emoji: MATERIAL_META[MAT_SCRAP].emoji, color: '#9ca3af', sub: `+${n}` });
+          continue;
+        }
+        // Existing essence vs soulshard branches
         if (essenceChance > 0 && Math.random() < essenceChance) {
-          // Essence drop — pick a random non-hidden hero
           const candidates = HERO_TEMPLATES.filter(h => !HIDDEN_HERO_IDS.has(h.id));
           const hero = candidates[Math.floor(Math.random() * candidates.length)];
           await addMaterial(essenceItemId(hero.id), 1);

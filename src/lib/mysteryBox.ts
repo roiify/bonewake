@@ -1,31 +1,39 @@
 // Daily mystery box. One claim per local day. Random rewards from a weighted table.
 import { useProfile } from '../store/profile';
 import { addMaterial } from './crafting';
-import { MAT_SOULSHARD } from '../data/ultimateGear';
+import { MAT_SOULSHARD, MAT_SCRAP, MAT_ARCANE_DUST, MAT_RELIC_SHARD, MATERIAL_META } from '../data/ultimateGear';
 import { genLoot } from './loot';
 import { useHeroes } from '../store/heroes';
 import { addGemToInventory } from './gems';
 import { GEMS } from '../data/gems';
 import type { ChestReward } from '../components/ChestOpen';
 
-type DropKind = 'gold' | 'gems' | 'friend' | 'soulshard' | 'energy' | 'equipment' | 'gem';
+type DropKind = 'gold' | 'gems' | 'friend' | 'soulshard' | 'energy' | 'equipment' | 'gem' | 'forge_mat';
 
 interface Drop {
   kind: DropKind;
   weight: number;
   rollAmount: () => number;
+  // For forge_mat drops only: which mat ID gets granted.
+  matId?: string;
 }
 
 const TABLE: Drop[] = [
-  { kind: 'gold',      weight: 30, rollAmount: () => 500 + Math.floor(Math.random() * 1500) },
-  { kind: 'gold',      weight: 10, rollAmount: () => 3000 + Math.floor(Math.random() * 2000) },
-  { kind: 'gems',      weight: 25, rollAmount: () => 20 + Math.floor(Math.random() * 30) },
-  { kind: 'gems',      weight: 5,  rollAmount: () => 100 + Math.floor(Math.random() * 100) },
-  { kind: 'friend',    weight: 10, rollAmount: () => 10 + Math.floor(Math.random() * 20) },
+  { kind: 'gold',      weight: 28, rollAmount: () => 500 + Math.floor(Math.random() * 1500) },
+  { kind: 'gold',      weight: 8,  rollAmount: () => 3000 + Math.floor(Math.random() * 2000) },
+  { kind: 'gems',      weight: 22, rollAmount: () => 20 + Math.floor(Math.random() * 30) },
+  { kind: 'gems',      weight: 4,  rollAmount: () => 100 + Math.floor(Math.random() * 100) },
+  { kind: 'friend',    weight: 8,  rollAmount: () => 10 + Math.floor(Math.random() * 20) },
   { kind: 'soulshard', weight: 8,  rollAmount: () => 3 + Math.floor(Math.random() * 7) },
-  { kind: 'energy',    weight: 5,  rollAmount: () => 30 + Math.floor(Math.random() * 50) },
-  { kind: 'equipment', weight: 5,  rollAmount: () => 1 },
+  { kind: 'energy',    weight: 4,  rollAmount: () => 30 + Math.floor(Math.random() * 50) },
+  { kind: 'equipment', weight: 4,  rollAmount: () => 1 },
   { kind: 'gem',       weight: 2,  rollAmount: () => 1 },
+  // Forge mats: scrap is common (8), arcane dust uncommon (3),
+  // relic shard rare (1). Legendary essence is NOT in mystery box
+  // by design — only Legendary salvage / boss kills can grant it.
+  { kind: 'forge_mat', weight: 8,  rollAmount: () => 3 + Math.floor(Math.random() * 5), matId: MAT_SCRAP },
+  { kind: 'forge_mat', weight: 3,  rollAmount: () => 1 + Math.floor(Math.random() * 2), matId: MAT_ARCANE_DUST },
+  { kind: 'forge_mat', weight: 1,  rollAmount: () => 1,                                  matId: MAT_RELIC_SHARD },
 ];
 
 function pickDrop(): Drop {
@@ -91,6 +99,14 @@ export async function claimMysteryBox(): Promise<ChestReward[]> {
         if (gem) {
           await addGemToInventory(gem.id, 1);
           rewards.push({ icon: gem.emoji, label: gem.name, color: '#a855f7' });
+        }
+        break;
+      }
+      case 'forge_mat': {
+        if (d.matId) {
+          await addMaterial(d.matId, amount);
+          const meta = MATERIAL_META[d.matId];
+          rewards.push({ icon: meta?.emoji ?? '⚒', label: `+${amount} ${meta?.name ?? d.matId}`, color: '#a78bfa' });
         }
         break;
       }

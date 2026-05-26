@@ -4,7 +4,7 @@ import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import { useItems } from '../store/items';
 import { addMaterial } from './crafting';
-import { MAT_SOULSHARD } from '../data/ultimateGear';
+import { MAT_SOULSHARD, MATERIAL_META } from '../data/ultimateGear';
 import { genLoot } from './loot';
 import { addFragments } from './fragments';
 import { isoWeek } from '../data/tower';
@@ -120,6 +120,10 @@ export async function buyShopItem(item: ShopItem): Promise<BuyResult> {
     case 'heroFragment':
       await addFragments(item.grant.heroId, item.grant.count);
       grantedStr = `+${item.grant.count} ${item.grant.heroId} fragments`;
+      break;
+    case 'forgeMat':
+      await addMaterial(item.grant.matId, item.grant.amount);
+      grantedStr = `+${item.grant.amount} ${MATERIAL_META[item.grant.matId]?.name ?? item.grant.matId}`;
       break;
   }
 

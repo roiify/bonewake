@@ -11,7 +11,8 @@ export type ShopGrantKind =
   | { kind: 'equipmentCrate'; minRarity: 1 | 2 | 3 | 4 | 5; count: number }
   | { kind: 'summonTicketStandard'; count: number }   // free standard pulls
   | { kind: 'summonTicketStellar'; count: number }   // free premium pulls
-  | { kind: 'heroFragment'; heroId: string; count: number };
+  | { kind: 'heroFragment'; heroId: string; count: number }
+  | { kind: 'forgeMat'; matId: string; amount: number };  // forge crafting mats
 
 export interface ShopItem {
   id: string;
@@ -37,11 +38,22 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: 'friend_pack',   category: 'currency', name: 'Friend Pack',   description: '+50 friend points.', emoji: '🤝',
     cost: { currency: 'gold', amount: 2000 }, grant: { kind: 'friendPoints', amount: 50 }, dailyLimit: 3 },
 
-  // Materials
+  // Materials — soulshards
   { id: 'shard_small',   category: 'materials', name: 'Soulshard Pouch', description: '+10 Soulshards.', emoji: '💠',
     cost: { currency: 'gems', amount: 100 }, grant: { kind: 'soulshard', amount: 10 }, dailyLimit: 3 },
   { id: 'shard_bulk',    category: 'materials', name: 'Soulshard Chest', description: '+50 Soulshards.', emoji: '🪙',
     cost: { currency: 'gems', amount: 400 }, grant: { kind: 'soulshard', amount: 50 }, weeklyLimit: 2 },
+
+  // Materials — forge mats (Scrap/Dust gold-priced for daily restocks,
+  // Shard/Essence gem-priced to keep them rare).
+  { id: 'forge_scrap_pack',  category: 'materials', name: 'Scrap Pack',        description: '+20 Scrap.',        emoji: '🔩',
+    cost: { currency: 'gold', amount: 3000 }, grant: { kind: 'forgeMat', matId: 'mat_scrap', amount: 20 }, dailyLimit: 5 },
+  { id: 'forge_dust_pack',   category: 'materials', name: 'Arcane Dust Pack',  description: '+5 Arcane Dust.',   emoji: '✨',
+    cost: { currency: 'gold', amount: 8000 }, grant: { kind: 'forgeMat', matId: 'mat_arcane_dust', amount: 5 }, dailyLimit: 3 },
+  { id: 'forge_shard_pack',  category: 'materials', name: 'Relic Shard',       description: '+1 Relic Shard.',   emoji: '🟪',
+    cost: { currency: 'gems', amount: 60 },   grant: { kind: 'forgeMat', matId: 'mat_relic_shard', amount: 1 },  dailyLimit: 2 },
+  { id: 'forge_essence',     category: 'materials', name: 'Legendary Essence', description: '+1 Legendary Essence.', emoji: '🌟',
+    cost: { currency: 'gems', amount: 250 },  grant: { kind: 'forgeMat', matId: 'mat_legendary_essence', amount: 1 }, weeklyLimit: 2 },
 
   // Summon tickets
   { id: 'ticket_std',    category: 'tickets', name: 'Standard Ticket', description: '1 free standard wish.', emoji: '🎟️',

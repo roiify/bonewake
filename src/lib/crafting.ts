@@ -184,23 +184,51 @@ export function setPiecesEquippedFor(
 export interface ClearDrop {
   soulshards: number;
   essences: { heroId: string; count: number }[];
+  // Forge mats from the salvage/crafting system. Bosses ALWAYS drop a
+  // forge mat (tier scales with chapter). Regular clears have a smaller
+  // chance to drop low-tier mats. This gives players a non-salvage path
+  // to fill the forge wallet.
+  forgeMats: { matId: string; count: number }[];
 }
 
 export function rollClearDrops(stageChapter: number, isBoss: boolean): ClearDrop {
-  // Economy alignment (post-cost-bump): ~+50% shards, ~+30% essence
-  // chance, +1 essence count on bosses. Compensates for the 2.5× ult
-  // gear cost without making farming feel infinite.
   const shards = isBoss
-    ? 8 + Math.floor(Math.random() * 8) + stageChapter * 2  // 8-15 + chapter bonus (was 5-10)
-    : 1 + Math.floor(Math.random() * 4);                    // 1-4 (was 1-3)
+    ? 8 + Math.floor(Math.random() * 8) + stageChapter * 2
+    : 1 + Math.floor(Math.random() * 4);
   const essences: { heroId: string; count: number }[] = [];
-  // Essence chance: 100% on boss 3-star, ~35% on regular 3-star (was 25%)
   const rollEssence = isBoss ? 1.0 : 0.35;
   if (Math.random() < rollEssence) {
     const allSets = ULTIMATE_SETS;
     const set = allSets[Math.floor(Math.random() * allSets.length)];
-    const count = isBoss ? 3 + Math.floor(Math.random() * 3) : 1;  // boss 3-5 (was 2-4)
+    const count = isBoss ? 3 + Math.floor(Math.random() * 3) : 1;
     essences.push({ heroId: set.heroId, count });
   }
-  return { soulshards: shards, essences };
+
+  // Forge mat drops — tier-gated by chapter so early game gives Scrap
+  // and Arcane Dust shows up around chapter 10. Bosses always drop
+  // one mat at a tier appropriate to the chapter.
+  const forgeMats: { matId: string; count: number }[] = [];
+  // Import IDs lazily to avoid a circular import; using literal strings.
+  const MAT_SCRAP = 'mat_scrap';
+  const MAT_ARCANE_DUST = 'mat_arcane_dust';
+  const MAT_RELIC_SHARD = 'mat_relic_shard';
+  const MAT_LEGENDARY_ESSENCE = 'mat_legendary_essence';
+  if (isBoss) {
+    // Boss kills guarantee one forge mat. Tier scales with chapter:
+    //   ch 1-9  → Scrap (3-6)
+    //   ch 10-19 → Arcane Dust (1-2)
+    //   ch 20-26 → Relic Shard (1)
+    //   ch 27+   → Legendary Essence (1)
+    if (stageChapter < 10) forgeMats.push({ matId: MAT_SCRAP, count: 3 + Math.floor(Math.random() * 4) });
+    else if (stageChapter < 20) forgeMats.push({ matId: MAT_ARCANE_DUST, count: 1 + Math.floor(Math.random() * 2) });
+    else if (stageChapter < 27) forgeMats.push({ matId: MAT_RELIC_SHARD, count: 1 });
+    else forgeMats.push({ matId: MAT_LEGENDARY_ESSENCE, count: 1 });
+  } else {
+    // 40% chance to drop a small Scrap pile on regular 3-star clears.
+    // Chapter ≥10 also unlocks a 10% Arcane Dust drop on top.
+    if (Math.random() < 0.40) forgeMats.push({ matId: MAT_SCRAP, count: 1 + Math.floor(Math.random() * 3) });
+    if (stageChapter >= 10 && Math.random() < 0.10) forgeMats.push({ matId: MAT_ARCANE_DUST, count: 1 });
+  }
+
+  return { soulshards: shards, essences, forgeMats };
 }

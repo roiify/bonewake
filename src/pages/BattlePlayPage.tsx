@@ -274,7 +274,7 @@ export default function BattlePlayPage() {
   const [paused, setPaused] = useState(false);
   const [energyDeducted, setEnergyDeducted] = useState(false);
   const [lootDrops, setLootDrops] = useState<OwnedEquipment[]>([]);
-  const [matDrops, setMatDrops] = useState<{ kind: 'soulshard' | 'essence'; heroId?: string; count: number }[]>([]);
+  const [matDrops, setMatDrops] = useState<{ kind: 'soulshard' | 'essence' | 'forge'; heroId?: string; count: number; matId?: string }[]>([]);
   const [gemDrops, setGemDrops] = useState<GemDef[]>([]);
   const floatId = useRef(0);
   // Element refs keyed by unit id — used to compute the exact pixel offset
@@ -704,7 +704,7 @@ export default function BattlePlayPage() {
       // Crafting materials: only on a 3-star clear (perfect clear)
       if (stars === 3) {
         const mats = rollClearDrops(stage.chapter, isBoss);
-        const summary: { kind: 'soulshard' | 'essence'; heroId?: string; count: number }[] = [];
+        const summary: { kind: 'soulshard' | 'essence' | 'forge'; heroId?: string; count: number; matId?: string }[] = [];
         if (mats.soulshards > 0) {
           await addMaterial(MAT_SOULSHARD, mats.soulshards);
           summary.push({ kind: 'soulshard', count: mats.soulshards });
@@ -712,6 +712,12 @@ export default function BattlePlayPage() {
         for (const ess of mats.essences) {
           await addMaterial(essenceItemId(ess.heroId), ess.count);
           summary.push({ kind: 'essence', heroId: ess.heroId, count: ess.count });
+        }
+        // Forge mats granted from the same drop roll. Each one becomes a
+        // separate summary entry so the end-screen lists them individually.
+        for (const fm of mats.forgeMats) {
+          await addMaterial(fm.matId, fm.count);
+          summary.push({ kind: 'forge', matId: fm.matId, count: fm.count });
         }
         await useItems.getState().refresh();
         setMatDrops(summary);
@@ -1013,13 +1019,21 @@ export default function BattlePlayPage() {
                         className="flex items-center gap-2 rounded border-2 bg-zinc-950 px-2 py-1.5 text-left"
                         style={{ borderColor: '#fb7185' }}
                       >
-                        <span className="text-2xl">{m.kind === 'soulshard' ? MATERIAL_META[MAT_SOULSHARD].emoji : essenceMeta(m.heroId!).emoji}</span>
+                        <span className="text-2xl">
+                          {m.kind === 'soulshard' ? MATERIAL_META[MAT_SOULSHARD].emoji
+                            : m.kind === 'essence' ? essenceMeta(m.heroId!).emoji
+                            : MATERIAL_META[m.matId!]?.emoji ?? '⚒'}
+                        </span>
                         <div className="flex-1 min-w-0">
                           <div className="text-[11px] font-pixel text-rose-300">
-                            +{m.count} {m.kind === 'soulshard' ? 'Soulshard' : essenceMeta(m.heroId!).name}
+                            +{m.count} {m.kind === 'soulshard' ? 'Soulshard'
+                              : m.kind === 'essence' ? essenceMeta(m.heroId!).name
+                              : MATERIAL_META[m.matId!]?.name ?? m.matId}
                           </div>
                           <div className="text-[9px] text-zinc-500">
-                            {m.kind === 'soulshard' ? 'Crafts any ultimate piece' : `Crafts ${m.heroId}'s set`}
+                            {m.kind === 'soulshard' ? 'Crafts any ultimate piece'
+                              : m.kind === 'essence' ? `Crafts ${m.heroId}'s set`
+                              : MATERIAL_META[m.matId!]?.description ?? 'Forge material'}
                           </div>
                         </div>
                       </motion.div>
