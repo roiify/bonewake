@@ -37,7 +37,9 @@ export default function ProfilePage() {
       {/* Player card */}
       <div className="rounded-lg border-2 border-amber-600 bg-gradient-to-br from-amber-950/40 to-zinc-900 p-4">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-2xl font-pixel text-zinc-900">
+          <div className={`w-16 h-16 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center font-pixel text-zinc-900 ${
+            profile.level >= 100 ? 'text-base' : 'text-2xl'
+          }`}>
             {profile.level}
           </div>
           <div className="flex-1 min-w-0">

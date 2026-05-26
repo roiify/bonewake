@@ -28,7 +28,9 @@ export function Shell() {
         <Link to="/profile" className="flex items-center gap-2.5 hover:bg-zinc-900/40 rounded -m-1 p-1 transition-colors">
           {/* Level badge — beveled gold disc */}
           <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-base font-pixel"
+            className={`w-10 h-10 rounded-lg flex items-center justify-center font-pixel ${
+              profile.level >= 100 ? 'text-[11px]' : 'text-base'
+            }`}
             style={{
               background: 'linear-gradient(180deg, #fde68a 0%, #d97706 60%, #92400e 100%)',
               color: '#1a0f06',
