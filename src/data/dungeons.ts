@@ -10,7 +10,18 @@ export interface DungeonTier {
   energyCost: number;
   enemyLevel: number;
   enemyStar: number;
-  rewards: { gold?: number; exp?: number; gems?: number; equipmentMinRarity?: 1 | 2 | 3 | 4 | 5; equipmentCount?: number };
+  rewards: {
+    gold?: number;
+    exp?: number;
+    gems?: number;
+    equipmentMinRarity?: 1 | 2 | 3 | 4 | 5;
+    equipmentCount?: number;
+    // Economy alignment — tier-3 dungeons now also contribute to the
+    // ult-gear loop. Soulshard is a flat count; essence drops on a
+    // random hero so it doesn't trivialize specific-hero targeting.
+    soulshard?: number;
+    essenceRandomCount?: number;
+  };
 }
 
 export interface DungeonDef {
@@ -34,7 +45,7 @@ export const DUNGEONS: DungeonDef[] = [
     tiers: [
       { tier: 1, name: 'Surface Vein', energyCost: 6,  enemyLevel: 5,  enemyStar: 3, rewards: { gold: 800 } },
       { tier: 2, name: 'Deep Shaft',   energyCost: 12, enemyLevel: 15, enemyStar: 4, rewards: { gold: 2200 } },
-      { tier: 3, name: 'Mother Lode',  energyCost: 20, enemyLevel: 30, enemyStar: 5, rewards: { gold: 5500 } },
+      { tier: 3, name: 'Mother Lode',  energyCost: 20, enemyLevel: 30, enemyStar: 5, rewards: { gold: 5500, soulshard: 6 } },
     ],
   },
   {
@@ -60,7 +71,7 @@ export const DUNGEONS: DungeonDef[] = [
     tiers: [
       { tier: 1, name: 'Old Armory',      energyCost: 8,  enemyLevel: 5,  enemyStar: 3, rewards: { equipmentMinRarity: 2, equipmentCount: 2 } },
       { tier: 2, name: 'Knight\'s Hoard', energyCost: 14, enemyLevel: 15, enemyStar: 4, rewards: { equipmentMinRarity: 3, equipmentCount: 2 } },
-      { tier: 3, name: 'Royal Vault',     energyCost: 22, enemyLevel: 30, enemyStar: 5, rewards: { equipmentMinRarity: 4, equipmentCount: 2 } },
+      { tier: 3, name: 'Royal Vault',     energyCost: 22, enemyLevel: 30, enemyStar: 5, rewards: { equipmentMinRarity: 4, equipmentCount: 2, soulshard: 10, essenceRandomCount: 2 } },
     ],
   },
   {
@@ -73,7 +84,7 @@ export const DUNGEONS: DungeonDef[] = [
     tiers: [
       { tier: 1, name: 'Cracked Geode', energyCost: 10, enemyLevel: 10, enemyStar: 3, rewards: { gems: 25 } },
       { tier: 2, name: 'Sealed Vault',  energyCost: 18, enemyLevel: 20, enemyStar: 4, rewards: { gems: 75 } },
-      { tier: 3, name: 'Lich\'s Trove', energyCost: 28, enemyLevel: 35, enemyStar: 5, rewards: { gems: 200 } },
+      { tier: 3, name: 'Lich\'s Trove', energyCost: 28, enemyLevel: 35, enemyStar: 5, rewards: { gems: 200, soulshard: 8, essenceRandomCount: 3 } },
     ],
   },
 ];

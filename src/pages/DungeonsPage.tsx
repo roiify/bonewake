@@ -7,6 +7,8 @@ import { resolveBattle } from '../lib/combat';
 import { toCombatUnit, xpForLevel, effectiveMaxLevel } from '../lib/stats';
 import { recordEvent } from '../lib/lifetime';
 import { genLoot } from '../lib/loot';
+import { addMaterial } from '../lib/crafting';
+import { MAT_SOULSHARD, essenceItemId, ULTIMATE_SETS } from '../data/ultimateGear';
 import SquadPicker from '../components/SquadPicker';
 
 const SQUAD_KEY = 'bonewake_squad';
@@ -79,6 +81,19 @@ export default function DungeonsPage() {
         for (let i = 0; i < r.equipmentCount; i++) {
           const ilvl = Math.max(10, tier.enemyLevel * 2);
           await addEquipment(genLoot({ itemLevel: ilvl, minRarity: r.equipmentMinRarity, luckBoost: 0.3 }));
+        }
+      }
+      // Tier-3 dungeons drop ult-gear materials too — economy alignment
+      // so the gear loop has more sources beyond stage 3-stars + bosses.
+      if (r.soulshard) {
+        await addMaterial(MAT_SOULSHARD, r.soulshard);
+      }
+      if (r.essenceRandomCount && r.essenceRandomCount > 0) {
+        // Pick a random hero's essence per drop unit. Same probability
+        // distribution as boss-stage essence drops.
+        for (let i = 0; i < r.essenceRandomCount; i++) {
+          const set = ULTIMATE_SETS[Math.floor(Math.random() * ULTIMATE_SETS.length)];
+          await addMaterial(essenceItemId(set.heroId), 1);
         }
       }
       // Instant-skip also counts as a clear for unlock purposes (only

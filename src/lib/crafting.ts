@@ -157,16 +157,19 @@ export interface ClearDrop {
 }
 
 export function rollClearDrops(stageChapter: number, isBoss: boolean): ClearDrop {
+  // Economy alignment (post-cost-bump): ~+50% shards, ~+30% essence
+  // chance, +1 essence count on bosses. Compensates for the 2.5× ult
+  // gear cost without making farming feel infinite.
   const shards = isBoss
-    ? 5 + Math.floor(Math.random() * 6) + stageChapter * 2 // 5-10 + chapter bonus
-    : 1 + Math.floor(Math.random() * 3); // 1-3
+    ? 8 + Math.floor(Math.random() * 8) + stageChapter * 2  // 8-15 + chapter bonus (was 5-10)
+    : 1 + Math.floor(Math.random() * 4);                    // 1-4 (was 1-3)
   const essences: { heroId: string; count: number }[] = [];
-  // Essence chance: 100% on boss 3-star, ~25% on regular 3-star
-  const rollEssence = isBoss ? 1.0 : 0.25;
+  // Essence chance: 100% on boss 3-star, ~35% on regular 3-star (was 25%)
+  const rollEssence = isBoss ? 1.0 : 0.35;
   if (Math.random() < rollEssence) {
     const allSets = ULTIMATE_SETS;
     const set = allSets[Math.floor(Math.random() * allSets.length)];
-    const count = isBoss ? 2 + Math.floor(Math.random() * 3) : 1;
+    const count = isBoss ? 3 + Math.floor(Math.random() * 3) : 1;  // boss 3-5 (was 2-4)
     essences.push({ heroId: set.heroId, count });
   }
   return { soulshards: shards, essences };

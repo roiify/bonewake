@@ -56,13 +56,16 @@ export interface RewardTier {
   name: string;
   rewards: { gold: number; gems: number; soulshard: number };
 }
+// Economy alignment: soulshard rewards +50% across all tiers (was the
+// tightest source for endgame ult gear). Gems untouched — gacha is
+// already balanced for the doubled stellar cost.
 export const REWARD_TIERS: RewardTier[] = [
-  { pct: 0.01, name: 'Token',   rewards: { gold: 500,  gems: 10,  soulshard: 1 } },
-  { pct: 0.05, name: 'Bronze',  rewards: { gold: 1500, gems: 30,  soulshard: 5 } },
-  { pct: 0.15, name: 'Silver',  rewards: { gold: 3500, gems: 75,  soulshard: 15 } },
-  { pct: 0.30, name: 'Gold',    rewards: { gold: 8000, gems: 150, soulshard: 35 } },
-  { pct: 0.60, name: 'Mythic',  rewards: { gold: 15000,gems: 350, soulshard: 75 } },
-  { pct: 1.00, name: 'Slayer',  rewards: { gold: 40000,gems: 800, soulshard: 200 } },
+  { pct: 0.01, name: 'Token',   rewards: { gold: 500,  gems: 10,  soulshard: 2 } },
+  { pct: 0.05, name: 'Bronze',  rewards: { gold: 1500, gems: 30,  soulshard: 8 } },
+  { pct: 0.15, name: 'Silver',  rewards: { gold: 3500, gems: 75,  soulshard: 22 } },
+  { pct: 0.30, name: 'Gold',    rewards: { gold: 8000, gems: 150, soulshard: 50 } },
+  { pct: 0.60, name: 'Mythic',  rewards: { gold: 15000,gems: 350, soulshard: 110 } },
+  { pct: 1.00, name: 'Slayer',  rewards: { gold: 40000,gems: 800, soulshard: 300 } },
 ];
 
 export function tierFor(damagePct: number): RewardTier {

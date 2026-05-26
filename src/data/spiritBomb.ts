@@ -53,12 +53,13 @@ export interface SpiritTier {
   rewards: { gold: number; gems: number; soulshard: number };
 }
 
+// Economy alignment: soulshard rewards +50% (matches World Boss bump).
 export const SPIRIT_TIERS: SpiritTier[] = [
-  { pct: 0.10, name: 'Spark',   rewards: { gold: 1000, gems: 20,  soulshard: 3 } },
-  { pct: 0.25, name: 'Surge',   rewards: { gold: 2500, gems: 60,  soulshard: 10 } },
-  { pct: 0.50, name: 'Burst',   rewards: { gold: 6000, gems: 120, soulshard: 25 } },
-  { pct: 0.75, name: 'Wave',    rewards: { gold: 10000,gems: 250, soulshard: 50 } },
-  { pct: 1.00, name: 'Annihilation', rewards: { gold: 25000, gems: 600, soulshard: 150 } },
+  { pct: 0.10, name: 'Spark',   rewards: { gold: 1000, gems: 20,  soulshard: 5 } },
+  { pct: 0.25, name: 'Surge',   rewards: { gold: 2500, gems: 60,  soulshard: 15 } },
+  { pct: 0.50, name: 'Burst',   rewards: { gold: 6000, gems: 120, soulshard: 38 } },
+  { pct: 0.75, name: 'Wave',    rewards: { gold: 10000,gems: 250, soulshard: 75 } },
+  { pct: 1.00, name: 'Annihilation', rewards: { gold: 25000, gems: 600, soulshard: 225 } },
 ];
 
 export function spiritTierFor(pct: number): SpiritTier | null {

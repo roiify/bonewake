@@ -25,7 +25,7 @@ import SpriteAnimator from '../components/SpriteAnimator';
 import { genLoot } from '../lib/loot';
 import { LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/loot';
 import { rollClearDrops, addMaterial } from '../lib/crafting';
-import { MAT_SOULSHARD, essenceItemId, MATERIAL_META, essenceMeta } from '../data/ultimateGear';
+import { MAT_SOULSHARD, essenceItemId, MATERIAL_META, essenceMeta, ULTIMATE_SETS } from '../data/ultimateGear';
 import { useItems } from '../store/items';
 import { logBattle } from '../lib/battleLog';
 import { pickHotStages, COMPASS_REWARD } from '../data/compass';
@@ -592,6 +592,16 @@ export default function BattlePlayPage() {
             drops.push(item);
           }
           setLootDrops(drops);
+        }
+        // Tier-3 dungeon material drops (soulshard + random-hero essence).
+        // Mirrors the DungeonsPage instant-clear branch so Play and Skip
+        // grant the same payout.
+        if (r.soulshard) await addMaterial(MAT_SOULSHARD, r.soulshard);
+        if (r.essenceRandomCount && r.essenceRandomCount > 0) {
+          for (let i = 0; i < r.essenceRandomCount; i++) {
+            const set = ULTIMATE_SETS[Math.floor(Math.random() * ULTIMATE_SETS.length)];
+            await addMaterial(essenceItemId(set.heroId), 1);
+          }
         }
         markDungeonCleared(def.id, tier.tier);
         await recordEvent({ kind: 'battleWon' });
