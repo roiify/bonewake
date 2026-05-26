@@ -1209,9 +1209,20 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
         // sprites), so mirroring just makes them look uncanny. Leave the
         // orientation alone; darken + saturation tweak so they match the
         // gloomy battlefield instead of feeling studio-lit.
-        const wrapStyle = isPaintedBoss ? {
-          filter: 'brightness(0.78) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85))',
-        } : undefined;
+        // Per-sprite orientation overrides — some PixelLab heroes shipped
+        // facing the wrong way and the asset can't be flipped at source
+        // without re-generation. Mirror them at render time so the squad
+        // visually faces east toward the enemies. (Bigger animation
+        // container reserved for boss-tier so future attack atlases can
+        // grow without re-layout — see size constants above.)
+        const REVERSED_HEROES = new Set<string>(['chino']);
+        const flipHero = REVERSED_HEROES.has(unit.templateId);
+        const baseFilter = 'brightness(0.78) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85))';
+        const wrapStyle = isPaintedBoss
+          ? { filter: baseFilter }
+          : flipHero
+            ? { transform: 'scaleX(-1)' }
+            : undefined;
         return (
           <div className={`relative ${containerSize} flex items-end justify-center`} style={wrapStyle}>
             {animSrc ? (

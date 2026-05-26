@@ -541,12 +541,31 @@ export function resolveBattle(
     round++;
   }
 
-  // Player only wins if every enemy is dead. If the round cap hits and
-  // both sides still have units alive, the run counts as a loss (enemies
-  // survived). The old logic granted a fake 3-star win on timeout because
-  // it only checked whether the player side had survivors.
+  // Winner rule:
+  //   1. All enemies dead → player wins (kill-all victory).
+  //   2. All players dead → enemy wins (wipe loss).
+  //   3. Round cap hit with both sides standing → judged victory:
+  //        whichever side has more alive units wins;
+  //        ties break on higher total remaining-HP fraction;
+  //        if still tied, enemy wins (defender's advantage).
+  //      This replaces the old "round cap = always lose" rule, which
+  //      gave bogus DEFEATs when the player had wiped most enemies
+  //      but couldn't finish the last one in 60 rounds.
   const enemyAlive = e.some(u => u.alive);
   const playerAlive = p.some(u => u.alive);
-  const winner = !enemyAlive ? 'player' : !playerAlive ? 'enemy' : 'enemy';
+  let winner: 'player' | 'enemy';
+  if (!enemyAlive) winner = 'player';
+  else if (!playerAlive) winner = 'enemy';
+  else {
+    const aliveP = p.filter(u => u.alive).length;
+    const aliveE = e.filter(u => u.alive).length;
+    if (aliveP > aliveE) winner = 'player';
+    else if (aliveE > aliveP) winner = 'enemy';
+    else {
+      // Same alive count — compare remaining HP fractions
+      const hpFrac = (arr: typeof p) => arr.reduce((s, u) => s + (u.alive ? u.hp / Math.max(1, u.maxHp) : 0), 0);
+      winner = hpFrac(p) > hpFrac(e) ? 'player' : 'enemy';
+    }
+  }
   return { seed: s, winner, log, initial };
 }

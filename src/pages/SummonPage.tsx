@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from '../components/ui/Card';
 import { SUMMON_POOLS } from '../data/summonPools';
-import { HERO_BY_ID } from '../data/heroes';
+import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { pullOnce, pullTen } from '../lib/summon';
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
@@ -98,11 +98,11 @@ export default function SummonPage() {
   }
 
   return (
-    <div className="p-3 space-y-3">
+    <div className="p-3 space-y-4">
       <div>
         <h2 className="font-fantasy text-2xl tracking-widest text-amber-200" style={{ textShadow: '0 2px 0 rgba(0,0,0,0.95), 0 0 14px rgba(167,139,250,0.5)' }}>Summon</h2>
         <p className="text-[10px] text-zinc-400 leading-snug mt-1">
-          Pull heroes from the void. Stellar pulls have a guaranteed SSS at pity 120.
+          Pull heroes from the void · pull rates per banner shown below.
         </p>
       </div>
 
@@ -110,34 +110,100 @@ export default function SummonPage() {
         const featured = pool.featuredHeroId ? HERO_BY_ID[pool.featuredHeroId] : null;
         const currIcon = pool.cost.currency === 'gold' ? '🪙' : pool.cost.currency === 'gems' ? '💎' : '🤝';
         const isPremium = pool.id === 'premium';
+        const tenX = pool.cost.amount * 10; // 10-pull cost (no longer 9× — true cost shown)
+        const featuredPortrait = featured && HERO_PORTRAITS[featured.id];
+        const sssPct = (pool.rates[5] ?? 0) * 100;
+        const ssPct  = (pool.rates[4] ?? 0) * 100;
+        const sPct   = (pool.rates[3] ?? 0) * 100;
         return (
-          <Card key={pool.id} tint={featured?.color} goldFrame={isPremium}>
-            <div className="p-3">
-              <div className="flex items-start gap-3 mb-3">
-                <div
-                  className="w-16 h-16 rounded-lg flex items-center justify-center text-4xl border-2 shrink-0"
+          <Card key={pool.id} tint={featured?.color ?? (isPremium ? '#fbbf24' : undefined)} goldFrame={isPremium}>
+            {/* Featured-hero hero banner (Stellar only — much bigger) */}
+            {isPremium && featuredPortrait && (
+              <div className="relative h-40 overflow-hidden"
+                style={{
+                  background: `radial-gradient(ellipse at center, ${featured.color}33 0%, transparent 65%), linear-gradient(180deg, #1a0807 0%, #0a0303 100%)`,
+                }}
+              >
+                {/* Featured hero portrait, large + glowing */}
+                <img
+                  src={featuredPortrait}
+                  alt={featured.name}
+                  className="absolute right-2 bottom-0 h-40 w-auto object-contain"
                   style={{
-                    borderColor: featured?.color ?? '#3f3f46',
-                    background: `radial-gradient(circle at 30% 30%, ${featured?.color ?? '#3f3f46'}55, transparent 70%), #0c0a09`,
-                    boxShadow: featured ? `0 0 14px ${featured.color}55` : undefined,
+                    imageRendering: 'pixelated',
+                    filter: `drop-shadow(0 4px 12px ${featured.color}88) drop-shadow(0 0 24px ${featured.color}55)`,
                   }}
-                >
-                  {featured?.emoji ?? '🎁'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-pixel text-xs text-zinc-100 text-shadow-soft">{pool.name}</div>
-                  <div className="text-[10px] text-zinc-400 mt-0.5 leading-snug">{pool.description}</div>
-                  {pool.pityFive && (
-                    <div className="text-[10px] text-amber-400 mt-1 font-pixel">PITY {profile.pityCounter}/{pool.pityFive}</div>
-                  )}
+                />
+                {/* Banner title */}
+                <div className="relative z-10 p-3">
+                  <div className="font-fantasy text-lg tracking-widest text-amber-200"
+                    style={{ textShadow: `0 2px 0 rgba(0,0,0,0.9), 0 0 12px ${featured.color}88` }}>
+                    {pool.name}
+                  </div>
+                  <div className="text-[10px] text-zinc-300 mt-0.5 max-w-[60%]">
+                    Featured: <span style={{ color: featured.color }}>{featured.name}</span>
+                  </div>
+                  <div className="text-[9px] text-zinc-400 mt-1 italic max-w-[60%]">
+                    "{featured.flavor}"
+                  </div>
                 </div>
               </div>
+            )}
+            <div className="p-3">
+              {!isPremium && (
+                <div className="flex items-start gap-3 mb-3">
+                  <div
+                    className="w-14 h-14 rounded-lg flex items-center justify-center text-3xl border-2 shrink-0"
+                    style={{
+                      borderColor: pool.cost.currency === 'gold' ? '#fbbf24' : '#fb7185',
+                      background: '#0c0a09',
+                    }}
+                  >
+                    {currIcon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-pixel text-xs text-zinc-100 text-shadow-soft">{pool.name}</div>
+                    <div className="text-[10px] text-zinc-400 mt-0.5 leading-snug">{pool.description}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Pity bar — only Stellar has pity */}
+              {pool.pityFive && (
+                <div className="mb-3">
+                  <div className="flex items-center justify-between text-[10px] font-pixel mb-1">
+                    <span className="text-amber-300">SSS PITY</span>
+                    <span className="text-zinc-400">{profile.pityCounter}/{pool.pityFive}</span>
+                  </div>
+                  <div className="h-2 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+                    <div
+                      className="h-full transition-all"
+                      style={{
+                        width: `${Math.min(100, (profile.pityCounter / pool.pityFive) * 100)}%`,
+                        background: 'linear-gradient(90deg, #fbbf24, #fde68a)',
+                        boxShadow: '0 0 8px rgba(251,191,36,0.55)',
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Per-pull rates — exposed so the player can compare banners */}
+              <div className="grid grid-cols-3 gap-1.5 mb-3 text-[10px] font-pixel">
+                <RateChip label="SSS" pct={sssPct} color="#fbbf24" />
+                <RateChip label="SS"  pct={ssPct}  color="#a78bfa" />
+                <RateChip label="S"   pct={sPct}   color="#a3a3a3" />
+              </div>
+
+              {/* Pull buttons */}
               <div className="flex gap-2">
                 <button className="btn-pixel flex-1" onClick={() => doPull(pool, 1)}>
-                  Pull ×1 ({pool.cost.amount} {currIcon})
+                  Pull ×1<br />
+                  <span className="text-[9px] text-zinc-400">{pool.cost.amount} {currIcon}</span>
                 </button>
                 <button className="btn-pixel primary flex-1" onClick={() => doPull(pool, 10)}>
-                  Pull ×10 ({pool.cost.amount * 9} {currIcon})
+                  Pull ×10<br />
+                  <span className="text-[9px]">{tenX} {currIcon}</span>
                 </button>
               </div>
             </div>
@@ -203,6 +269,21 @@ export default function SummonPage() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function RateChip({ label, pct, color }: { label: string; pct: number; color: string }) {
+  return (
+    <div
+      className="px-1.5 py-0.5 rounded text-[8px] font-pixel"
+      style={{
+        background: `${color}22`,
+        border: `1px solid ${color}55`,
+        color,
+      }}
+    >
+      {label} {(pct * 100).toFixed(2)}%
     </div>
   );
 }

@@ -68,15 +68,18 @@ export function Shell() {
 
       <EnergyModal open={energyOpen} onClose={() => setEnergyOpen(false)} />
 
-      {/* Content — z-index above ash overlay */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-[max(12px,env(safe-area-inset-bottom))] relative z-10">
+      {/* Content — must NOT create its own stacking context, otherwise
+          fixed-position modals (z-50) inside pages can't escape it and
+          end up trapped beneath the bottom nav (z-20). Paint order keeps
+          main above the ash overlay since it's the later sibling. */}
+      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-[max(12px,env(safe-area-inset-bottom))]">
         <Outlet />
       </main>
 
       {/* Bottom nav */}
       <nav className="grid grid-cols-6 border-t border-zinc-800/80 bg-zinc-950/85 backdrop-blur z-20 sticky bottom-0 pb-[max(0px,env(safe-area-inset-bottom))]">
         <TabLink to="/" icon={<Home size={18} />} label="Home" />
-        <TabLink to="/battle" icon={<Swords size={18} />} label="Battle" />
+        <TabLink to="/battle" icon={<Swords size={18} />} label="Story" />
         <TabLink to="/modes" icon={<Flame size={18} />} label="Modes" />
         <TabLink to="/heroes" icon={<Users size={18} />} label="Heroes" />
         <TabLink to="/summon" icon={<Sparkles size={18} />} label="Summon" />

@@ -15,6 +15,36 @@ import { ensureMannySummons, MANNY_TPL } from '../lib/mannySummons';
 // Unpicking Manny clears the squad. While Manny is in the squad, no other
 // hero is selectable.
 
+// Element badge — quick-read corner icon so element-restricted trials
+// are scannable. Colors match the per-element battle effects so the
+// visual language stays consistent across the game.
+const ELEMENT_BADGE: Record<string, { glyph: string; bg: string; ring: string }> = {
+  fire:  { glyph: '🔥', bg: '#7c2d12', ring: '#fb923c' },
+  water: { glyph: '💧', bg: '#0c4a6e', ring: '#38bdf8' },
+  earth: { glyph: '🌿', bg: '#365314', ring: '#84cc16' },
+  light: { glyph: '✨', bg: '#78350f', ring: '#fde047' },
+  dark:  { glyph: '🌙', bg: '#3b0764', ring: '#a78bfa' },
+};
+
+function ElementBadge({ element }: { element?: string }) {
+  if (!element) return null;
+  const b = ELEMENT_BADGE[element];
+  if (!b) return null;
+  return (
+    <div
+      className="absolute top-0.5 right-0.5 z-10 w-5 h-5 rounded-full flex items-center justify-center text-[10px] leading-none"
+      style={{
+        background: b.bg,
+        border: `1px solid ${b.ring}`,
+        boxShadow: `0 0 4px ${b.ring}aa`,
+      }}
+      title={element}
+    >
+      {b.glyph}
+    </div>
+  );
+}
+
 const SQUAD_KEY = 'bonewake_squad';
 function loadSquad(): string[] {
   try { return JSON.parse(localStorage.getItem(SQUAD_KEY) ?? '[]'); } catch { return []; }
@@ -112,7 +142,8 @@ export default function SquadPicker({ title = 'Your Squad', onChange }: Props) {
           );
           const tpl = HERO_BY_ID[h.templateId];
           return (
-            <div key={id} className="rounded border bg-zinc-950 p-1.5 text-center" style={{ borderColor: tpl.color }}>
+            <div key={id} className="relative rounded border bg-zinc-950 p-1.5 text-center" style={{ borderColor: tpl.color }}>
+              <ElementBadge element={tpl.element} />
               <div className="aspect-square flex items-center justify-center overflow-hidden">
                 {HERO_PORTRAITS[tpl.id]
                   ? <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="w-[90%] h-[90%] object-contain" style={{ imageRendering: 'pixelated' }} />
@@ -147,8 +178,9 @@ export default function SquadPicker({ title = 'Your Squad', onChange }: Props) {
                   boxShadow: inSquad ? `0 0 18px ${tpl.color}, 0 0 8px #fbbf24` : undefined,
                 }}
               >
+                <ElementBadge element={tpl.element} />
                 {inSquad && (
-                  <div className="absolute -top-2 -right-2 z-10 w-6 h-6 rounded-full bg-amber-400 border-2 border-zinc-950 flex items-center justify-center text-zinc-950 font-pixel text-xs">
+                  <div className="absolute -top-2 -left-2 z-10 w-6 h-6 rounded-full bg-amber-400 border-2 border-zinc-950 flex items-center justify-center text-zinc-950 font-pixel text-xs">
                     ✓
                   </div>
                 )}

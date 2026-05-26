@@ -149,8 +149,14 @@ export default function TrainingPage() {
       </div>
 
       {picker && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-end" onClick={() => setPicker(false)}>
-          <div className="w-full max-w-[420px] mx-auto bg-zinc-900 border-t border-zinc-700 rounded-t-2xl p-3 max-h-[70vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-end pb-[72px]"
+          onClick={() => setPicker(false)}
+        >
+          <div
+            className="w-full max-w-[420px] mx-auto bg-zinc-900 border-t border-zinc-700 rounded-t-2xl p-3 pb-6 max-h-[calc(80vh-72px)] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="font-pixel text-xs mb-3">Pick hero to train</div>
             <div className="grid grid-cols-3 gap-2">
               {eligibleHeroes.map(h => {

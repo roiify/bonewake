@@ -106,7 +106,7 @@ export default function SpiritBombPage() {
 
   return (
     <div className="p-3 space-y-3 pb-5">
-      <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
+      <button onClick={() => navigate('/modes')} className="text-xs text-zinc-400">← Back</button>
 
       <PageHeader
         title="💥 Shatter"

@@ -112,7 +112,7 @@ export default function DungeonsPage() {
 
   return (
     <div className="p-3 space-y-3">
-      <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
+      <button onClick={() => navigate('/modes')} className="text-xs text-zinc-400">← Back</button>
       <PageHeader
         title="Material Dungeons"
         tagline={`Themed farming · today is ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()]}`}
