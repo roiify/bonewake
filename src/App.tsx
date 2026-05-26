@@ -31,6 +31,7 @@ import BagPage from './pages/BagPage';
 import DebugPage from './pages/DebugPage';
 import FragmentsPage from './pages/FragmentsPage';
 import CraftPage from './pages/CraftPage';
+import EquipForgePage from './pages/EquipForgePage';
 import TowerPage from './pages/TowerPage';
 import TrainingPage from './pages/TrainingPage';
 import AchievementsPage from './pages/AchievementsPage';
@@ -131,6 +132,7 @@ export default function App() {
           <Route path="/bag" element={<BagPage />} />
           <Route path="/fragments" element={<FragmentsPage />} />
           <Route path="/craft" element={<CraftPage />} />
+          <Route path="/forge" element={<EquipForgePage />} />
           <Route path="/tower" element={<TowerPage />} />
           <Route path="/training" element={<TrainingPage />} />
           <Route path="/achievements" element={<AchievementsPage />} />

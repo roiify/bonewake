@@ -1,12 +1,15 @@
 import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useHeroes } from '../store/heroes';
+import { useProfile } from '../store/profile';
 import { EQUIP_BY_ID } from '../data/equipment';
 import { HERO_BY_ID } from '../data/heroes';
 import { BASE_BY_ID, LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/loot';
-import { MYTHIC_COLOR } from '../data/ultimateGear';
+import { MYTHIC_COLOR, MATERIAL_META, MAT_SCRAP, MAT_ARCANE_DUST, MAT_RELIC_SHARD, MAT_LEGENDARY_ESSENCE } from '../data/ultimateGear';
 import { equipPower, equipQuality, affixTier, tierColor } from '../lib/loot';
 import type { OwnedEquipment } from '../lib/db';
-import { salvageEquipment, bulkSalvageBelow, upgradeCost, upgradeEquipment, MAX_UPGRADE_LEVEL, salvageValue } from '../lib/equipmentMgmt';
+import { salvageEquipment, bulkSalvageRarities, upgradeCost, upgradeEquipment, MAX_UPGRADE_LEVEL, salvageValue } from '../lib/equipmentMgmt';
+import { DEFAULT_SETTINGS, normalizeSettings } from '../lib/db';
 import PageHeader from '../components/ui/PageHeader';
 
 function itemDisplayName(eq: OwnedEquipment): string {
@@ -46,16 +49,30 @@ function statLabel(stat: string, value: number): string {
 export default function BagPage() {
   const equipment = useHeroes(s => s.equipment);
   const heroes = useHeroes(s => s.heroes);
+  const profile = useProfile(s => s.profile);
+  const patchProfile = useProfile(s => s.patch);
   const [filterRarity, setFilterRarity] = useState<number | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [salvageModal, setSalvageModal] = useState(false);
+  // Pull persisted auto-salvage state from profile settings, falling back
+  // to DEFAULT_SETTINGS (Common+Magic on, rest off).
+  const settings = normalizeSettings(profile.settings);
+  const autoSalvage = settings.autoSalvage ?? DEFAULT_SETTINGS.autoSalvage!;
+  const [rarityChecks, setRarityChecks] = useState<Record<number, boolean>>({
+    1: !!autoSalvage[1], 2: !!autoSalvage[2], 3: !!autoSalvage[3], 4: !!autoSalvage[4], 5: !!autoSalvage[5],
+  });
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 1500); };
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2200); };
 
   async function doSalvage(id: string) {
     if (!confirm('Salvage this item permanently?')) return;
     const r = await salvageEquipment(id);
-    if (r.ok && r.granted) showToast(`+${r.granted.gold} 🪙${r.granted.gems ? ` +${r.granted.gems} 💎` : ''}`);
+    if (r.ok && r.granted) {
+      const matStr = Object.entries(r.granted.mats)
+        .map(([id, n]) => `+${n} ${MATERIAL_META[id]?.emoji ?? '?'}`).join(' ');
+      showToast(`+${r.granted.gold} 🪙${r.granted.gems ? ` +${r.granted.gems} 💎` : ''}${matStr ? ' · ' + matStr : ''}`);
+    }
     setSelected(null);
   }
   async function doUpgrade(id: string) {
@@ -63,11 +80,19 @@ export default function BagPage() {
     if (r.ok) showToast('+1 upgrade');
     else showToast(r.error ?? 'Failed');
   }
-  async function doBulkSalvage(maxR: number) {
-    const label = ['Common','Common','Magic','Rare','Epic','Legendary'][maxR] ?? 'low';
-    if (!confirm(`Salvage ALL unequipped items up to ${label}?`)) return;
-    const r = await bulkSalvageBelow(maxR);
-    showToast(`Salvaged ${r.count} items · +${r.granted.gold} 🪙${r.granted.gems ? ` +${r.granted.gems} 💎` : ''}`);
+  async function doSalvageSelected() {
+    // Persist the rarity check state to profile settings so it sticks
+    const newAuto = { ...autoSalvage, ...rarityChecks } as Record<number, boolean>;
+    await patchProfile({ settings: { ...settings, autoSalvage: newAuto } });
+    const set = new Set<number>(
+      Object.entries(rarityChecks).filter(([_, on]) => on).map(([r]) => Number(r))
+    );
+    if (set.size === 0) { showToast('Pick at least one rarity'); return; }
+    const r = await bulkSalvageRarities(set);
+    const matStr = Object.entries(r.granted.mats)
+      .map(([id, n]) => `${MATERIAL_META[id]?.emoji ?? '?'} +${n}`).join(' · ');
+    showToast(`Salvaged ${r.count} · +${r.granted.gold} 🪙${r.granted.gems ? ` +${r.granted.gems} 💎` : ''}${matStr ? ' · ' + matStr : ''}`);
+    setSalvageModal(false);
   }
 
   const sorted = useMemo(() => {
@@ -112,14 +137,15 @@ export default function BagPage() {
         </div>
       </div>
 
-      {/* Bulk salvage */}
-      {sorted.length > 5 && (
-        <div className="flex gap-1.5">
-          <button className="btn-pixel flex-1" onClick={() => doBulkSalvage(1)}>Salvage Commons</button>
-          <button className="btn-pixel flex-1" onClick={() => doBulkSalvage(2)}>+ Magic</button>
-          <button className="btn-pixel flex-1" onClick={() => doBulkSalvage(3)}>+ Rare</button>
-        </div>
-      )}
+      {/* Bulk salvage + crafting hub */}
+      <div className="flex gap-1.5">
+        <button className="btn-pixel flex-1" onClick={() => setSalvageModal(true)}>
+          🔨 Salvage
+        </button>
+        <Link to="/forge" className="btn-pixel primary flex-1 text-center">
+          ⚒ Forge
+        </Link>
+      </div>
 
       {sorted.length === 0 ? (
         <div className="text-center text-xs text-zinc-500 py-10">
@@ -253,6 +279,95 @@ export default function BagPage() {
         </div>
       )}
 
+      {/* Salvage modal — pick which rarities to scrap. Choice persists
+          in profile.settings.autoSalvage so the modal re-opens with
+          the same boxes checked. Mat preview comes from salvageValue()
+          so the player sees what they'd get before committing. */}
+      {salvageModal && (() => {
+        const ratityRows: Array<{ r: LootRarity; label: string; color: string }> = [
+          { r: 1, label: 'Common',    color: LOOT_RARITY_COLOR[1] },
+          { r: 2, label: 'Magic',     color: LOOT_RARITY_COLOR[2] },
+          { r: 3, label: 'Rare',      color: LOOT_RARITY_COLOR[3] },
+          { r: 4, label: 'Epic',      color: LOOT_RARITY_COLOR[4] },
+          { r: 5, label: 'Legendary', color: LOOT_RARITY_COLOR[5] },
+        ];
+        const selectedCount = equipment.filter(e =>
+          !e.equippedTo && !e.craftedPieceId && rarityChecks[(e.rarity ?? 1) as number]
+        ).length;
+        // Mat preview: average mat per piece × selected count
+        const matPreview: Record<string, number> = {};
+        for (const eq of equipment) {
+          const r = (eq.rarity ?? 1) as number;
+          if (e_OK(eq) && rarityChecks[r]) {
+            // Use the canonical drop curve (mid-range estimate, not random)
+            if (r === 1) matPreview[MAT_SCRAP] = (matPreview[MAT_SCRAP] ?? 0) + 2;
+            else if (r === 2) matPreview[MAT_SCRAP] = (matPreview[MAT_SCRAP] ?? 0) + 3;
+            else if (r === 3) {
+              matPreview[MAT_SCRAP] = (matPreview[MAT_SCRAP] ?? 0) + 2;
+              matPreview[MAT_ARCANE_DUST] = (matPreview[MAT_ARCANE_DUST] ?? 0) + 1;
+            } else if (r === 4) {
+              matPreview[MAT_ARCANE_DUST] = (matPreview[MAT_ARCANE_DUST] ?? 0) + 2;
+              matPreview[MAT_RELIC_SHARD] = (matPreview[MAT_RELIC_SHARD] ?? 0) + 1;
+            } else if (r === 5) {
+              matPreview[MAT_RELIC_SHARD] = (matPreview[MAT_RELIC_SHARD] ?? 0) + 1;
+              matPreview[MAT_LEGENDARY_ESSENCE] = (matPreview[MAT_LEGENDARY_ESSENCE] ?? 0) + 1;
+            }
+          }
+        }
+        return (
+          <div className="fixed inset-0 z-50 bg-black/85 flex items-end pb-[72px]" onClick={() => setSalvageModal(false)}>
+            <div className="w-full max-w-[420px] mx-auto bg-zinc-900 border-t-2 border-amber-700 rounded-t-2xl p-3 max-h-[calc(85vh-72px)] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="font-pixel text-sm text-amber-300 mb-2">🔨 Salvage Equipment</div>
+              <div className="text-[10px] text-zinc-400 mb-3">
+                Pick which rarities to scrap. Choices remember next time. Equipped + Mythic items are skipped automatically.
+              </div>
+              <div className="space-y-1.5 mb-3">
+                {ratityRows.map(({ r, label, color }) => {
+                  const count = equipment.filter(eq => !eq.equippedTo && !eq.craftedPieceId && ((eq.rarity ?? 1) as number) === r).length;
+                  return (
+                    <label key={r}
+                      className={`flex items-center gap-2 rounded border-2 px-2 py-1.5 cursor-pointer transition-opacity ${rarityChecks[r] ? '' : 'opacity-50'}`}
+                      style={{ borderColor: color, background: rarityChecks[r] ? `${color}15` : 'transparent' }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={!!rarityChecks[r]}
+                        onChange={e => setRarityChecks({ ...rarityChecks, [r]: e.target.checked })}
+                        className="w-4 h-4 accent-amber-500"
+                      />
+                      <span className="font-pixel text-xs flex-1" style={{ color }}>{label}</span>
+                      <span className="text-[10px] text-zinc-400">{count} items</span>
+                    </label>
+                  );
+                })}
+              </div>
+              {selectedCount > 0 && Object.keys(matPreview).length > 0 && (
+                <div className="rounded bg-zinc-950 border border-zinc-800 p-2 mb-3">
+                  <div className="text-[10px] text-zinc-500 mb-1">~ Expected mats:</div>
+                  <div className="flex flex-wrap gap-2 text-[11px]">
+                    {Object.entries(matPreview).map(([id, n]) => (
+                      <span key={id} className="font-pixel text-zinc-200">
+                        {MATERIAL_META[id]?.emoji} {n}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button className="btn-pixel flex-1" onClick={() => setSalvageModal(false)}>Cancel</button>
+                <button
+                  className="btn-pixel danger flex-1"
+                  disabled={selectedCount === 0}
+                  onClick={doSalvageSelected}
+                >
+                  Salvage {selectedCount} item{selectedCount === 1 ? '' : 's'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {toast && (
         <div className="fixed bottom-20 left-0 right-0 max-w-[420px] mx-auto px-3 z-50">
           <div className="rounded-md border border-emerald-700 bg-emerald-900/80 text-emerald-100 text-[11px] font-pixel p-2 text-center">{toast}</div>
@@ -260,4 +375,9 @@ export default function BagPage() {
       )}
     </div>
   );
+}
+
+// Helper used inside the salvage modal closure
+function e_OK(eq: OwnedEquipment): boolean {
+  return !eq.equippedTo && !eq.craftedPieceId;
 }
