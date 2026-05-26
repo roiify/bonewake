@@ -19,8 +19,9 @@ import { toCombatUnit } from '../lib/stats';
 import { recordEvent } from '../lib/lifetime';
 import { addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD } from '../data/ultimateGear';
-import { HERO_BY_ID, HERO_PORTRAITS, ENEMY_SPRITES } from '../data/heroes';
+import { ENEMY_SPRITES } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
+import SquadPicker from '../components/SquadPicker';
 
 const SQUAD_KEY = 'bonewake_squad';
 function loadSquad(): string[] {
@@ -204,29 +205,7 @@ export default function TowerPage() {
         </div>
       )}
 
-      {/* Squad preview */}
-      <div className="rounded-md border border-emerald-900/50 bg-emerald-950/20 p-3">
-        <div className="font-pixel text-[10px] text-emerald-300 mb-2">Your Squad</div>
-        <div className="grid grid-cols-3 gap-2">
-          {loadSquad().map(id => {
-            const h = heroes.find(x => x.id === id);
-            if (!h) return null;
-            const tpl = HERO_BY_ID[h.templateId];
-            return (
-              <div key={id} className="rounded border bg-zinc-950 p-1.5 text-center" style={{ borderColor: tpl.color }}>
-                <div className="aspect-square flex items-center justify-center overflow-hidden">
-                  {HERO_PORTRAITS[tpl.id] ? <StaticSprite src={HERO_PORTRAITS[tpl.id]} size={50} /> : <div className="text-2xl">{tpl.emoji}</div>}
-                </div>
-                <div className="text-[9px] truncate" style={{ color: tpl.color }}>{tpl.name}</div>
-                <div className="text-[8px] text-zinc-500">LVL:{h.level}</div>
-              </div>
-            );
-          })}
-          {loadSquad().length === 0 && (
-            <div className="col-span-3 text-[10px] text-zinc-500 text-center">No squad set. Visit Battle to set one.</div>
-          )}
-        </div>
-      </div>
+      <SquadPicker />
 
       {/* Climb buttons — Play (animated) + Skip (instant). Skip is always
           available because tower floors are one-shot per attempt; there is
