@@ -326,9 +326,16 @@ export default function StagePrebattlePage() {
           {[0, 1, 2].map(i => {
             const u = playerUnits[i];
             if (!u) return (
-              <div key={i} className="rounded border-2 border-dashed border-zinc-700 p-2 text-center bg-zinc-950 aspect-square flex items-center justify-center">
+              <button
+                key={i}
+                type="button"
+                onClick={() => setPicker(true)}
+                className="rounded border-2 border-dashed border-zinc-700 p-2 text-center bg-zinc-950 aspect-square flex flex-col items-center justify-center gap-0.5 hover:border-emerald-500 hover:bg-emerald-950/30 active:scale-95 transition"
+                aria-label="Add hero to squad"
+              >
+                <span className="text-2xl text-zinc-600 leading-none">＋</span>
                 <span className="text-[10px] text-zinc-600">empty</span>
-              </div>
+              </button>
             );
             const portrait = HERO_PORTRAITS[u.templateId];
             return (
