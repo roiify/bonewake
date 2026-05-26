@@ -1205,8 +1205,18 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
         const isPaintedBoss = PAINTED_BOSS_IDS.has(unit.templateId);
         const containerSize = isPaintedBoss ? 'w-72 h-72' : 'w-44 h-44';
         const renderSize = isPaintedBoss ? 400 : (heroSprites ? 234 : 220);
+        // Painted bosses were generated facing forward/right. When they
+        // appear on the enemy side (right column) they need to MIRROR so
+        // they face the heroes; a darkening + saturation filter matches
+        // them to the gloomy battlefield instead of glowing studio-light.
+        const wrapStyle = isPaintedBoss && side === 'enemy' ? {
+          transform: 'scaleX(-1)',
+          filter: 'brightness(0.78) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85))',
+        } : isPaintedBoss ? {
+          filter: 'brightness(0.78) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85))',
+        } : undefined;
         return (
-          <div className={`relative ${containerSize} flex items-end justify-center`}>
+          <div className={`relative ${containerSize} flex items-end justify-center`} style={wrapStyle}>
             {animSrc ? (
               <SpriteAnimator
                 src={animSrc}
