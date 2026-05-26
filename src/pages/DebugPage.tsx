@@ -154,8 +154,8 @@ export default function DebugPage() {
     if (!confirm('TESTING — Max everything?\n\nGrants all heroes at max stats, crafts every ultimate set + socket gem, auto-equips, sockets ult gems into ult weapons.')) return;
 
     // 1. Top up currencies + materials so crafts never fail mid-flight,
-    //    and slam the player profile to level 999.
-    await patch({ level: 999, exp: 0, gold: 999_999_999, gems: 9_999_999, energy: 100, friendPoints: 99_999 });
+    //    and slam the player profile to PLAYER_MAX_LEVEL.
+    await patch({ level: 200, exp: 0, gold: 999_999_999, gems: 9_999_999, energy: 100, friendPoints: 99_999 });
     await addMaterial(MAT_SOULSHARD, 10_000);
     for (const s of ULTIMATE_SETS) await addMaterial(essenceItemId(s.heroId), 10_000);
 
@@ -165,9 +165,10 @@ export default function DebugPage() {
     for (const tpl of HERO_TEMPLATES) {
       const allTalents = TALENT_TREE.filter(t => t.heroId === tpl.id).map(t => t.id);
       const existing = ownedByTpl.get(tpl.id);
-      // After patching player level to 999 above, heroes can scale all the
-      // way up — effectiveMaxLevel respects both the star cap and player level.
-      const maxLevel = effectiveMaxLevel(MAX_STAR, 999);
+      // After patching player level to PLAYER_MAX_LEVEL above, heroes
+      // scale all the way up — effectiveMaxLevel respects both the star
+      // cap and player level.
+      const maxLevel = effectiveMaxLevel(MAX_STAR, 200);
       if (existing) {
         await db.heroes.update(existing.id, {
           star: MAX_STAR,

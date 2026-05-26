@@ -89,10 +89,13 @@ function mkChapter(opts: {
   for (let i = 0; i < 5; i++) {
     const num = i + 1;
     const isBoss = num === 5;
-    const level = opts.baseLevel + i * 4;
+    // Tightened intra-chapter ramp (+2/stage instead of +4) so 20 chapters
+    // fit inside a 158-196 enemy-level band — keeps everything below the
+    // PLAYER_MAX_LEVEL of 200 with the boss landing slightly above.
+    const level = opts.baseLevel + i * 2;
     const s = opts.stages[i];
     const enemyTeam = isBoss
-      ? [E(s.enemies[0], level, 5), E(opts.bossEnemy, level + 5, 6), E(s.enemies[2], level, 5)]
+      ? [E(s.enemies[0], level, 5), E(opts.bossEnemy, level + 2, 6), E(s.enemies[2], level, 5)]
       : s.enemies.map(t => E(t, level, 5));
     const gold = isBoss ? opts.baseGold * 2 : opts.baseGold + i * 500;
     const exp = isBoss ? opts.baseExp * 2 : opts.baseExp + i * 300;
@@ -279,7 +282,7 @@ export const STAGES: Stage[] = [
   // Ch10 — The Abyssal Maw
   // === Ch 10-14: NECROPOLIS ROYALTY ===
   // royal_lich, bone_executioner, gilded_revenant, crypt_assassin, plague_priest
-  ...mkChapter({ chapter: 10, baseLevel: 155, baseGold: 8000, baseExp: 4500, baseEnergy: 42, baseGems: 650, bossEnemy: 'royal_lich',
+  ...mkChapter({ chapter: 10, baseLevel: 158, baseGold: 8000, baseExp: 4500, baseEnergy: 42, baseGems: 650, bossEnemy: 'royal_lich',
     stages: [
       { name: 'Lip of the Maw',             enemies: ['crypt_assassin', 'plague_priest', 'crypt_assassin'] },
       { name: 'First Descent',              enemies: ['plague_priest', 'crypt_assassin', 'plague_priest'] },
@@ -287,7 +290,7 @@ export const STAGES: Stage[] = [
       { name: 'Marrow Spines',              enemies: ['gilded_revenant', 'bone_executioner', 'gilded_revenant'] },
       { name: 'Maw Boss: Royal Lich',       enemies: ['gilded_revenant', 'royal_lich', 'bone_executioner'] },
     ]}),
-  ...mkChapter({ chapter: 11, baseLevel: 170, baseGold: 9500, baseExp: 5200, baseEnergy: 44, baseGems: 700, bossEnemy: 'bone_executioner',
+  ...mkChapter({ chapter: 11, baseLevel: 160, baseGold: 9500, baseExp: 5200, baseEnergy: 44, baseGems: 700, bossEnemy: 'bone_executioner',
     stages: [
       { name: 'Drowned Pier',               enemies: ['crypt_assassin', 'plague_priest', 'crypt_assassin'] },
       { name: 'Bloated March',              enemies: ['plague_priest', 'gilded_revenant', 'plague_priest'] },
@@ -295,7 +298,7 @@ export const STAGES: Stage[] = [
       { name: 'The Long Pier',              enemies: ['royal_lich', 'bone_executioner', 'royal_lich'] },
       { name: 'Tide Boss: The Executioner', enemies: ['gilded_revenant', 'bone_executioner', 'royal_lich'] },
     ]}),
-  ...mkChapter({ chapter: 12, baseLevel: 185, baseGold: 11000, baseExp: 5900, baseEnergy: 46, baseGems: 750, bossEnemy: 'gilded_revenant',
+  ...mkChapter({ chapter: 12, baseLevel: 162, baseGold: 11000, baseExp: 5900, baseEnergy: 46, baseGems: 750, bossEnemy: 'gilded_revenant',
     stages: [
       { name: 'Burnt Wall',                 enemies: ['gilded_revenant', 'crypt_assassin', 'gilded_revenant'] },
       { name: 'Starved Bailey',             enemies: ['plague_priest', 'bone_executioner', 'plague_priest'] },
@@ -303,7 +306,7 @@ export const STAGES: Stage[] = [
       { name: 'The Iron Pyre',              enemies: ['bone_executioner', 'royal_lich', 'bone_executioner'] },
       { name: 'Famine Boss: Gilded King',   enemies: ['royal_lich', 'gilded_revenant', 'bone_executioner'] },
     ]}),
-  ...mkChapter({ chapter: 13, baseLevel: 200, baseGold: 12500, baseExp: 6600, baseEnergy: 48, baseGems: 800, bossEnemy: 'crypt_assassin',
+  ...mkChapter({ chapter: 13, baseLevel: 164, baseGold: 12500, baseExp: 6600, baseEnergy: 48, baseGems: 800, bossEnemy: 'crypt_assassin',
     stages: [
       { name: 'First Spire',                enemies: ['crypt_assassin', 'plague_priest', 'crypt_assassin'] },
       { name: 'Choking Stairs',             enemies: ['plague_priest', 'crypt_assassin', 'plague_priest'] },
@@ -311,7 +314,7 @@ export const STAGES: Stage[] = [
       { name: 'Black Vein',                 enemies: ['plague_priest', 'royal_lich', 'plague_priest'] },
       { name: 'Spire Boss: The Twin Daggers', enemies: ['crypt_assassin', 'crypt_assassin', 'royal_lich'] },
     ]}),
-  ...mkChapter({ chapter: 14, baseLevel: 215, baseGold: 14000, baseExp: 7300, baseEnergy: 50, baseGems: 850, bossEnemy: 'plague_priest',
+  ...mkChapter({ chapter: 14, baseLevel: 166, baseGold: 14000, baseExp: 7300, baseEnergy: 50, baseGems: 850, bossEnemy: 'plague_priest',
     stages: [
       { name: 'Twilight Walk',              enemies: ['plague_priest', 'plague_priest', 'crypt_assassin'] },
       { name: 'Last Sunbeam',               enemies: ['plague_priest', 'royal_lich', 'plague_priest'] },
@@ -322,7 +325,7 @@ export const STAGES: Stage[] = [
 
   // === Ch 15-19: ABYSSAL CRYPTS ===
   // void_zombie, abyssal_warden, shade_caller, dread_knight, corpse_hound
-  ...mkChapter({ chapter: 15, baseLevel: 230, baseGold: 15500, baseExp: 8000, baseEnergy: 52, baseGems: 900, bossEnemy: 'dread_knight',
+  ...mkChapter({ chapter: 15, baseLevel: 168, baseGold: 15500, baseExp: 8000, baseEnergy: 52, baseGems: 900, bossEnemy: 'dread_knight',
     stages: [
       { name: 'Ember Road',                 enemies: ['void_zombie', 'corpse_hound', 'void_zombie'] },
       { name: 'Smouldering Hall',           enemies: ['shade_caller', 'void_zombie', 'shade_caller'] },
@@ -330,7 +333,7 @@ export const STAGES: Stage[] = [
       { name: 'Crown Spire',                enemies: ['dread_knight', 'abyssal_warden', 'dread_knight'] },
       { name: 'Ash Boss: Dread Knight',     enemies: ['abyssal_warden', 'dread_knight', 'shade_caller'] },
     ]}),
-  ...mkChapter({ chapter: 16, baseLevel: 245, baseGold: 17000, baseExp: 8700, baseEnergy: 54, baseGems: 950, bossEnemy: 'abyssal_warden',
+  ...mkChapter({ chapter: 16, baseLevel: 170, baseGold: 17000, baseExp: 8700, baseEnergy: 54, baseGems: 950, bossEnemy: 'abyssal_warden',
     stages: [
       { name: 'Rotwood Trail',              enemies: ['corpse_hound', 'corpse_hound', 'void_zombie'] },
       { name: 'Hollow Thicket',             enemies: ['void_zombie', 'shade_caller', 'void_zombie'] },
@@ -338,7 +341,7 @@ export const STAGES: Stage[] = [
       { name: 'Wormwood Gate',              enemies: ['dread_knight', 'abyssal_warden', 'dread_knight'] },
       { name: 'March Boss: Abyssal Warden', enemies: ['dread_knight', 'abyssal_warden', 'corpse_hound'] },
     ]}),
-  ...mkChapter({ chapter: 17, baseLevel: 260, baseGold: 18500, baseExp: 9400, baseEnergy: 56, baseGems: 1000, bossEnemy: 'shade_caller',
+  ...mkChapter({ chapter: 17, baseLevel: 172, baseGold: 18500, baseExp: 9400, baseEnergy: 56, baseGems: 1000, bossEnemy: 'shade_caller',
     stages: [
       { name: 'Wrecked Quay',               enemies: ['corpse_hound', 'shade_caller', 'corpse_hound'] },
       { name: 'Ghost Galleon',              enemies: ['shade_caller', 'void_zombie', 'shade_caller'] },
@@ -346,7 +349,7 @@ export const STAGES: Stage[] = [
       { name: 'Plague Wharf',               enemies: ['abyssal_warden', 'shade_caller', 'abyssal_warden'] },
       { name: 'Harbor Boss: Shade Caller',  enemies: ['dread_knight', 'shade_caller', 'abyssal_warden'] },
     ]}),
-  ...mkChapter({ chapter: 18, baseLevel: 275, baseGold: 20000, baseExp: 10100, baseEnergy: 58, baseGems: 1050, bossEnemy: 'corpse_hound',
+  ...mkChapter({ chapter: 18, baseLevel: 174, baseGold: 20000, baseExp: 10100, baseEnergy: 58, baseGems: 1050, bossEnemy: 'corpse_hound',
     stages: [
       { name: 'Mirage Road',                enemies: ['corpse_hound', 'corpse_hound', 'void_zombie'] },
       { name: 'Sand-Veiled Tomb',           enemies: ['void_zombie', 'corpse_hound', 'void_zombie'] },
@@ -354,7 +357,7 @@ export const STAGES: Stage[] = [
       { name: 'Withered Oasis',             enemies: ['dread_knight', 'corpse_hound', 'dread_knight'] },
       { name: 'Salt Boss: Hound King',      enemies: ['abyssal_warden', 'corpse_hound', 'corpse_hound'] },
     ]}),
-  ...mkChapter({ chapter: 19, baseLevel: 290, baseGold: 21500, baseExp: 10800, baseEnergy: 60, baseGems: 1100, bossEnemy: 'void_zombie',
+  ...mkChapter({ chapter: 19, baseLevel: 176, baseGold: 21500, baseExp: 10800, baseEnergy: 60, baseGems: 1100, bossEnemy: 'void_zombie',
     stages: [
       { name: 'Freezing Mouth',             enemies: ['void_zombie', 'shade_caller', 'void_zombie'] },
       { name: 'Forge of Ice',               enemies: ['void_zombie', 'abyssal_warden', 'void_zombie'] },
@@ -365,7 +368,7 @@ export const STAGES: Stage[] = [
 
   // === Ch 20-24: COSMIC CORRUPTION ===
   // starfall_lich, void_juggernaut, astral_archer, orb_caster, soul_devourer
-  ...mkChapter({ chapter: 20, baseLevel: 305, baseGold: 23000, baseExp: 11500, baseEnergy: 62, baseGems: 1150, bossEnemy: 'starfall_lich',
+  ...mkChapter({ chapter: 20, baseLevel: 178, baseGold: 23000, baseExp: 11500, baseEnergy: 62, baseGems: 1150, bossEnemy: 'starfall_lich',
     stages: [
       { name: 'Shard Plains',               enemies: ['astral_archer', 'orb_caster', 'astral_archer'] },
       { name: 'Mirror Tomb',                enemies: ['orb_caster', 'soul_devourer', 'orb_caster'] },
@@ -373,7 +376,7 @@ export const STAGES: Stage[] = [
       { name: 'Crystal Spine',              enemies: ['soul_devourer', 'void_juggernaut', 'soul_devourer'] },
       { name: 'Glass Boss: Starfall Lich',  enemies: ['void_juggernaut', 'starfall_lich', 'orb_caster'] },
     ]}),
-  ...mkChapter({ chapter: 21, baseLevel: 320, baseGold: 24500, baseExp: 12200, baseEnergy: 64, baseGems: 1200, bossEnemy: 'void_juggernaut',
+  ...mkChapter({ chapter: 21, baseLevel: 180, baseGold: 24500, baseExp: 12200, baseEnergy: 64, baseGems: 1200, bossEnemy: 'void_juggernaut',
     stages: [
       { name: 'Wing-Black Ridge',           enemies: ['astral_archer', 'astral_archer', 'orb_caster'] },
       { name: 'Skyless Vault',              enemies: ['orb_caster', 'soul_devourer', 'orb_caster'] },
@@ -381,7 +384,7 @@ export const STAGES: Stage[] = [
       { name: 'The High Plague',            enemies: ['starfall_lich', 'void_juggernaut', 'starfall_lich'] },
       { name: 'Sky Boss: Void Juggernaut',  enemies: ['void_juggernaut', 'void_juggernaut', 'starfall_lich'] },
     ]}),
-  ...mkChapter({ chapter: 22, baseLevel: 335, baseGold: 26000, baseExp: 12900, baseEnergy: 66, baseGems: 1250, bossEnemy: 'astral_archer',
+  ...mkChapter({ chapter: 22, baseLevel: 182, baseGold: 26000, baseExp: 12900, baseEnergy: 66, baseGems: 1250, bossEnemy: 'astral_archer',
     stages: [
       { name: 'Dusk Road',                  enemies: ['astral_archer', 'astral_archer', 'orb_caster'] },
       { name: 'Hollow Vespers',             enemies: ['astral_archer', 'soul_devourer', 'astral_archer'] },
@@ -389,7 +392,7 @@ export const STAGES: Stage[] = [
       { name: 'Mourning Vault',             enemies: ['starfall_lich', 'astral_archer', 'starfall_lich'] },
       { name: 'Dusk Boss: Astral Archer',   enemies: ['orb_caster', 'astral_archer', 'soul_devourer'] },
     ]}),
-  ...mkChapter({ chapter: 23, baseLevel: 350, baseGold: 27500, baseExp: 13600, baseEnergy: 68, baseGems: 1300, bossEnemy: 'orb_caster',
+  ...mkChapter({ chapter: 23, baseLevel: 184, baseGold: 27500, baseExp: 13600, baseEnergy: 68, baseGems: 1300, bossEnemy: 'orb_caster',
     stages: [
       { name: 'Iron Vein',                  enemies: ['orb_caster', 'astral_archer', 'orb_caster'] },
       { name: 'Pulse Tunnels',              enemies: ['astral_archer', 'orb_caster', 'astral_archer'] },
@@ -397,7 +400,7 @@ export const STAGES: Stage[] = [
       { name: 'Heart Chamber',              enemies: ['starfall_lich', 'orb_caster', 'starfall_lich'] },
       { name: 'Vein Boss: Orb Conclave',    enemies: ['orb_caster', 'orb_caster', 'starfall_lich'] },
     ]}),
-  ...mkChapter({ chapter: 24, baseLevel: 365, baseGold: 29000, baseExp: 14300, baseEnergy: 70, baseGems: 1350, bossEnemy: 'soul_devourer',
+  ...mkChapter({ chapter: 24, baseLevel: 186, baseGold: 29000, baseExp: 14300, baseEnergy: 70, baseGems: 1350, bossEnemy: 'soul_devourer',
     stages: [
       { name: 'Ash Cloister',               enemies: ['soul_devourer', 'orb_caster', 'soul_devourer'] },
       { name: 'Cinder Halls',               enemies: ['soul_devourer', 'astral_archer', 'soul_devourer'] },
@@ -408,7 +411,7 @@ export const STAGES: Stage[] = [
 
   // === Ch 25-29: FINAL APOCALYPSE ===
   // apocalypse_horror, world_eater_husk, blood_titan, ash_lord, final_revenant
-  ...mkChapter({ chapter: 25, baseLevel: 380, baseGold: 30500, baseExp: 15000, baseEnergy: 72, baseGems: 1400, bossEnemy: 'apocalypse_horror',
+  ...mkChapter({ chapter: 25, baseLevel: 188, baseGold: 30500, baseExp: 15000, baseEnergy: 72, baseGems: 1400, bossEnemy: 'apocalypse_horror',
     stages: [
       { name: 'Threshold Plains',           enemies: ['blood_titan', 'ash_lord', 'blood_titan'] },
       { name: 'Veiled Gate',                enemies: ['ash_lord', 'world_eater_husk', 'ash_lord'] },
@@ -416,7 +419,7 @@ export const STAGES: Stage[] = [
       { name: 'Other Court',                enemies: ['apocalypse_horror', 'final_revenant', 'apocalypse_horror'] },
       { name: 'Veil Boss: Apocalypse',      enemies: ['world_eater_husk', 'apocalypse_horror', 'blood_titan'] },
     ]}),
-  ...mkChapter({ chapter: 26, baseLevel: 395, baseGold: 32000, baseExp: 15700, baseEnergy: 74, baseGems: 1450, bossEnemy: 'world_eater_husk',
+  ...mkChapter({ chapter: 26, baseLevel: 190, baseGold: 32000, baseExp: 15700, baseEnergy: 74, baseGems: 1450, bossEnemy: 'world_eater_husk',
     stages: [
       { name: 'Throne Approach',            enemies: ['blood_titan', 'world_eater_husk', 'blood_titan'] },
       { name: 'Crimson Halls',              enemies: ['world_eater_husk', 'ash_lord', 'world_eater_husk'] },
@@ -424,7 +427,7 @@ export const STAGES: Stage[] = [
       { name: 'Inner Wound',                enemies: ['world_eater_husk', 'final_revenant', 'world_eater_husk'] },
       { name: 'Throne Boss: World-Eater',   enemies: ['blood_titan', 'world_eater_husk', 'apocalypse_horror'] },
     ]}),
-  ...mkChapter({ chapter: 27, baseLevel: 410, baseGold: 33500, baseExp: 16400, baseEnergy: 76, baseGems: 1500, bossEnemy: 'blood_titan',
+  ...mkChapter({ chapter: 27, baseLevel: 192, baseGold: 33500, baseExp: 16400, baseEnergy: 76, baseGems: 1500, bossEnemy: 'blood_titan',
     stages: [
       { name: 'Black Roots',                enemies: ['blood_titan', 'ash_lord', 'blood_titan'] },
       { name: 'Worm Hollow',                enemies: ['ash_lord', 'blood_titan', 'ash_lord'] },
@@ -432,7 +435,7 @@ export const STAGES: Stage[] = [
       { name: 'Mother Tree',                enemies: ['world_eater_husk', 'blood_titan', 'world_eater_husk'] },
       { name: 'Wood Boss: Blood Titan',     enemies: ['ash_lord', 'blood_titan', 'apocalypse_horror'] },
     ]}),
-  ...mkChapter({ chapter: 28, baseLevel: 425, baseGold: 35000, baseExp: 17100, baseEnergy: 78, baseGems: 1550, bossEnemy: 'ash_lord',
+  ...mkChapter({ chapter: 28, baseLevel: 194, baseGold: 35000, baseExp: 17100, baseEnergy: 78, baseGems: 1550, bossEnemy: 'ash_lord',
     stages: [
       { name: 'Sea of Corpses',             enemies: ['ash_lord', 'blood_titan', 'ash_lord'] },
       { name: 'Tide Wall',                  enemies: ['ash_lord', 'world_eater_husk', 'ash_lord'] },
@@ -440,7 +443,7 @@ export const STAGES: Stage[] = [
       { name: 'Wave of Bone',               enemies: ['ash_lord', 'final_revenant', 'ash_lord'] },
       { name: 'Tide Boss: Ash Lord',        enemies: ['blood_titan', 'ash_lord', 'world_eater_husk'] },
     ]}),
-  ...mkChapter({ chapter: 29, baseLevel: 440, baseGold: 38000, baseExp: 18000, baseEnergy: 80, baseGems: 1700, bossEnemy: 'final_revenant',
+  ...mkChapter({ chapter: 29, baseLevel: 196, baseGold: 38000, baseExp: 18000, baseEnergy: 80, baseGems: 1700, bossEnemy: 'final_revenant',
     bossItems: { weapon_5: 1, armor_5: 1, amulet_5: 1 },
     stages: [
       { name: 'Dreaming Vault',             enemies: ['apocalypse_horror', 'world_eater_husk', 'apocalypse_horror'] },

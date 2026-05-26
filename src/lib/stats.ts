@@ -12,6 +12,13 @@ import type { CombatUnit, Element, Archetype, Rarity } from '../types';
 export const STAR_MULT = [1.0, 1.0, 1.25, 1.55, 1.95, 2.45, 3.05];
 export const levelMult = (lvl: number) => 1 + (lvl - 1) * 0.05;
 
+// Account-level ceiling. Caps gainExp + every hero's effective max level.
+// 200 was picked so chapter 29 (the current final chapter) ends with
+// enemy lvl ≈ 200 — i.e. the player reaches max level exactly when the
+// game's hardest stage becomes the gear-check that grows them through
+// equipment / soulshards / set bonuses rather than raw character power.
+export const PLAYER_MAX_LEVEL = 200;
+
 // Player-level account boost — every owned hero gets a permanent multiplier
 // to HP/ATK/DEF based on the player's account level. Gives long-term player
 // progression a real payoff: at lvl 100 your toons are +25% stronger, lvl

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { db, type Profile, DEFAULT_PROFILE, normalizeSettings } from '../lib/db';
-import { xpForLevel, setPlayerLevelForBoost } from '../lib/stats';
+import { xpForLevel, setPlayerLevelForBoost, PLAYER_MAX_LEVEL } from '../lib/stats';
 
 interface ProfileState {
   profile: Profile;
@@ -68,8 +68,10 @@ export const useProfile = create<ProfileState>((set, get) => ({
     await get().patch({ friendPoints: p.friendPoints - n });
     return true;
   },
-  spendEnergy: async (_n) => {
-    // TESTING: unlimited energy — no-op spend, always succeeds.
+  spendEnergy: async (n) => {
+    const p = get().profile;
+    if (p.energy < n) return false;
+    await get().patch({ energy: p.energy - n });
     return true;
   },
   gainExp: async (n) => {
@@ -77,10 +79,14 @@ export const useProfile = create<ProfileState>((set, get) => ({
     const startLevel = p.level;
     let level = p.level;
     let exp = p.exp + n;
-    while (exp >= xpForLevel(level)) {
+    // Account-level ceiling — stop accruing levels at the cap and
+    // discard any overflow exp so a player can't bank +200,000 xp into
+    // PLAYER_MAX_LEVEL and instantly outscale every endgame stage.
+    while (level < PLAYER_MAX_LEVEL && exp >= xpForLevel(level)) {
       exp -= xpForLevel(level);
       level++;
     }
+    if (level >= PLAYER_MAX_LEVEL) exp = 0;
     // On level-up, refill energy to cap (common gacha pattern, keeps players playing)
     const leveledUp = level > startLevel;
     await get().patch({
