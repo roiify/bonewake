@@ -1215,21 +1215,15 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
           not a regular enemy". */}
       {(() => {
         const isPaintedBoss = PAINTED_BOSS_IDS.has(unit.templateId);
-        // Boss sprite needs to read big without clipping wings/tentacles
-        // or bleeding past the mobile frame's right edge.
-        //
-        // Strategy: oversize the container (w-56 = 224px) and let it
-        // bleed LEFT into the gap + player-column slack instead of right
-        // toward the frame edge. The enemy column uses items-end so the
-        // container's right edge stays pinned to the column's right edge
-        // (= frame inner edge). The extra 32px of width extends leftward
-        // into the 8px gap and the ~24px of player-column right-slack
-        // (heroes are items-start, so they leave their column's right
-        // side empty). Result: full 224×224 sprite visible, right edge
-        // safe, wings preserved. No overflow-hidden — the sprite renders
-        // in full and naturally composes with the player side.
-        const containerSize = isPaintedBoss ? 'w-56 h-56' : 'w-44 h-44';
-        const renderSize = isPaintedBoss ? 224 : (heroSprites ? 234 : 220);
+        // Boss container = w-48 (192px) — fits cleanly inside the 196px
+        // enemy column without bleeding left into the hero column (which
+        // caused the boss to visually overlap with the middle hero).
+        // Bumped HEIGHT to h-56 (224px) so the boss still reads taller
+        // than heroes — the sprite renders at 192px square and is bottom-
+        // anchored, so the extra 32px of column height becomes "looming"
+        // headroom above the silhouette.
+        const containerSize = isPaintedBoss ? 'w-48 h-56' : 'w-44 h-44';
+        const renderSize = isPaintedBoss ? 192 : (heroSprites ? 234 : 220);
         // Per-sprite orientation:
         //   - Hero sprites (PixelLab character) natively face east → no
         //     flip → face the enemies on the right. ✓
@@ -1246,11 +1240,6 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
           ? {
               filter: baseFilter,
               transform: side === 'enemy' ? 'scaleX(-1)' : undefined,
-              // 224px container is 28px wider than the 196px enemy column.
-              // items-end pins the right edge to the column edge so the
-              // 28px bleed goes RIGHT past the frame. Pull 32px back so
-              // the bleed lands LEFT into the gap + player-column slack.
-              marginRight: side === 'enemy' ? 32 : undefined,
             }
           : flipHero
             ? { transform: 'scaleX(-1)' }
