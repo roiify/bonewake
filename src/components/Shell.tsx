@@ -2,87 +2,71 @@ import { Outlet, NavLink, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useProfile } from '../store/profile';
 import { Home, Swords, Users, Sparkles, Settings } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import EnergyModal from './EnergyModal';
 import { TITLE_BY_ID } from '../data/titles';
-import { formatCompact } from '../lib/format';
-
-function CurrencyChip({ icon, value, color, onClick }: { icon: string; value: number; color: string; onClick?: () => void }) {
-  const inner = (
-    <>
-      <span className="text-sm" style={{ color }}>{icon}</span>
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.span
-          key={value}
-          initial={{ y: -8, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 8, opacity: 0 }}
-          transition={{ duration: 0.15 }}
-          className="text-xs font-pixel text-zinc-200"
-          title={value.toLocaleString()}
-        >
-          {formatCompact(value)}
-        </motion.span>
-      </AnimatePresence>
-    </>
-  );
-  if (onClick) {
-    return (
-      <button onClick={onClick} className="flex items-center gap-1.5 bg-zinc-900/80 border border-zinc-800 rounded-full px-2.5 py-1 hover:border-cyan-400 transition-colors cursor-pointer">
-        {inner}
-        <span className="text-[8px] text-zinc-500">+</span>
-      </button>
-    );
-  }
-  return (
-    <div className="flex items-center gap-1.5 bg-zinc-900/80 border border-zinc-800 rounded-full px-2.5 py-1">{inner}</div>
-  );
-}
+import Pill from './ui/Pill';
 
 export function Shell() {
   const profile = useProfile(s => s.profile);
   const [energyOpen, setEnergyOpen] = useState(false);
 
   return (
-    <div className="h-full flex flex-col max-w-[420px] mx-auto bg-zinc-950 relative">
+    <div className="h-full flex flex-col max-w-[420px] mx-auto relative" style={{ background: 'linear-gradient(180deg, #14100f 0%, #0a0708 100%)' }}>
+      {/* Ambient ash particle layer — drifts behind everything via CSS */}
+      <div className="ash-overlay" />
+
       {/* Top bar */}
-      <header className="px-2.5 py-2 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur z-10 sticky top-0">
-        <Link to="/profile" className="flex items-center gap-2 hover:bg-zinc-900/40 rounded -m-1 p-1 transition-colors">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-base font-pixel text-zinc-900">
+      <header className="px-3 py-2.5 border-b border-zinc-800/80 bg-zinc-950/85 backdrop-blur z-20 sticky top-0">
+        <Link to="/profile" className="flex items-center gap-2.5 hover:bg-zinc-900/40 rounded -m-1 p-1 transition-colors">
+          {/* Level badge — beveled gold disc */}
+          <div
+            className="w-10 h-10 rounded-lg flex items-center justify-center text-base font-pixel"
+            style={{
+              background: 'linear-gradient(180deg, #fde68a 0%, #d97706 60%, #92400e 100%)',
+              color: '#1a0f06',
+              border: '1px solid #fde68a',
+              boxShadow: '0 1px 0 rgba(255,255,255,0.3) inset, 0 -2px 0 rgba(0,0,0,0.4) inset, 0 2px 4px rgba(0,0,0,0.6)',
+              textShadow: '0 1px 0 rgba(255,248,220,0.6)',
+            }}
+          >
             {profile.level}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-pixel text-zinc-100 truncate">{profile.displayName}</div>
+            <div className="text-xs font-pixel text-zinc-100 truncate text-shadow-soft">{profile.displayName}</div>
             {profile.activeTitle && TITLE_BY_ID[profile.activeTitle] && (
-              <div className="text-[9px] font-pixel truncate" style={{ color: TITLE_BY_ID[profile.activeTitle].color }}>
+              <div className="text-[9px] font-pixel truncate text-shadow-soft" style={{ color: TITLE_BY_ID[profile.activeTitle].color }}>
                 {TITLE_BY_ID[profile.activeTitle].label}
               </div>
             )}
-            <div className="h-1 bg-zinc-800 rounded mt-0.5 overflow-hidden">
+            <div className="h-1 bg-zinc-900 rounded mt-1 overflow-hidden border border-zinc-800">
               <div
-                className="h-full bg-amber-400"
-                style={{ width: `${Math.min(100, (profile.exp / Math.max(1, 50 * Math.pow(1.18, profile.level - 1))) * 100)}%` }}
+                className="h-full"
+                style={{
+                  width: `${Math.min(100, (profile.exp / Math.max(1, 50 * Math.pow(1.18, profile.level - 1))) * 100)}%`,
+                  background: 'linear-gradient(90deg, #fbbf24, #fde68a)',
+                  boxShadow: '0 0 6px rgba(251, 191, 36, 0.6)',
+                }}
               />
             </div>
           </div>
         </Link>
-        <div className="grid grid-cols-4 gap-1.5 mt-2">
-          <CurrencyChip icon="🪙" value={profile.gold} color="#fbbf24" />
-          <CurrencyChip icon="💎" value={profile.gems} color="#a78bfa" />
-          <CurrencyChip icon="🤝" value={profile.friendPoints} color="#fb7185" />
-          <CurrencyChip icon="⚡" value={profile.energy} color="#22d3ee" onClick={() => setEnergyOpen(true)} />
+        <div className="grid grid-cols-4 gap-1.5 mt-2.5">
+          <Pill icon="🪙" value={profile.gold}         color="#fbbf24" variant="gold"   />
+          <Pill icon="💎" value={profile.gems}         color="#a78bfa" variant="gem"    />
+          <Pill icon="🤝" value={profile.friendPoints} color="#fb7185" variant="rose"   />
+          <Pill icon="⚡" value={profile.energy}       color="#22d3ee" variant="energy" onClick={() => setEnergyOpen(true)} plus />
         </div>
       </header>
 
       <EnergyModal open={energyOpen} onClose={() => setEnergyOpen(false)} />
 
-      {/* Content */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-[max(12px,env(safe-area-inset-bottom))]">
+      {/* Content — z-index above ash overlay */}
+      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-[max(12px,env(safe-area-inset-bottom))] relative z-10">
         <Outlet />
       </main>
 
       {/* Bottom nav */}
-      <nav className="grid grid-cols-5 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur z-10 sticky bottom-0 pb-[max(0px,env(safe-area-inset-bottom))]">
+      <nav className="grid grid-cols-5 border-t border-zinc-800/80 bg-zinc-950/85 backdrop-blur z-20 sticky bottom-0 pb-[max(0px,env(safe-area-inset-bottom))]">
         <TabLink to="/" icon={<Home size={18} />} label="Home" />
         <TabLink to="/battle" icon={<Swords size={18} />} label="Battle" />
         <TabLink to="/heroes" icon={<Users size={18} />} label="Heroes" />
@@ -99,8 +83,8 @@ function TabLink({ to, icon, label }: { to: string; icon: React.ReactNode; label
       to={to}
       end={to === '/'}
       className={({ isActive }) =>
-        `flex flex-col items-center justify-center py-2.5 gap-1 transition-colors ${
-          isActive ? 'text-amber-400' : 'text-zinc-500 hover:text-zinc-300'
+        `relative flex flex-col items-center justify-center py-2.5 gap-1 transition-colors ${
+          isActive ? 'nav-tab--active' : 'text-zinc-500 hover:text-zinc-300'
         }`
       }
     >

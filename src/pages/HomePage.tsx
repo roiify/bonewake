@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useProfile } from '../store/profile';
 import { db } from '../lib/db';
@@ -10,6 +10,8 @@ import { useHeroes } from '../store/heroes';
 import { motion } from 'framer-motion';
 import { canClaimMysteryBox, claimMysteryBox } from '../lib/mysteryBox';
 import ChestOpen, { type ChestReward } from '../components/ChestOpen';
+import Card from '../components/ui/Card';
+import PrimaryButton from '../components/ui/PrimaryButton';
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
@@ -56,112 +58,124 @@ export default function HomePage() {
 
   return (
     <div className="p-3 space-y-3 pb-5">
-      <div
-        className="relative rounded-lg overflow-hidden border border-zinc-800 mb-3 h-28 sm:h-32 flex items-end justify-center"
+      {/* Header banner — dark fantasy plate with title + greeting. The
+          stock sky photo is gone; replaced by a layered painted gradient
+          + ornamental skull bookends. Cinzel display font for the title. */}
+      <div className="relative rounded-xl overflow-hidden mb-3 h-32 flex items-center justify-center"
         style={{
-          backgroundImage: `url(${import.meta.env.BASE_URL}sprites/bg/sky_clouds.jpg)`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center 30%',
+          background:
+            'radial-gradient(ellipse at top, #3a1414 0%, #1a0807 55%, #0a0303 100%)',
+          border: '1px solid #5a2222',
+          boxShadow: 'var(--shadow-card), inset 0 0 60px rgba(220,38,38,0.18)',
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
-        <div className="relative z-10 text-center pb-3">
-          <h1 className="font-pixel text-xl text-rose-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">BoneWake</h1>
-          <p className="text-xs text-zinc-300 mt-1 drop-shadow">Welcome back, {profile.displayName}.</p>
+        {/* Subtle blood-splat radial overlay */}
+        <div className="absolute inset-0 pointer-events-none opacity-40"
+          style={{
+            background:
+              'radial-gradient(circle at 18% 28%, rgba(220,38,38,0.18) 0%, transparent 40%),' +
+              'radial-gradient(circle at 82% 72%, rgba(220,38,38,0.14) 0%, transparent 40%)',
+          }}
+        />
+        <div className="relative z-10 text-center px-4">
+          <h1 className="font-fantasy text-3xl font-bold tracking-widest" style={{
+            color: '#fde68a',
+            textShadow: '0 2px 0 rgba(0,0,0,0.9), 0 0 18px rgba(220,38,38,0.55)',
+          }}>💀 BONEWAKE 💀</h1>
+          <p className="text-[11px] text-zinc-300 mt-2 text-shadow-soft tracking-wide italic">
+            "Welcome back, {profile.displayName}."
+          </p>
         </div>
       </div>
 
       {/* Daily sign-in */}
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
-        <div className="flex items-center justify-between mb-2">
-          <div className="font-pixel text-xs text-zinc-300">Daily Sign-In</div>
-          <div className="text-[10px] text-zinc-500">Streak: {profile.signinStreak}</div>
+      <Card>
+        <div className="p-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-pixel text-xs text-zinc-200 text-shadow-soft">Daily Sign-In</div>
+            <div className="text-[10px] text-zinc-500">Streak: <span className="text-amber-300">{profile.signinStreak}</span></div>
+          </div>
+          <div className="grid grid-cols-7 gap-1.5 mb-3">
+            {DAILY_SIGNIN.map((d, i) => {
+              const claimed = i < nextDay && profile.signinStreak >= i + 1;
+              const today = i === nextDay && canClaim;
+              return (
+                <motion.div
+                  key={d.day}
+                  initial={false}
+                  animate={today ? { y: [0, -2, 0] } : undefined}
+                  transition={today ? { duration: 1.6, repeat: Infinity, ease: 'easeInOut' } : undefined}
+                  className={`aspect-square rounded-md text-center flex flex-col items-center justify-center text-[10px] ${
+                    today ? 'daily-pulse' : ''
+                  }`}
+                  style={{
+                    background: claimed
+                      ? 'linear-gradient(180deg, #1c1817 0%, #0e0c0b 100%)'
+                      : today
+                        ? 'linear-gradient(180deg, #fde68a 0%, #b45309 100%)'
+                        : 'linear-gradient(180deg, #1c1817 0%, #0c0a09 100%)',
+                    border: today ? '1px solid #fbbf24' : '1px solid #2a2521',
+                    color: today ? '#1a0f06' : claimed ? '#52525b' : '#d4d4d8',
+                    opacity: claimed ? 0.45 : 1,
+                    textShadow: today ? '0 1px 0 rgba(255,248,220,0.5)' : '0 1px 0 rgba(0,0,0,0.5)',
+                  }}
+                >
+                  <div className="text-[8px] font-pixel">D{d.day}</div>
+                  <div className="text-base leading-none mt-0.5">
+                    {claimed ? '✓' : today ? '🎁' : i === 6 ? '👑' : i === 5 ? '💎' : '📦'}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+          <PrimaryButton variant="gold" fullWidth disabled={!canClaim} onClick={claimDaily}>
+            {canClaim ? `▸ Claim Day ${nextDay + 1}` : 'Claimed Today ✓'}
+          </PrimaryButton>
         </div>
-        <div className="grid grid-cols-7 gap-1 mb-3">
-          {DAILY_SIGNIN.map((d, i) => {
-            const claimed = i < nextDay && profile.signinStreak >= i + 1;
-            const today = i === nextDay && canClaim;
-            return (
-              <div
-                key={d.day}
-                className={`aspect-square rounded text-center flex flex-col items-center justify-center border ${
-                  claimed ? 'bg-zinc-800 border-zinc-700 opacity-50'
-                  : today ? 'bg-amber-500/20 border-amber-400 animate-pulse'
-                  : 'bg-zinc-950 border-zinc-800'
-                }`}
-              >
-                <div className="text-[8px] text-zinc-400">D{d.day}</div>
-                <div className="text-[10px]">{d.label.split(' ')[0]}</div>
-              </div>
-            );
-          })}
-        </div>
-        <button
-          className="btn-pixel primary w-full"
-          disabled={!canClaim}
-          onClick={claimDaily}
-        >
-          {canClaim ? `Claim Day ${nextDay + 1}` : 'Claimed Today ✓'}
-        </button>
-      </div>
+      </Card>
 
       {/* Daily mystery box */}
-      <button
-        disabled={!mysteryAvailable}
-        onClick={openMysteryBox}
-        className={`w-full rounded-lg border-2 p-3 flex items-center gap-3 transition-all ${
-          mysteryAvailable
-            ? 'border-amber-500 bg-gradient-to-r from-amber-900/30 to-rose-900/20 hover:scale-[1.02]'
-            : 'border-zinc-800 bg-zinc-900/40 opacity-50 cursor-not-allowed'
-        }`}
+      <Card
+        interactive={mysteryAvailable}
+        onClick={mysteryAvailable ? openMysteryBox : undefined}
+        goldFrame={mysteryAvailable}
+        tint={mysteryAvailable ? '#dc2626' : undefined}
+        style={!mysteryAvailable ? { opacity: 0.5 } : undefined}
       >
-        <motion.div
-          animate={mysteryAvailable ? { rotate: [0, -8, 8, -4, 4, 0], y: [0, -2, 0] } : {}}
-          transition={mysteryAvailable ? { duration: 1.8, repeat: Infinity, repeatDelay: 1 } : {}}
-          className="text-4xl"
-        >
-          📦
-        </motion.div>
-        <div className="flex-1 text-left">
-          <div className="font-pixel text-xs text-amber-300">Daily Mystery Box</div>
-          <div className="text-[10px] text-zinc-400">
-            {mysteryAvailable ? 'Tap to open today\'s box (3 random rewards)' : 'Already opened today — comes back tomorrow'}
+        <div className="p-3 flex items-center gap-3">
+          <motion.div
+            animate={mysteryAvailable ? { rotate: [0, -10, 10, -4, 4, 0], y: [0, -3, 0] } : {}}
+            transition={mysteryAvailable ? { duration: 1.8, repeat: Infinity, repeatDelay: 1 } : {}}
+            className="text-5xl drop-shadow-[0_3px_6px_rgba(0,0,0,0.7)]"
+          >
+            📦
+          </motion.div>
+          <div className="flex-1 text-left">
+            <div className="font-pixel text-xs text-amber-300 text-shadow-soft">Daily Mystery Box</div>
+            <div className="text-[10px] text-zinc-400 mt-1">
+              {mysteryAvailable ? 'Tap to open · 3 random rewards' : 'Already opened today — comes back tomorrow'}
+            </div>
           </div>
+          {mysteryAvailable && <span className="text-amber-400 text-xl">›</span>}
         </div>
-      </button>
+      </Card>
 
       {/* Quick actions */}
       <div className="grid grid-cols-2 gap-2.5">
-        <Link to="/battle" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-rose-900/40 to-zinc-900 p-3 min-h-24 hover:border-rose-700 transition-colors">
-          <div className="text-2xl">⚔️</div>
-          <div className="font-pixel text-xs mt-2">Story</div>
-          <div className="text-[10px] text-zinc-500 mt-0.5">{STAGES.length} stages</div>
-        </Link>
-        <Link to="/summon" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-violet-900/40 to-zinc-900 p-3 min-h-24 hover:border-violet-700 transition-colors">
-          <div className="text-2xl">✨</div>
-          <div className="font-pixel text-xs mt-2">Summon</div>
-          <div className="text-[10px] text-zinc-500 mt-0.5">{SUMMON_POOLS.length} banners</div>
-        </Link>
-        <Link to="/heroes" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-amber-900/40 to-zinc-900 p-3 min-h-24 hover:border-amber-700 transition-colors">
-          <div className="text-2xl">👥</div>
-          <div className="font-pixel text-xs mt-2">Heroes</div>
-          <div className="text-[10px] text-zinc-500 mt-0.5">{heroes.length} owned</div>
-        </Link>
-        <Link to="/tasks" className="rounded-lg border border-zinc-800 bg-gradient-to-br from-emerald-900/40 to-zinc-900 p-3 min-h-24 hover:border-emerald-700 transition-colors">
-          <div className="text-2xl">📜</div>
-          <div className="font-pixel text-xs mt-2">Tasks</div>
-          <div className="text-[10px] text-zinc-500 mt-0.5">{taskCount.done}/{taskCount.total} done</div>
-        </Link>
+        <ActionCard to="/battle" icon="⚔️"  label="Story"   sub={`${STAGES.length} stages`}     tint="#dc2626" />
+        <ActionCard to="/summon" icon="✨"  label="Summon"  sub={`${SUMMON_POOLS.length} banners`} tint="#a78bfa" />
+        <ActionCard to="/heroes" icon="👥"  label="Heroes"  sub={`${heroes.length} owned`}       tint="#fbbf24" />
+        <ActionCard to="/tasks"  icon="📜"  label="Tasks"   sub={`${taskCount.done}/${taskCount.total} done`} tint="#34d399" />
       </div>
 
       {heroes.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          className="rounded-lg border border-amber-700/50 bg-amber-900/20 p-3 text-center"
-        >
-          <div className="text-xs text-amber-300">No heroes yet! Try the Summon screen.</div>
-          <Link to="/summon" className="inline-block mt-2 btn-pixel primary">Go to Summon</Link>
-        </motion.div>
+        <Card tint="#fbbf24">
+          <div className="p-3 text-center">
+            <div className="text-xs text-amber-300 font-pixel">No heroes yet</div>
+            <div className="text-[10px] text-zinc-400 mt-1 mb-2">Visit the Summon screen to recruit your first.</div>
+            <Link to="/summon"><PrimaryButton variant="gold">Go to Summon →</PrimaryButton></Link>
+          </div>
+        </Card>
       )}
 
       <ChestOpen
@@ -171,5 +185,24 @@ export default function HomePage() {
         onClose={() => setChestRewards(null)}
       />
     </div>
+  );
+}
+
+// === Quick-action card component ===
+// Each home-screen action card. Shared visual: gradient tint + icon
+// + label + small subtitle. Lifts on hover and presses on tap via
+// the shared Card component.
+function ActionCard({ to, icon, label, sub, tint }: { to: string; icon: string; label: string; sub: string; tint: string }) {
+  const navigate = useNavigate();
+  return (
+    <Card interactive tint={tint} onClick={() => navigate(to)}>
+      <div className="p-3 min-h-[88px] flex flex-col justify-between">
+        <div className="text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]">{icon}</div>
+        <div>
+          <div className="font-pixel text-xs text-zinc-100 text-shadow-soft">{label}</div>
+          <div className="text-[10px] text-zinc-500 mt-0.5">{sub}</div>
+        </div>
+      </div>
+    </Card>
   );
 }

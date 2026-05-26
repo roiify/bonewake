@@ -1,8 +1,56 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&family=Cinzel:wght@600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ============================================================
+   DESIGN TOKENS — single source of truth for depth + glow.
+   Tweak these to retheme the whole app.
+   ============================================================ */
+:root {
+  /* Neutrals — warm dark, not pure black. Less alpha-feeling. */
+  --bg-deep:    #0a0708;
+  --bg-base:    #14100f;
+  --bg-elev-1:  #1d1715;
+  --bg-elev-2:  #28201d;
+
+  /* Accent palette */
+  --accent-gold:    #fbbf24;
+  --accent-blood:   #dc2626;
+  --accent-cyan:    #22d3ee;
+  --accent-rose:    #fb7185;
+  --accent-violet:  #a78bfa;
+  --accent-emerald: #34d399;
+  --accent-bone:    #f5e9d4;
+
+  /* Depth — layered shadows for that "premium card" lift. */
+  --shadow-card:
+    0 1px 0 rgba(255, 235, 200, 0.04) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.6) inset,
+    0 8px 22px -8px rgba(0, 0, 0, 0.85),
+    0 2px 6px rgba(0, 0, 0, 0.45);
+  --shadow-card-hover:
+    0 1px 0 rgba(255, 235, 200, 0.06) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.7) inset,
+    0 14px 32px -8px rgba(0, 0, 0, 0.95),
+    0 4px 8px rgba(0, 0, 0, 0.55);
+  --shadow-button:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 -2px 0 rgba(0, 0, 0, 0.45) inset,
+    0 4px 0 -2px rgba(0, 0, 0, 0.5),
+    0 6px 16px -4px rgba(0, 0, 0, 0.6);
+
+  /* Beveled-border gradients — applied via background-image */
+  --bevel-gold: linear-gradient(180deg, #fde68a 0%, #d97706 100%);
+  --bevel-bone: linear-gradient(180deg, #efe6d4 0%, #8b7355 100%);
+  --bevel-iron: linear-gradient(180deg, #6b6b6e 0%, #2a2a2c 100%);
+
+  /* Glow rings for "selected / active" states */
+  --glow-gold:  0 0 12px rgba(251, 191, 36, 0.5), 0 0 4px rgba(251, 191, 36, 0.8);
+  --glow-blood: 0 0 14px rgba(220, 38, 38, 0.55), 0 0 4px rgba(220, 38, 38, 0.8);
+  --glow-cyan:  0 0 12px rgba(34, 211, 238, 0.55), 0 0 4px rgba(34, 211, 238, 0.8);
+}
 
 html, body, #root {
   height: 100%;
@@ -14,8 +62,10 @@ html {
 }
 
 body {
-  background: #09090b;
-  color: #e4e4e7;
+  /* Layered backdrop — radial vignette + faint paper grain, not flat black. */
+  background:
+    radial-gradient(ellipse at top, #1a0f0d 0%, #0a0708 50%, #050303 100%);
+  color: #ece4d8;
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
@@ -23,44 +73,235 @@ body {
 }
 
 * { box-sizing: border-box; }
-
 button, input, select, textarea { font-family: inherit; }
+a, button { -webkit-tap-highlight-color: transparent; }
 
-a, button {
-  -webkit-tap-highlight-color: transparent;
+/* ============================================================
+   AMBIENT ASH — three layered drifting particle fields rendered
+   entirely with CSS gradients. ~zero perf cost (1 element, 1
+   animated keyframe), no JS or canvas needed.
+   ============================================================ */
+.ash-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.45;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 22%, rgba(245, 233, 212, 0.45), transparent 60%),
+    radial-gradient(1px   1px   at 78% 18%, rgba(245, 233, 212, 0.35), transparent 60%),
+    radial-gradient(1px   1px   at 44% 78%, rgba(245, 233, 212, 0.5), transparent 60%),
+    radial-gradient(1.5px 1.5px at 68% 66%, rgba(245, 233, 212, 0.3), transparent 60%),
+    radial-gradient(1px   1px   at 24% 52%, rgba(245, 233, 212, 0.45), transparent 60%),
+    radial-gradient(1.5px 1.5px at 92% 88%, rgba(245, 233, 212, 0.3), transparent 60%),
+    radial-gradient(1px   1px   at 8%  84%, rgba(245, 233, 212, 0.4), transparent 60%);
+  background-size: 200px 200px, 180px 180px, 220px 220px, 240px 240px, 200px 200px, 160px 160px, 220px 220px;
+  animation: ash-drift 60s linear infinite;
+}
+@keyframes ash-drift {
+  0%   { background-position: 0 0,        0 0,        0 0,        0 0,        0 0,        0 0,        0 0; }
+  100% { background-position: -200px 600px, 180px 540px, -220px 660px, 240px 720px, -200px 600px, 160px 480px, -220px 660px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ash-overlay { animation: none; }
 }
 
+/* ============================================================
+   PIXEL / DISPLAY FONTS
+   ============================================================ */
+.font-pixel { font-family: 'Press Start 2P', monospace; letter-spacing: 0.02em; }
+.font-fantasy { font-family: 'Cinzel', serif; letter-spacing: 0.04em; }
+
+.text-shadow-soft  { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7); }
+.text-shadow-deep  { text-shadow: 0 1px 0 rgba(0, 0, 0, 0.9), 0 4px 8px rgba(0, 0, 0, 0.7); }
+.text-shadow-glow  { text-shadow: 0 0 8px currentColor, 0 1px 0 rgba(0, 0, 0, 0.9); }
+
+/* ============================================================
+   LEGACY BUTTON STYLES — kept for back-compat. New code should
+   use <PrimaryButton/> for premium feel. .btn-pixel is restyled
+   with more depth and a press animation.
+   ============================================================ */
 .btn-pixel {
   font-family: 'Press Start 2P', monospace;
   font-size: 10px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   padding: 10px 14px;
-  background: linear-gradient(180deg, #27272a, #18181b);
-  border: 1px solid #3f3f46;
+  background: linear-gradient(180deg, #2a2521, #18141a);
+  border: 1px solid #423933;
   border-radius: 6px;
-  color: #fafafa;
+  color: #ece4d8;
   cursor: pointer;
-  transition: transform 0.08s, filter 0.08s;
+  transition: transform 0.08s ease, filter 0.08s ease, box-shadow 0.15s ease;
   user-select: none;
+  box-shadow: var(--shadow-button);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+  position: relative;
 }
-.btn-pixel:hover:not(:disabled) { filter: brightness(1.15); }
-.btn-pixel:active:not(:disabled) { transform: scale(0.96); }
-.btn-pixel:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-pixel:hover:not(:disabled) { filter: brightness(1.18); transform: translateY(-1px); }
+.btn-pixel:active:not(:disabled) { transform: translateY(1px) scale(0.98); }
+.btn-pixel:disabled { opacity: 0.35; cursor: not-allowed; filter: grayscale(0.4); }
 .btn-pixel.primary {
-  background: linear-gradient(180deg, #f59e0b, #b45309);
-  border-color: #fbbf24;
-  color: #18181b;
+  background: linear-gradient(180deg, #fbbf24 0%, #d97706 60%, #92400e 100%);
+  border-color: #fde68a;
+  color: #1a0f06;
+  text-shadow: 0 1px 0 rgba(255, 248, 220, 0.55);
 }
 .btn-pixel.danger {
-  background: linear-gradient(180deg, #ef4444, #991b1b);
-  border-color: #f87171;
+  background: linear-gradient(180deg, #f87171, #b91c1c 60%, #7f1d1d 100%);
+  border-color: #fecaca;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
 }
 .btn-pixel.success {
-  background: linear-gradient(180deg, #22c55e, #15803d);
-  border-color: #4ade80;
+  background: linear-gradient(180deg, #4ade80, #15803d 60%, #064e3b 100%);
+  border-color: #bbf7d0;
 }
 
+/* Premium button class — bigger, with shine sweep. Used by the new
+   <PrimaryButton/> component below. */
+.btn-premium {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 14px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid;
+  transition: transform 0.1s ease, filter 0.1s ease, box-shadow 0.2s ease;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 -2px 0 rgba(0, 0, 0, 0.5) inset,
+    0 6px 0 -2px rgba(0, 0, 0, 0.5),
+    0 10px 22px -4px rgba(0, 0, 0, 0.7);
+}
+.btn-premium::before {
+  /* Diagonal shine sweep on hover */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.25) 50%, transparent 65%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+.btn-premium:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.1); }
+.btn-premium:hover:not(:disabled)::before { transform: translateX(100%); }
+.btn-premium:active:not(:disabled) {
+  transform: translateY(2px) scale(0.98);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.4) inset,
+    0 2px 0 -2px rgba(0, 0, 0, 0.5),
+    0 4px 10px -2px rgba(0, 0, 0, 0.6);
+}
+.btn-premium:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(0.6); }
+
+.btn-premium--gold {
+  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 35%, #b45309 100%);
+  border-color: #fde68a;
+  color: #1a0f06;
+  text-shadow: 0 1px 0 rgba(255, 248, 220, 0.65);
+}
+.btn-premium--blood {
+  background: linear-gradient(180deg, #fca5a5 0%, #dc2626 35%, #7f1d1d 100%);
+  border-color: #fecaca;
+  color: #1a0a0a;
+  text-shadow: 0 1px 0 rgba(255, 220, 220, 0.55);
+}
+.btn-premium--bone {
+  background: linear-gradient(180deg, #f5e9d4 0%, #b8a78a 35%, #6b5a44 100%);
+  border-color: #f5e9d4;
+  color: #1a1410;
+  text-shadow: 0 1px 0 rgba(255, 244, 220, 0.55);
+}
+
+/* ============================================================
+   CARD — premium card with layered shadow, beveled top, inner
+   vignette. Used everywhere via the <Card/> component.
+   ============================================================ */
+.card-premium {
+  position: relative;
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(40, 32, 29, 0.95) 0%, rgba(20, 16, 15, 0.95) 100%);
+  border: 1px solid #3a302b;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+.card-premium::before {
+  /* Top bevel highlight */
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 235, 200, 0.18), transparent);
+}
+.card-premium--interactive { cursor: pointer; }
+.card-premium--interactive:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+  border-color: #4a3f37;
+}
+.card-premium--gold-frame { border-color: #92400e; }
+.card-premium--gold-frame::before {
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.5), transparent);
+}
+
+/* ============================================================
+   PILL — currency / stat chip with embossed feel
+   ============================================================ */
+.pill-embossed {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  background:
+    radial-gradient(circle at 40% 30%, rgba(255, 235, 200, 0.07), transparent 70%),
+    linear-gradient(180deg, #2a2521 0%, #14100f 100%);
+  border: 1px solid #3a302b;
+  color: #ece4d8;
+  box-shadow:
+    0 1px 0 rgba(255, 235, 200, 0.08) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.5) inset,
+    0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+.pill-embossed:hover { border-color: var(--accent-gold); transform: translateY(-1px); }
+.pill-embossed--gold   { border-color: rgba(251, 191, 36, 0.4); }
+.pill-embossed--gem    { border-color: rgba(167, 139, 250, 0.4); }
+.pill-embossed--energy { border-color: rgba(34, 211, 238, 0.4); }
+.pill-embossed--rose   { border-color: rgba(251, 113, 133, 0.4); }
+
+/* ============================================================
+   NAV TAB — bottom-nav active state gets a glow halo
+   ============================================================ */
+.nav-tab--active {
+  color: var(--accent-gold);
+  text-shadow: 0 0 6px rgba(251, 191, 36, 0.6);
+}
+.nav-tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 30px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+  transform: translateX(-50%);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.7);
+}
+
+/* ============================================================
+   LEGACY animations — kept
+   ============================================================ */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
@@ -83,3 +324,10 @@ a, button {
 .mythic-plus-badge {
   animation: mythic-plus-pulse 2.2s ease-in-out infinite;
 }
+
+/* Day-card glow used by HomePage daily sign-in */
+@keyframes daily-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.4), 0 0 12px rgba(251, 191, 36, 0.25); }
+  50%      { box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.9), 0 0 18px rgba(251, 191, 36, 0.55); }
+}
+.daily-pulse { animation: daily-pulse 1.8s ease-in-out infinite; }
