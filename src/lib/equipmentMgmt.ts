@@ -2,6 +2,9 @@ import { db, type OwnedEquipment } from './db';
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import { equipPower } from './loot';
+import { MAT_SOULSHARD } from '../data/ultimateGear';
+import { getMaterialCount, spendMaterial } from './crafting';
+import { useItems } from '../store/items';
 
 // Upgrade cost scales with current upgrade level and rarity
 export function upgradeCost(eq: OwnedEquipment): { gold: number; gems: number } {
@@ -16,6 +19,48 @@ export function upgradeCost(eq: OwnedEquipment): { gold: number; gems: number } 
 }
 
 export const MAX_UPGRADE_LEVEL = 10;
+
+// === Ult Gear Enchantment ===
+// Crafted Mythic ult pieces use a separate soulshard-driven enchant curve
+// rather than the gold/gem upgrade for chapter loot. This gives endgame
+// soulshard farming a real sink AFTER you've crafted your set.
+//
+// Cost ramps quadratically — full +10 on one piece costs ~1600 shards,
+// full +10 on a 5-piece set ≈ 8000 shards (~2 weeks of post-rebalance
+// farming for a single hero's full ult enchant). +12% stat per level
+// (already baked into loot.equipStats) caps at +120% piece power at +10.
+export const MAX_ENCHANT_LEVEL = 10;
+
+export function enchantCost(eq: OwnedEquipment): { soulshard: number; gold: number } {
+  const lvl = eq.upgradeLevel ?? 0;
+  // Quadratic-ish curve: 20, 32, 47, 65, 87, 112, 140, 172, 207, 245
+  // Totals to ~1127 shards for a full +1→+10 sweep on one piece.
+  const shards = Math.round(20 + 12 * lvl + 1.5 * lvl * lvl);
+  const gold = 5000 + 2000 * lvl;
+  return { soulshard: shards, gold };
+}
+
+export async function enchantUltGear(eqId: string): Promise<{ ok: boolean; error?: string }> {
+  const eq = await db.equipment.get(eqId);
+  if (!eq) return { ok: false, error: 'Not found' };
+  if (!eq.craftedPieceId) return { ok: false, error: 'Only crafted ult gear can be enchanted' };
+  if ((eq.upgradeLevel ?? 0) >= MAX_ENCHANT_LEVEL) return { ok: false, error: 'Already at max enchant' };
+  const cost = enchantCost(eq);
+  // Check materials + currency
+  const shards = await getMaterialCount(MAT_SOULSHARD);
+  if (shards < cost.soulshard) return { ok: false, error: `Need ${cost.soulshard} soulshards (have ${shards})` };
+  const profile = useProfile.getState();
+  if (cost.gold > 0 && profile.profile.gold < cost.gold) {
+    return { ok: false, error: `Need ${cost.gold.toLocaleString()} gold` };
+  }
+  // Spend
+  await spendMaterial(MAT_SOULSHARD, cost.soulshard);
+  if (cost.gold > 0) await profile.spendGold(cost.gold);
+  await db.equipment.update(eqId, { upgradeLevel: (eq.upgradeLevel ?? 0) + 1 });
+  await useHeroes.getState().load();
+  await useItems.getState().refresh();
+  return { ok: true };
+}
 
 export async function upgradeEquipment(eqId: string): Promise<{ ok: boolean; error?: string }> {
   const eq = await db.equipment.get(eqId);

@@ -2,6 +2,36 @@ import { db, type OwnedEquipment } from './db';
 import type { LootStat } from '../data/loot';
 import { uid } from './id';
 import { PIECE_BY_ID, MAT_SOULSHARD, essenceItemId, SET_BY_HERO, ULTIMATE_SETS } from '../data/ultimateGear';
+
+// === Essence cross-conversion ===
+// Burn N essence of any hero → 1 essence of the chosen target hero.
+// Solves the "I have lots of Aelia essence but want Kengo essence" bottleneck
+// from random-hero drops without adding new material types.
+export const ESSENCE_CONVERT_RATE = 5;  // 5 source → 1 target
+
+export async function convertEssence(
+  sourceHeroId: string,
+  targetHeroId: string,
+  sourceAmount: number,
+): Promise<{ ok: boolean; gained?: number; error?: string }> {
+  if (sourceHeroId === targetHeroId) {
+    return { ok: false, error: 'Pick a different target hero' };
+  }
+  if (sourceAmount <= 0) {
+    return { ok: false, error: 'Amount must be positive' };
+  }
+  if (sourceAmount % ESSENCE_CONVERT_RATE !== 0) {
+    return { ok: false, error: `Must convert in multiples of ${ESSENCE_CONVERT_RATE}` };
+  }
+  const have = await getMaterialCount(essenceItemId(sourceHeroId));
+  if (have < sourceAmount) {
+    return { ok: false, error: `Only have ${have} source essence` };
+  }
+  const gained = Math.floor(sourceAmount / ESSENCE_CONVERT_RATE);
+  await spendMaterial(essenceItemId(sourceHeroId), sourceAmount);
+  await addMaterial(essenceItemId(targetHeroId), gained);
+  return { ok: true, gained };
+}
 import { ULT_GEM_BY_HERO, ULT_GEM_COST_BY_HERO } from '../data/gems';
 import { addGemToInventory } from './gems';
 import { useProfile } from '../store/profile';
