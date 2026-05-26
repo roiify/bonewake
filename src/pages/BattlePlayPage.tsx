@@ -1122,6 +1122,15 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
     else if (attacker) animSrc = (heroSprites?.attack ?? enemySprites?.attack) ?? animSrc;
   }
 
+  // Per-state column override for painted bosses — their idle is a single
+  // painted PNG (cols=1) but their attack atlas is a 9-frame strip
+  // (attackCols=9). When the animSrc is the attack/skill atlas, use the
+  // per-state cols instead of the default idle cols.
+  const isAttackState = !!(attacker && !isHealing);
+  const effectiveCols = (isAttackState && enemySprites?.attackCols)
+    ? enemySprites.attackCols
+    : (sprites?.cols ?? 1);
+
   const hpPct = (unit.hp / unit.maxHp) * 100;
   const hpColor = hpPct > 50 ? '#22c55e' : hpPct > 25 ? '#f59e0b' : '#ef4444';
 
@@ -1228,9 +1237,9 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
             {animSrc ? (
               <SpriteAnimator
                 src={animSrc}
-                cols={sprites!.cols}
+                cols={effectiveCols}
                 rows={sprites!.rows}
-                fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 18 : 14)))}
+                fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 14 : 14)))}
                 loop={unit.alive && !hit}
                 paused={unit.alive && !attacker && !hit}
                 size={renderSize}

@@ -316,6 +316,11 @@ export const ENEMY_SPRITES: Record<string, {
   portrait?: string;
   cols: number;
   rows: number;
+  // Painted-boss attack atlases generated via PixelLab animate_object
+  // are 9 frames wide while their idle is a single painted PNG. When
+  // present, attackCols overrides cols for the attack/skill animation
+  // only — idle / hit / death still use the cols/rows above (typically 1).
+  attackCols?: number;
 }> = {
   // World boss tier
   worldboss_1: { idle: A('sprites/echoes/enemies/worldboss_1_idle.png'), attack: A('sprites/echoes/enemies/worldboss_1_attack.png'), skill: A('sprites/echoes/enemies/worldboss_1_idle.png'), hit: A('sprites/echoes/enemies/worldboss_1_hit.png'), death: A('sprites/echoes/enemies/worldboss_1_idle.png'), portrait: A('sprites/echoes/enemies/worldboss_1_portrait.png'), cols: 17, rows: 1 },
@@ -377,7 +382,7 @@ export const ENEMY_SPRITES: Record<string, {
   // Single-frame 400×400 PNGs — no atlas. Same image is reused for idle/
   // attack/hit/death since these are one-shot weekly bosses (animation
   // budget went into the painting detail, not the frame count).
-  bonewake_dragon:  { idle: A('sprites/bosses/bonewake_dragon_idle.png'),  attack: A('sprites/bosses/bonewake_dragon_idle.png'),  skill: A('sprites/bosses/bonewake_dragon_idle.png'),  hit: A('sprites/bosses/bonewake_dragon_idle.png'),  death: A('sprites/bosses/bonewake_dragon_idle.png'),  portrait: A('sprites/bosses/bonewake_dragon_idle.png'),  cols: 1, rows: 1 },
+  bonewake_dragon:  { idle: A('sprites/bosses/bonewake_dragon_idle.png'),  attack: A('sprites/bosses/bonewake_dragon_attack.png'),  skill: A('sprites/bosses/bonewake_dragon_attack.png'),  hit: A('sprites/bosses/bonewake_dragon_idle.png'),  death: A('sprites/bosses/bonewake_dragon_idle.png'),  portrait: A('sprites/bosses/bonewake_dragon_idle.png'),  cols: 1, rows: 1, attackCols: 9 },
   plague_hydra:     { idle: A('sprites/bosses/plague_hydra_idle.png'),     attack: A('sprites/bosses/plague_hydra_idle.png'),     skill: A('sprites/bosses/plague_hydra_idle.png'),     hit: A('sprites/bosses/plague_hydra_idle.png'),     death: A('sprites/bosses/plague_hydra_idle.png'),     portrait: A('sprites/bosses/plague_hydra_idle.png'),     cols: 1, rows: 1 },
   rot_phoenix:      { idle: A('sprites/bosses/rot_phoenix_idle.png'),      attack: A('sprites/bosses/rot_phoenix_idle.png'),      skill: A('sprites/bosses/rot_phoenix_idle.png'),      hit: A('sprites/bosses/rot_phoenix_idle.png'),      death: A('sprites/bosses/rot_phoenix_idle.png'),      portrait: A('sprites/bosses/rot_phoenix_idle.png'),      cols: 1, rows: 1 },
   bone_cerberus:    { idle: A('sprites/bosses/bone_cerberus_idle.png'),    attack: A('sprites/bosses/bone_cerberus_idle.png'),    skill: A('sprites/bosses/bone_cerberus_idle.png'),    hit: A('sprites/bosses/bone_cerberus_idle.png'),    death: A('sprites/bosses/bone_cerberus_idle.png'),    portrait: A('sprites/bosses/bone_cerberus_idle.png'),    cols: 1, rows: 1 },
