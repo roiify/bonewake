@@ -9,33 +9,18 @@
   body {
     margin: 0; padding: 24px;
     font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo, monospace;
-    background:
-      radial-gradient(circle at top, #1f0e0e 0%, #0a0606 60%, #000 100%);
+    background: radial-gradient(circle at top, #1f0e0e 0%, #0a0606 60%, #000 100%);
     color: #e7e5e4;
     min-height: 100vh;
   }
-  header {
-    text-align: center;
-    margin-bottom: 28px;
-  }
-  h1 {
-    margin: 0;
-    color: #fda4af;
-    text-shadow: 0 2px 8px rgba(0,0,0,.7);
-    font-size: 28px;
-  }
-  .sub {
-    color: #a1a1aa;
-    font-size: 12px;
-    margin-top: 4px;
-  }
+  header { text-align: center; margin-bottom: 28px; }
+  h1 { margin: 0; color: #fda4af; text-shadow: 0 2px 8px rgba(0,0,0,.7); font-size: 28px; }
+  .sub { color: #a1a1aa; font-size: 12px; margin-top: 4px; }
+  .hint { color: #fbbf24; font-size: 11px; margin-top: 8px; opacity: 0.8; }
   .section-title {
-    font-size: 14px;
-    color: #fbbf24;
-    margin: 28px 0 12px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid #3f3f46;
-    letter-spacing: 2px;
+    font-size: 14px; color: #fbbf24;
+    margin: 28px 0 12px; padding-bottom: 6px;
+    border-bottom: 1px solid #3f3f46; letter-spacing: 2px;
   }
   .grid {
     display: grid;
@@ -48,42 +33,65 @@
     border-radius: 10px;
     padding: 12px;
     text-align: center;
-    transition: transform 0.15s ease, border-color 0.15s ease;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     position: relative;
   }
   .card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     border-color: #fda4af;
+    box-shadow: 0 0 24px rgba(253, 164, 175, 0.35);
   }
-  .card img {
+  /* Sprite viewport — the painted idle is the background image; on hover
+     we swap the background to the 9-frame _attack atlas and run a steps(9)
+     animation across it. The viewport is square; the attack atlas is
+     9 frames wide so we scale background-size accordingly. */
+  .viewport {
     width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 6px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    background-color: #1c1917;
+    background-image:
+      var(--idle),
+      repeating-conic-gradient(#1c1917 0% 25%, #2a2522 0% 50%);
+    background-blend-mode: normal;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
-    background:
-      repeating-conic-gradient(#1c1917 0% 25%, #2a2522 0% 50%) 0 0/16px 16px;
-    border-radius: 6px;
+    transition: filter 0.15s ease;
   }
-  .name {
-    margin-top: 8px;
-    color: #fde68a;
-    font-size: 13px;
-    font-weight: 600;
+  /* On hover, swap to the attack-atlas viewport. We size the bg so the
+     atlas's height matches the viewport (background-size auto 100% with
+     y centered), then animate background-position-x across 9 steps. */
+  .card:hover .viewport {
+    background-image: var(--attack);
+    background-size: auto 100%;
+    background-position: 0 center;
+    animation: bossAttackPlay var(--anim-dur, 0.9s) steps(9) infinite;
+    filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.55));
   }
-  .slot {
-    color: #71717a;
-    font-size: 10px;
-    margin-top: 2px;
+  @keyframes bossAttackPlay {
+    from { background-position: 0% center; }
+    to   { background-position: -900% center; }
   }
+  .name { margin-top: 8px; color: #fde68a; font-size: 13px; font-weight: 600; }
+  .slot { color: #71717a; font-size: 10px; margin-top: 2px; }
+  .speed-bar {
+    display: flex; gap: 8px; justify-content: center;
+    margin: 16px 0 4px;
+  }
+  .speed-bar button {
+    background: #1c1917; color: #fde68a; border: 1px solid #57534e;
+    padding: 6px 12px; font: inherit; font-size: 11px;
+    border-radius: 6px; cursor: pointer;
+  }
+  .speed-bar button.active { background: #7c2d12; border-color: #fda4af; color: #fff; }
   .placeholder {
     aspect-ratio: 1/1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #44403c;
-    font-size: 11px;
-    border: 1px dashed #44403c;
-    border-radius: 6px;
-    background: #0a0606;
+    display: flex; align-items: center; justify-content: center;
+    color: #44403c; font-size: 11px;
+    border: 1px dashed #44403c; border-radius: 6px; background: #0a0606;
   }
 </style>
 </head>
@@ -91,6 +99,12 @@
 <header>
   <h1>💀 BoneWake — Boss Gallery</h1>
   <div class="sub">14 boss-tier sprites · World Boss + Shatter daily rotation</div>
+  <div class="hint">Hover any boss to play its attack animation</div>
+  <div class="speed-bar" id="speed">
+    <button data-dur="1.4s">slow</button>
+    <button data-dur="0.9s" class="active">normal</button>
+    <button data-dur="0.5s">fast</button>
+  </div>
 </header>
 
 <div class="section-title">MYTHICAL CREATURES (7)</div>
@@ -101,6 +115,8 @@
 
 <script>
 const BASE = location.pathname.startsWith('/bonewake/') ? '/bonewake' : '';
+const V = Date.now(); // cache-bust
+
 const CREATURES = [
   ['bonewake_dragon',  'Bonewake Dragon',  'Mon · World Boss'],
   ['plague_hydra',     'Plague Hydra',     'Tue · World Boss'],
@@ -125,17 +141,24 @@ function render(targetId, list) {
   for (const [slug, name, slot] of list) {
     const card = document.createElement('div');
     card.className = 'card';
-    const img = document.createElement('img');
-    img.src = `${BASE}/sprites/bosses/${slug}_idle.png?v=${Date.now()}`;
-    img.alt = name;
-    img.onerror = () => {
-      img.style.display = 'none';
-      const ph = document.createElement('div');
-      ph.className = 'placeholder';
-      ph.textContent = 'generating…';
-      img.parentNode.insertBefore(ph, img.nextSibling);
+    const idle = `${BASE}/sprites/bosses/${slug}_idle.png?v=${V}`;
+    const attack = `${BASE}/sprites/bosses/${slug}_attack.png?v=${V}`;
+    const vp = document.createElement('div');
+    vp.className = 'viewport';
+    // CSS custom properties drive the per-card hover swap
+    vp.style.setProperty('--idle', `url("${idle}")`);
+    vp.style.setProperty('--attack', `url("${attack}")`);
+    // Probe attack atlas existence; if it 404s, hide the hover swap so the
+    // card just stays on idle.
+    const probe = new Image();
+    probe.onerror = () => {
+      // No attack atlas — remove the --attack so the hover-swap rule
+      // falls back to the idle bg.
+      vp.style.setProperty('--attack', `url("${idle}")`);
     };
-    card.appendChild(img);
+    probe.src = attack;
+    card.appendChild(vp);
+
     const nm = document.createElement('div');
     nm.className = 'name';
     nm.textContent = name;
@@ -149,6 +172,19 @@ function render(targetId, list) {
 }
 render('creatures', CREATURES);
 render('humanoids', HUMANOIDS);
+
+// Speed-bar buttons set --anim-dur on the root grid containers so all
+// hover-attack animations share a tempo.
+document.querySelectorAll('.speed-bar button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.speed-bar button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const dur = btn.dataset.dur;
+    document.querySelectorAll('.viewport').forEach(v => {
+      v.style.setProperty('--anim-dur', dur);
+    });
+  });
+});
 </script>
 </body>
 </html>
