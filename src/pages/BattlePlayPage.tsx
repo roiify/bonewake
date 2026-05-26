@@ -7,8 +7,8 @@ import type { TrialDef } from '../data/trials';
 import { DUNGEON_BY_ID, buildDungeonTeam, markDungeonCleared } from '../data/dungeons';
 import type { DungeonDef, DungeonTier } from '../data/dungeons';
 import { generateFloor, TOWER_MAX_FLOOR, isoWeek } from '../data/tower';
-import { currentBoss, buildBossTeam } from '../data/worldBoss';
-import { currentSpiritBoss, buildSpiritBossUnit } from '../data/spiritBomb';
+import { currentBoss, buildBossTeam, WORLD_BOSSES } from '../data/worldBoss';
+import { currentSpiritBoss, buildSpiritBossUnit, SPIRIT_BOSSES } from '../data/spiritBomb';
 import { ECHO_BY_BOSS, FIRST_KILL_DROP_RATE, REPEAT_DROP_RATE } from '../data/echoes';
 import type { Stage } from '../types';
 import { useHeroes } from '../store/heroes';
@@ -207,10 +207,23 @@ export default function BattlePlayPage() {
     } else if (towerSource) {
       enemyUnits = generateFloor(towerSource.floor).enemyTeam;
     } else if (isWorldBoss) {
-      enemyUnits = buildBossTeam(currentBoss(isoWeek()));
+      // Debug override: ?boss=<slug> forces a specific boss instead of the
+      // day-of-week rotation. Used to spot-check sizing/sprite quality
+      // for every boss without waiting for the rotation to cycle.
+      const params = new URLSearchParams(window.location.search);
+      const bossOverride = params.get('boss');
+      const def = bossOverride
+        ? (WORLD_BOSSES.find(b => b.id === bossOverride) ?? currentBoss(isoWeek()))
+        : currentBoss(isoWeek());
+      enemyUnits = buildBossTeam(def);
     } else if (isSpiritBomb) {
       const wk = isoWeek();
-      const sb = currentSpiritBoss(wk);
+      // Same ?boss=<slug> override for shatter bosses
+      const params = new URLSearchParams(window.location.search);
+      const bossOverride = params.get('boss');
+      const sb = bossOverride
+        ? (SPIRIT_BOSSES.find(b => b.id === bossOverride) ?? currentSpiritBoss(wk))
+        : currentSpiritBoss(wk);
       const profile = useProfile.getState().profile;
       const dmgSoFar = profile.spiritBossWeek === wk ? (profile.spiritBossDamage ?? 0) : 0;
       enemyUnits = [buildSpiritBossUnit(sb, Math.max(0, sb.hp - dmgSoFar))];
