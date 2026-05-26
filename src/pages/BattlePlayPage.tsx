@@ -260,6 +260,19 @@ export default function BattlePlayPage() {
       }]);
       setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 900);
     }
+    // Skill cue: yellow "SKILL!" tag over the caster so the player sees
+    // why the energy bar just dropped 50 (mid-energy skill fired).
+    if (action.skill) {
+      const id = ++floatId.current;
+      setFloats(f => [...f, {
+        id,
+        dstId: action.src,
+        x: 0, y: 0,
+        value: 'SKILL!',
+        color: '#facc15',
+      }]);
+      setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 900);
+    }
   }
 
   // Phase 2: animation finishes. Clear attacker so the lunge returns to
