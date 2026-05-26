@@ -874,8 +874,11 @@ export default function BattlePlayPage() {
 
       {/* Battlefield: heroes on left facing right, enemies on right facing left */}
       <div className={`absolute inset-0 flex flex-row p-3 pt-24 pb-28 gap-2 ${shake === 'hard' ? 'animate-screen-shake-hard' : shake === 'soft' ? 'animate-screen-shake' : ''}`}>
-        {/* Player column (left) */}
-        <div className="flex-1 flex flex-col justify-around items-start">
+        {/* Player column (left) — w-1/2 + min-w-0 prevents the column
+            from growing to fit oversized children (painted bosses).
+            With flex-1 the child's intrinsic size becomes a min-width
+            and the column would balloon past the frame. */}
+        <div className="w-1/2 min-w-0 flex flex-col justify-around items-start">
           {playerSlots.map((u, i) => (
             <div key={u.id} style={{ marginLeft: `${i % 2 === 0 ? 0 : 18}px` }}>
               <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} isHealing={healCaster === u.id} side="player" floats={floats.filter(f => f.dstId === u.id)} lungeTo={attacker === u.id ? lungeOffset : null} setRef={el => { unitRefs.current[u.id] = el; }} />
@@ -883,7 +886,7 @@ export default function BattlePlayPage() {
           ))}
         </div>
         {/* Enemy column (right) */}
-        <div className="flex-1 flex flex-col justify-around items-end">
+        <div className="w-1/2 min-w-0 flex flex-col justify-around items-end">
           {enemySlots.map((u, i) => (
             <div key={u.id} style={{ marginRight: `${i % 2 === 0 ? 0 : 18}px` }}>
               <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} isHealing={healCaster === u.id} side="enemy" floats={floats.filter(f => f.dstId === u.id)} lungeTo={attacker === u.id ? lungeOffset : null} setRef={el => { unitRefs.current[u.id] = el; }} />
