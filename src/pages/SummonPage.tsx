@@ -112,9 +112,10 @@ export default function SummonPage() {
         const isPremium = pool.id === 'premium';
         const tenX = pool.cost.amount * 10; // 10-pull cost (no longer 9× — true cost shown)
         const featuredPortrait = featured && HERO_PORTRAITS[featured.id];
-        const sssPct = (pool.rates[5] ?? 0) * 100;
-        const ssPct  = (pool.rates[4] ?? 0) * 100;
-        const sPct   = (pool.rates[3] ?? 0) * 100;
+        // Raw fractions (0-1) — RateChip multiplies to percent itself
+        const sssRate = pool.rates[5] ?? 0;
+        const ssRate  = pool.rates[4] ?? 0;
+        const sRate   = pool.rates[3] ?? 0;
         return (
           <Card key={pool.id} tint={featured?.color ?? (isPremium ? '#fbbf24' : undefined)} goldFrame={isPremium}>
             {/* Featured-hero hero banner (Stellar only — much bigger) */}
@@ -190,9 +191,9 @@ export default function SummonPage() {
 
               {/* Per-pull rates — exposed so the player can compare banners */}
               <div className="grid grid-cols-3 gap-1.5 mb-3 text-[10px] font-pixel">
-                <RateChip label="SSS" pct={sssPct} color="#fbbf24" />
-                <RateChip label="SS"  pct={ssPct}  color="#a78bfa" />
-                <RateChip label="S"   pct={sPct}   color="#a3a3a3" />
+                <RateChip label="SSS" pct={sssRate} color="#fbbf24" />
+                <RateChip label="SS"  pct={ssRate}  color="#a78bfa" />
+                <RateChip label="S"   pct={sRate}   color="#a3a3a3" />
               </div>
 
               {/* Pull buttons */}
