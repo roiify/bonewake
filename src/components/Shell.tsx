@@ -1,5 +1,6 @@
-import { Outlet, NavLink, Link } from 'react-router-dom';
+import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useProfile } from '../store/profile';
 import { Home, Swords, Users, Sparkles, Flame, Menu } from 'lucide-react';
 import EnergyModal from './EnergyModal';
@@ -17,6 +18,7 @@ const UI = {
 export function Shell() {
   const profile = useProfile(s => s.profile);
   const [energyOpen, setEnergyOpen] = useState(false);
+  const location = useLocation();
 
   return (
     <div className="h-full flex flex-col max-w-[420px] mx-auto relative" style={{ background: 'linear-gradient(180deg, #14100f 0%, #0a0708 100%)' }}>
@@ -74,9 +76,21 @@ export function Shell() {
       {/* Content — must NOT create its own stacking context, otherwise
           fixed-position modals (z-50) inside pages can't escape it and
           end up trapped beneath the bottom nav (z-20). Paint order keeps
-          main above the ash overlay since it's the later sibling. */}
+          main above the ash overlay since it's the later sibling.
+          Route changes animate via AnimatePresence keyed on pathname —
+          a quick spring slide-up + fade so navigation feels alive. */}
       <main className="flex-1 overflow-y-auto overflow-x-hidden pb-[max(12px,env(safe-area-inset-bottom))]">
-        <Outlet />
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ type: 'spring', stiffness: 340, damping: 28, mass: 0.6 }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Bottom nav */}
