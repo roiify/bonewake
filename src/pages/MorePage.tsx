@@ -7,8 +7,7 @@ import { GATE_BY_PATH } from '../data/gating';
 import PageHeader from '../components/ui/PageHeader';
 
 const sections = [
-  // Game modes have moved to the Modes tab — leave a quick shortcut.
-  { to: '/modes', label: 'Game Modes', icon: '🔥', desc: 'Tower, World Boss, Shatter, Trials, Dungeons, Echoes, Training' },
+  // Game Modes link removed — that's the Modes tab in the bottom nav.
   { to: '/shop', label: 'Shop', icon: '🏪', desc: 'Spend gold/gems on essentials' },
   { to: '/mail', label: 'Mail', icon: '📬', desc: 'Reward inbox & messages' },
   { to: '/achievements', label: 'Achievements', icon: '🏆', desc: 'Milestones with reward chests' },
