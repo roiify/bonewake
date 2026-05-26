@@ -1212,16 +1212,20 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
           not a regular enemy". */}
       {(() => {
         const isPaintedBoss = PAINTED_BOSS_IDS.has(unit.templateId);
-        // Math: mobile frame is max-w-[420px], battlefield has p-3 (12px
-        // each side) + gap-2 (8px) = 28px chrome, so each flex column =
-        // (420 - 28) / 2 = 196px wide. WIDTH max-safe is w-48 (192px).
-        // Vertically there's tons of headroom (only one boss enemy in
-        // world-boss/shatter), so bump HEIGHT to h-56 (224px) and render
-        // the sprite at 224 — uniformly scaled. The container's
-        // overflow-hidden + items-end + justify-center clips the 16px
-        // horizontal bleed on each side so the boss still fits the
-        // column edge while standing 16% taller than before.
-        const containerSize = isPaintedBoss ? 'w-48 h-56' : 'w-44 h-44';
+        // Boss sprite needs to read big without clipping wings/tentacles
+        // or bleeding past the mobile frame's right edge.
+        //
+        // Strategy: oversize the container (w-56 = 224px) and let it
+        // bleed LEFT into the gap + player-column slack instead of right
+        // toward the frame edge. The enemy column uses items-end so the
+        // container's right edge stays pinned to the column's right edge
+        // (= frame inner edge). The extra 32px of width extends leftward
+        // into the 8px gap and the ~24px of player-column right-slack
+        // (heroes are items-start, so they leave their column's right
+        // side empty). Result: full 224×224 sprite visible, right edge
+        // safe, wings preserved. No overflow-hidden — the sprite renders
+        // in full and naturally composes with the player side.
+        const containerSize = isPaintedBoss ? 'w-56 h-56' : 'w-44 h-44';
         const renderSize = isPaintedBoss ? 224 : (heroSprites ? 234 : 220);
         // Per-sprite orientation: PixelLab side-view sprites face east
         // by default. Heroes are on the left and need to face east →
@@ -1239,7 +1243,7 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
             : undefined;
         return (
           <div
-            className={`relative ${containerSize} flex items-end justify-center ${isPaintedBoss ? 'overflow-hidden' : ''}`}
+            className={`relative ${containerSize} flex items-end justify-center`}
             style={wrapStyle}
           >
             {animSrc ? (
