@@ -371,24 +371,54 @@ export default function SummonPage() {
         );
       })}
 
-      {/* Reveal overlay */}
+      {/* Reveal overlay — cinematic: drifting particles + rarity-color
+          radial wash + spring capsule + halo burst on SSS pulls. */}
       <AnimatePresence>
         {reveal && (
           <motion.div
             key="overlay"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 overflow-hidden"
             onClick={() => stage === 'reveal' && setReveal(null)}
+            style={{
+              // Radial wash tinted to the rarity glow — pulses subtly via
+              // the inline animation in CSS. Lets the background tell the
+              // player the tier before any card lands.
+              background: `
+                radial-gradient(circle at center, ${capsuleGlow(reveal)}22 0%, rgba(0,0,0,0.97) 60%),
+                #000`,
+            }}
           >
+            {/* Drifting particle motes — pure CSS, ~20 floaters across
+                the overlay so the whole screen feels alive without
+                heavy assets. */}
+            <div className="absolute inset-0 pointer-events-none opacity-60">
+              {Array.from({ length: 24 }).map((_, k) => (
+                <div
+                  key={k}
+                  className="absolute rounded-full"
+                  style={{
+                    left: `${(k * 37) % 100}%`,
+                    top: `${(k * 53) % 100}%`,
+                    width: 3 + (k % 3),
+                    height: 3 + (k % 3),
+                    background: capsuleGlow(reveal),
+                    boxShadow: `0 0 8px ${capsuleGlow(reveal)}`,
+                    animation: `mote-drift ${6 + (k % 5)}s ease-in-out infinite`,
+                    animationDelay: `${(k * 0.3) % 4}s`,
+                  }}
+                />
+              ))}
+            </div>
             {stage === 'capsule' && (
               <motion.div
-                initial={{ scale: 0.4 }}
-                animate={{ scale: [1, 1.1, 0.9, 1.2, 0], rotate: [0, -10, 10, -10, 0] }}
-                transition={{ duration: 0.85, times: [0, 0.3, 0.5, 0.75, 1] }}
-                className="w-32 h-32 rounded-full flex items-center justify-center text-7xl"
+                initial={{ scale: 0.4, rotate: 0 }}
+                animate={{ scale: [1, 1.15, 0.92, 1.25, 0], rotate: [0, -12, 12, -12, 0] }}
+                transition={{ duration: 1.0, times: [0, 0.3, 0.55, 0.8, 1], ease: [0.4, 0, 0.2, 1] }}
+                className="relative w-36 h-36 rounded-full flex items-center justify-center text-8xl"
                 style={{
                   background: `radial-gradient(circle, ${capsuleGlow(reveal)}, transparent 70%)`,
-                  boxShadow: `0 0 80px ${capsuleGlow(reveal)}`,
+                  boxShadow: `0 0 80px ${capsuleGlow(reveal)}, 0 0 160px ${capsuleGlow(reveal)}88`,
                 }}
               >
                 ✨
