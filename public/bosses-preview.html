@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BoneWake — Boss Gallery</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo, monospace;
+    background:
+      radial-gradient(circle at top, #1f0e0e 0%, #0a0606 60%, #000 100%);
+    color: #e7e5e4;
+    min-height: 100vh;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  h1 {
+    margin: 0;
+    color: #fda4af;
+    text-shadow: 0 2px 8px rgba(0,0,0,.7);
+    font-size: 28px;
+  }
+  .sub {
+    color: #a1a1aa;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+  .section-title {
+    font-size: 14px;
+    color: #fbbf24;
+    margin: 28px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #3f3f46;
+    letter-spacing: 2px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: linear-gradient(180deg, #1c1917, #0c0a09);
+    border: 2px solid #57534e;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+    position: relative;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: #fda4af;
+  }
+  .card img {
+    width: 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background:
+      repeating-conic-gradient(#1c1917 0% 25%, #2a2522 0% 50%) 0 0/16px 16px;
+    border-radius: 6px;
+  }
+  .name {
+    margin-top: 8px;
+    color: #fde68a;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .slot {
+    color: #71717a;
+    font-size: 10px;
+    margin-top: 2px;
+  }
+  .placeholder {
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #44403c;
+    font-size: 11px;
+    border: 1px dashed #44403c;
+    border-radius: 6px;
+    background: #0a0606;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>💀 BoneWake — Boss Gallery</h1>
+  <div class="sub">14 boss-tier sprites · World Boss + Shatter daily rotation</div>
+</header>
+
+<div class="section-title">MYTHICAL CREATURES (7)</div>
+<div class="grid" id="creatures"></div>
+
+<div class="section-title">HUMANOID OVERLORDS (7)</div>
+<div class="grid" id="humanoids"></div>
+
+<script>
+const BASE = location.pathname.startsWith('/bonewake/') ? '/bonewake' : '';
+const CREATURES = [
+  ['bonewake_dragon',  'Bonewake Dragon',  'Mon · World Boss'],
+  ['plague_hydra',     'Plague Hydra',     'Tue · World Boss'],
+  ['rot_phoenix',      'Rot Phoenix',      'Wed · World Boss'],
+  ['bone_cerberus',    'Bone Cerberus',    'Thu · World Boss'],
+  ['wraith_kraken',    'Wraith Kraken',    'Fri · World Boss'],
+  ['necro_sphinx',     'Necro Sphinx',     'Sat · World Boss'],
+  ['crimson_centaur',  'Crimson Centaur',  'Sun · World Boss'],
+];
+const HUMANOIDS = [
+  ['lich_king',        'The Lich King',     'Mon · Shatter'],
+  ['bone_titan',       'Bone Titan',        'Tue · Shatter'],
+  ['plague_doctor',    'Plague Doctor',     'Wed · Shatter'],
+  ['ash_empress',      'Ash Empress',       'Thu · Shatter'],
+  ['soul_reaper',      'Soul Reaper',       'Fri · Shatter'],
+  ['voidlord',         'Voidlord',          'Sat · Shatter'],
+  ['worm_god',         'The Worm God',      'Sun · Shatter'],
+];
+
+function render(targetId, list) {
+  const t = document.getElementById(targetId);
+  for (const [slug, name, slot] of list) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const img = document.createElement('img');
+    img.src = `${BASE}/sprites/bosses/${slug}_idle.png?v=${Date.now()}`;
+    img.alt = name;
+    img.onerror = () => {
+      img.style.display = 'none';
+      const ph = document.createElement('div');
+      ph.className = 'placeholder';
+      ph.textContent = 'generating…';
+      img.parentNode.insertBefore(ph, img.nextSibling);
+    };
+    card.appendChild(img);
+    const nm = document.createElement('div');
+    nm.className = 'name';
+    nm.textContent = name;
+    card.appendChild(nm);
+    const sl = document.createElement('div');
+    sl.className = 'slot';
+    sl.textContent = slot;
+    card.appendChild(sl);
+    t.appendChild(card);
+  }
+}
+render('creatures', CREATURES);
+render('humanoids', HUMANOIDS);
+</script>
+</body>
+</html>
