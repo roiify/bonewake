@@ -18,6 +18,7 @@ import { useHeroes } from './store/heroes';
 import { useItems } from './store/items';
 import { Shell } from './components/Shell';
 import HomePage from './pages/HomePage';
+import ModesPage from './pages/ModesPage';
 import HeroesPage from './pages/HeroesPage';
 import HeroDetailPage from './pages/HeroDetailPage';
 import SummonPage from './pages/SummonPage';
@@ -119,6 +120,7 @@ export default function App() {
       <Routes>
         <Route element={<Shell />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/modes" element={<ModesPage />} />
           <Route path="/heroes" element={<HeroesPage />} />
           <Route path="/heroes/:id" element={<HeroDetailPage />} />
           <Route path="/summon" element={<SummonPage />} />

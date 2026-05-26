@@ -1,7 +1,7 @@
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useProfile } from '../store/profile';
-import { Home, Swords, Users, Sparkles, Settings } from 'lucide-react';
+import { Home, Swords, Users, Sparkles, Flame, Menu } from 'lucide-react';
 import EnergyModal from './EnergyModal';
 import { TITLE_BY_ID } from '../data/titles';
 import Pill from './ui/Pill';
@@ -74,12 +74,13 @@ export function Shell() {
       </main>
 
       {/* Bottom nav */}
-      <nav className="grid grid-cols-5 border-t border-zinc-800/80 bg-zinc-950/85 backdrop-blur z-20 sticky bottom-0 pb-[max(0px,env(safe-area-inset-bottom))]">
+      <nav className="grid grid-cols-6 border-t border-zinc-800/80 bg-zinc-950/85 backdrop-blur z-20 sticky bottom-0 pb-[max(0px,env(safe-area-inset-bottom))]">
         <TabLink to="/" icon={<Home size={18} />} label="Home" />
         <TabLink to="/battle" icon={<Swords size={18} />} label="Battle" />
+        <TabLink to="/modes" icon={<Flame size={18} />} label="Modes" />
         <TabLink to="/heroes" icon={<Users size={18} />} label="Heroes" />
         <TabLink to="/summon" icon={<Sparkles size={18} />} label="Summon" />
-        <TabLink to="/more" icon={<Settings size={18} />} label="More" />
+        <TabLink to="/more" icon={<Menu size={18} />} label="More" />
       </nav>
     </div>
   );

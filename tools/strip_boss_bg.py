@@ -27,9 +27,13 @@ BOSS_DIR = Path(__file__).parent.parent / "public" / "sprites" / "bosses"
 #   * brightness >= BRIGHTNESS_FULL  → fully transparent
 #   * brightness in (BRIGHTNESS_SOFT, BRIGHTNESS_FULL) → partial alpha
 #   * saturation < SAT_MAX (otherwise it's a real bright color we keep)
-BRIGHTNESS_FULL = 235
-BRIGHTNESS_SOFT = 200
-SAT_MAX = 35
+# Tighter pass — many bosses came back with mid-gray backdrops around
+# brightness ~150. Walking the threshold down to 130 catches them but
+# could nibble at dark armor highlights, so SAT_MAX stays low to keep
+# real colors (red blood, green pus, brown leather) untouched.
+BRIGHTNESS_FULL = 200
+BRIGHTNESS_SOFT = 130
+SAT_MAX = 28
 
 
 def strip_one(path: Path) -> None:

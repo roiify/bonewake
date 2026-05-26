@@ -7,13 +7,8 @@ import { GATE_BY_PATH } from '../data/gating';
 import PageHeader from '../components/ui/PageHeader';
 
 const sections = [
-  { to: '/tower', label: 'Tower of Trials', icon: '🗼', desc: 'Climb endless floors. Daily attempts; floors 1-100 reset weekly.' },
-  { to: '/worldboss', label: 'World Boss', icon: '🌋', desc: 'Weekly boss. Your BEST single-attempt damage sets the reward tier.' },
-  { to: '/spirit', label: 'Shatter', icon: '💥', desc: 'Weekly cumulative-damage boss. Every hit stacks toward one HP pool.' },
-  { to: '/trials', label: 'Hero Trials', icon: '🎯', desc: 'Themed daily runs with squad restrictions. Bonus gems + soulshards.' },
-  { to: '/dungeons', label: 'Material Dungeons', icon: '⛏️', desc: 'Themed farming. Weekday rotation; guaranteed gold / XP / gear / gems.' },
-  { to: '/echoes',   label: 'Boss Echoes',       icon: '💀', desc: 'Collect Echoes from defeated bosses. Equip up to 5 for account-wide passives.' },
-  { to: '/training', label: 'Training Chamber', icon: '💤', desc: 'Idle XP + gold while away' },
+  // Game modes have moved to the Modes tab — leave a quick shortcut.
+  { to: '/modes', label: 'Game Modes', icon: '🔥', desc: 'Tower, World Boss, Shatter, Trials, Dungeons, Echoes, Training' },
   { to: '/shop', label: 'Shop', icon: '🏪', desc: 'Spend gold/gems on essentials' },
   { to: '/mail', label: 'Mail', icon: '📬', desc: 'Reward inbox & messages' },
   { to: '/achievements', label: 'Achievements', icon: '🏆', desc: 'Milestones with reward chests' },
