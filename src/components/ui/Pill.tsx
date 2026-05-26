@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
 import { formatCompact } from '../../lib/format';
 
 type PillVariant = 'gold' | 'gem' | 'energy' | 'rose' | 'neutral';
@@ -21,7 +22,21 @@ interface PillProps {
 }
 
 export default function Pill({ icon, iconSrc, value, label, color, variant = 'neutral', onClick, title, plus }: PillProps) {
-  const className = `pill-embossed pill-embossed--${variant}`;
+  // Pulse the whole pill briefly when value increases. Uses ref to skip
+  // the initial mount so the user doesn't see a pulse on page load.
+  const [pulsing, setPulsing] = useState(false);
+  const prev = useRef<number | undefined>(value);
+  useEffect(() => {
+    if (prev.current !== undefined && value !== undefined && value > prev.current) {
+      setPulsing(true);
+      const t = setTimeout(() => setPulsing(false), 400);
+      return () => clearTimeout(t);
+    }
+    prev.current = value;
+  }, [value]);
+  useEffect(() => { prev.current = value; }, [value]);
+
+  const className = `pill-embossed pill-embossed--${variant}${pulsing ? ' pill-pulse' : ''}`;
   const titleAttr = title ?? (value != null ? value.toLocaleString() : undefined);
 
   const inner = (
@@ -41,10 +56,10 @@ export default function Pill({ icon, iconSrc, value, label, color, variant = 'ne
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={value ?? label}
-          initial={{ y: -6, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 6, opacity: 0 }}
-          transition={{ duration: 0.14 }}
+          initial={{ y: -8, opacity: 0, scale: 0.85 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 8, opacity: 0, scale: 0.85 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 22 }}
           className="text-zinc-100"
         >
           {label ?? (value != null ? formatCompact(value) : '')}

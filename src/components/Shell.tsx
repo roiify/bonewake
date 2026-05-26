@@ -28,15 +28,16 @@ export function Shell() {
         <Link to="/profile" className="flex items-center gap-2.5 hover:bg-zinc-900/40 rounded -m-1 p-1 transition-colors">
           {/* Level badge — beveled gold disc */}
           <div
-            className={`w-10 h-10 rounded-lg flex items-center justify-center font-pixel ${
+            className={`relative w-10 h-10 rounded-lg flex items-center justify-center font-pixel level-badge-halo ${
               profile.level >= 100 ? 'text-[11px]' : 'text-base'
             }`}
             style={{
               background: 'linear-gradient(180deg, #fde68a 0%, #d97706 60%, #92400e 100%)',
               color: '#1a0f06',
               border: '1px solid #fde68a',
-              boxShadow: '0 1px 0 rgba(255,255,255,0.3) inset, 0 -2px 0 rgba(0,0,0,0.4) inset, 0 2px 4px rgba(0,0,0,0.6)',
-              textShadow: '0 1px 0 rgba(255,248,220,0.6)',
+              boxShadow:
+                '0 1px 0 rgba(255,255,255,0.35) inset, 0 -2px 0 rgba(0,0,0,0.45) inset, 0 2px 5px rgba(0,0,0,0.6), 0 0 14px rgba(251, 191, 36, 0.35)',
+              textShadow: '0 1px 0 rgba(255,248,220,0.65)',
             }}
           >
             {profile.level}
