@@ -220,11 +220,10 @@ export function resolveBattle(
       const isUlt = rawIsUlt && !wastedHeal && !wastedRevive;
       const skill = (wastedHeal || wastedRevive) ? undefined : rawSkill;
 
-      // Skill trigger — fires once per battle at 50+ energy, between
-      // basic attacks and the ult. Single-target nuke (200% ATK — trimmed
-      // from 250% so fights don't get steamrolled by a free pre-ult hit).
-      // Drains 50 energy, so unit keeps building toward ult after.
-      const canSkill = !isUlt && unit.energy >= 50 && !(unit as any).skillUsed;
+      // Skills disabled — every hero now builds straight to ult at 100
+      // energy. Ult multipliers were bumped ~25% in skills.ts to absorb
+      // the lost mid-cycle skill damage.
+      const canSkill = false;
       if (canSkill) {
         (unit as any).skillUsed = true;
         const target = pickEnemyTarget(enemies, rng);
@@ -248,7 +247,7 @@ export function resolveBattle(
         // Ult-level bonus from per-hero skill leveling
         const ultMult = ultLevelMultiplier(unit.ultLevel ?? 0);
         if (skill.targeting === 'self' && skill.effect?.type === 'heal') {
-          const healValue = Math.floor((skill.effect.value + Math.floor(unit.atk * 0.5)) * ultMult);
+          const healValue = Math.floor((skill.effect.value + Math.floor(unit.atk * 0.6)) * ultMult);
           let isFirst = true;
           for (const ally of allies) {
             if (!ally.alive) continue;
