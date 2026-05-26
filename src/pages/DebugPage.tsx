@@ -11,6 +11,7 @@ import { useItems } from '../store/items';
 import { HERO_BY_ID } from '../data/heroes';
 import { genLoot } from '../lib/loot';
 import { addMaterial } from '../lib/crafting';
+import { enchantUltGear, MAX_ENCHANT_LEVEL } from '../lib/equipmentMgmt';
 import { MAT_SOULSHARD, essenceItemId, ULTIMATE_SETS } from '../data/ultimateGear';
 import { STAGES } from '../data/stages';
 import { sendMail } from '../lib/mail';
@@ -154,10 +155,12 @@ export default function DebugPage() {
     if (!confirm('TESTING — Max everything?\n\nGrants all heroes at max stats, crafts every ultimate set + socket gem, auto-equips, sockets ult gems into ult weapons.')) return;
 
     // 1. Top up currencies + materials so crafts never fail mid-flight,
-    //    and slam the player profile to PLAYER_MAX_LEVEL.
+    //    and slam the player profile to PLAYER_MAX_LEVEL. Materials bumped
+    //    way past the 2.5× ult-gear cost increase + +10 enchant ladder so
+    //    a single MAX EVERYTHING covers crafting + enchanting every set.
     await patch({ level: 200, exp: 0, gold: 999_999_999, gems: 9_999_999, energy: 100, friendPoints: 99_999 });
-    await addMaterial(MAT_SOULSHARD, 10_000);
-    for (const s of ULTIMATE_SETS) await addMaterial(essenceItemId(s.heroId), 10_000);
+    await addMaterial(MAT_SOULSHARD, 100_000);
+    for (const s of ULTIMATE_SETS) await addMaterial(essenceItemId(s.heroId), 50_000);
 
     // 2. Grant any missing hero. For owned ones, push to max state.
     const owned = await db.heroes.toArray();
@@ -193,13 +196,19 @@ export default function DebugPage() {
     }
     await reload();
 
-    // 3. Craft every ultimate set piece (skip already-crafted).
-    const equipped = await db.equipment.toArray();
-    const craftedIds = new Set(equipped.map(e => e.craftedPieceId).filter(Boolean));
+    // 3. Craft every ultimate set piece. Re-checks crafted state per
+    //    iteration so a piece that was missing on a prior run gets
+    //    crafted on subsequent passes (idempotent).
+    let craftedCount = 0;
+    let craftFailures = 0;
     for (const set of ULTIMATE_SETS) {
+      const currentEq = await db.equipment.toArray();
+      const haveCrafted = new Set(currentEq.map(e => e.craftedPieceId).filter(Boolean));
       for (const piece of set.pieces) {
-        if (craftedIds.has(piece.id)) continue;
-        await craftSetPiece(piece.id);
+        if (haveCrafted.has(piece.id)) continue;
+        const result = await craftSetPiece(piece.id);
+        if (result) craftedCount++;
+        else craftFailures++;
       }
     }
     await reload();
@@ -295,6 +304,19 @@ export default function DebugPage() {
       }
     }
 
+    // 5.5. Enchant every crafted ult piece to MAX_ENCHANT_LEVEL (+10).
+    // Mythic Ascension bar on hero detail will read "+10 MAX" instead of
+    // "+1 next" after this completes.
+    let enchantsApplied = 0;
+    const allCrafted = (await db.equipment.toArray()).filter(e => !!e.craftedPieceId);
+    for (const eq of allCrafted) {
+      for (let i = (eq.upgradeLevel ?? 0); i < MAX_ENCHANT_LEVEL; i++) {
+        const r = await enchantUltGear(eq.id);
+        if (!r.ok) break;
+        enchantsApplied++;
+      }
+    }
+
     // 6. Unlock every stage at 3 stars so the whole chapter map is open
     // for testing. Idempotent — preserves existing higher clear counts.
     const existingClears = await db.stageClears.toArray();
@@ -310,11 +332,14 @@ export default function DebugPage() {
     }
 
     await reload();
+    const expectedPieces = ULTIMATE_SETS.length * 5;
     alert(
       `MAX EVERYTHING applied:\n` +
       `  • Player: lvl 200, max currencies\n` +
       `  • Heroes: ${heroesPreEquip.length} heroes maxed (★6, lvl 200, all talents, ult lvl ${MAX_ULT_LEVEL})\n` +
-      `  • Gear: ${piecesEquipped} ult set pieces equipped to ${heroesEquipped} heroes\n` +
+      `  • Crafting: ${craftedCount} new pieces forged this run${craftFailures ? ` · ${craftFailures} failed` : ''}\n` +
+      `  • Gear: ${piecesEquipped}/${expectedPieces} ult set pieces equipped to ${heroesEquipped} heroes\n` +
+      `  • Enchants: +${enchantsApplied} levels applied (target +${MAX_ENCHANT_LEVEL} × every piece)\n` +
       `  • Sockets: ${ultGemsSocketed} ult gems + ${normalGemsSocketed} normal gems socketed\n` +
       `  • Stages: every chapter 3-starred`
     );

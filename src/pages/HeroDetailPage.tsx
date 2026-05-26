@@ -153,30 +153,54 @@ export default function HeroDetailPage() {
       ).length
     : 0;
 
-  // Auto-equip: pick the highest-power item for each slot from items that are
-  // either unequipped or already equipped to THIS hero (won't steal from others).
+  // Auto-equip: pick the highest-power item for each slot from EVERY item
+  // in the inventory. If the best piece is currently equipped to another
+  // hero, transfer it (strip it from the previous owner's equipped map
+  // so two heroes never list the same item). Set-restricted Mythic
+  // pieces are filtered out unless their setRestrictedTo === this hero.
   const autoEquip = async () => {
     const slots: EquipSlot[] = ['weapon', 'armor', 'helm', 'boots', 'accessory'];
     const newEquipped: Partial<Record<string, string>> = { ...hero.equipped };
-    const toFree: string[] = [];
-    const toAttach: string[] = [];
+    const itemsToReassign: { eqId: string; fromHeroId: string | null }[] = [];
     let changed = 0;
     for (const slot of slots) {
-      const candidates = equipment.filter(eq =>
-        itemSlot(eq) === slot && (!eq.equippedTo || eq.equippedTo === hero.id)
-      );
+      const candidates = equipment.filter(eq => {
+        if (itemSlot(eq) !== slot) return false;
+        // Mythic set pieces are bound to a specific hero — never let
+        // another hero equip them.
+        if (eq.setRestrictedTo && eq.setRestrictedTo !== hero.templateId) return false;
+        return true;
+      });
       if (candidates.length === 0) continue;
       const best = [...candidates].sort((a, b) => equipPower(b) - equipPower(a))[0];
       const current = newEquipped[slot];
       if (current === best.id) continue;
-      if (current) toFree.push(current);
-      toAttach.push(best.id);
+      if (current) itemsToReassign.push({ eqId: current, fromHeroId: hero.id });
+      // If best piece was equipped to ANOTHER hero, strip it from them first
+      if (best.equippedTo && best.equippedTo !== hero.id) {
+        const prevOwner = heroes.find(h => h.id === best.equippedTo);
+        if (prevOwner) {
+          const prevEquipped = { ...prevOwner.equipped };
+          for (const k of Object.keys(prevEquipped)) {
+            if (prevEquipped[k] === best.id) delete prevEquipped[k];
+          }
+          await updateHero(prevOwner.id, { equipped: prevEquipped });
+        }
+      }
+      itemsToReassign.push({ eqId: best.id, fromHeroId: null });
       newEquipped[slot] = best.id;
       changed++;
     }
     if (changed > 0) {
-      for (const eqId of toFree) await updateEquipment(eqId, { equippedTo: null });
-      for (const eqId of toAttach) await updateEquipment(eqId, { equippedTo: hero.id });
+      // Free old items first (set them to unequipped)
+      for (const { eqId } of itemsToReassign.filter(x => x.fromHeroId)) {
+        await updateEquipment(eqId, { equippedTo: null });
+      }
+      // Then attach new items to this hero
+      for (const slot of slots) {
+        const eqId = newEquipped[slot];
+        if (eqId) await updateEquipment(eqId, { equippedTo: hero.id });
+      }
       await updateHero(hero.id, { equipped: newEquipped });
     }
 
