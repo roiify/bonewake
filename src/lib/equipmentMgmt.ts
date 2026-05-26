@@ -146,6 +146,7 @@ export async function bulkSalvageRarities(rarities: Set<number>): Promise<{ coun
   const targets = all.filter(eq =>
     !eq.equippedTo &&
     !eq.craftedPieceId &&
+    !eq.locked &&
     rarities.has((eq.rarity ?? 1) as number)
   );
   const total: SalvageYield = { gold: 0, gems: 0, mats: {} };

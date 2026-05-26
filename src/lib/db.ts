@@ -159,6 +159,10 @@ export interface OwnedEquipment {
   level?: number;
   // Common
   equippedTo: string | null;
+  // Lock: when true, this item is exempt from bulk-salvage (modal +
+  // any auto-salvage flow). User toggles via a 🔒 icon on the item
+  // card in Bag. Defaults to false / undefined.
+  locked?: boolean;
 }
 
 export interface OwnedItem {

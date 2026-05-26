@@ -80,6 +80,10 @@ export default function BagPage() {
     if (r.ok) showToast('+1 upgrade');
     else showToast(r.error ?? 'Failed');
   }
+  async function toggleLock(id: string, locked: boolean) {
+    await useHeroes.getState().updateEquipment(id, { locked });
+    showToast(locked ? '🔒 Locked — protected from bulk salvage' : '🔓 Unlocked');
+  }
   async function doSalvageSelected() {
     // Persist the rarity check state to profile settings so it sticks
     const newAuto = { ...autoSalvage, ...rarityChecks } as Record<number, boolean>;
@@ -179,6 +183,14 @@ export default function BagPage() {
                     EQUIPPED · {eqTpl?.name}
                   </div>
                 )}
+                {eq.locked && (
+                  <div
+                    className="absolute -top-1.5 -left-1.5 z-10 w-5 h-5 rounded-full flex items-center justify-center text-[10px] bg-zinc-950 border-2 border-amber-500"
+                    title="Locked — protected from bulk salvage"
+                  >
+                    🔒
+                  </div>
+                )}
                 <div className="flex gap-3">
                 <div className="w-14 h-14 rounded bg-zinc-950 flex items-center justify-center text-3xl shrink-0 relative">
                   {itemEmojiFor(eq)}
@@ -261,12 +273,21 @@ export default function BagPage() {
                     </button>
                   )}
                   {!eq.equippedTo && !eq.craftedPieceId && (
-                    <button
-                      className="btn-pixel danger flex-1 min-w-[100px]"
-                      onClick={() => doSalvage(eq.id)}
-                    >
-                      {(() => { const v = salvageValue(eq); return `Salvage +${v.gold}🪙${v.gems ? ` +${v.gems}💎` : ''}`; })()}
-                    </button>
+                    <>
+                      <button
+                        className={`btn-pixel ${eq.locked ? 'primary' : ''} min-w-[44px]`}
+                        onClick={() => toggleLock(eq.id, !eq.locked)}
+                        title={eq.locked ? 'Unlock — allow bulk salvage' : 'Lock — protect from bulk salvage'}
+                      >
+                        {eq.locked ? '🔒' : '🔓'}
+                      </button>
+                      <button
+                        className="btn-pixel danger flex-1 min-w-[100px]"
+                        onClick={() => doSalvage(eq.id)}
+                      >
+                        {(() => { const v = salvageValue(eq); return `Salvage +${v.gold}🪙${v.gems ? ` +${v.gems}💎` : ''}`; })()}
+                      </button>
+                    </>
                   )}
                   {eq.equippedTo && (
                     <div className="text-[10px] text-zinc-500 self-center">Equipped — cannot salvage</div>
@@ -292,7 +313,7 @@ export default function BagPage() {
           { r: 5, label: 'Legendary', color: LOOT_RARITY_COLOR[5] },
         ];
         const selectedCount = equipment.filter(e =>
-          !e.equippedTo && !e.craftedPieceId && rarityChecks[(e.rarity ?? 1) as number]
+          !e.equippedTo && !e.craftedPieceId && !e.locked && rarityChecks[(e.rarity ?? 1) as number]
         ).length;
         // Mat preview: average mat per piece × selected count
         const matPreview: Record<string, number> = {};
@@ -318,12 +339,17 @@ export default function BagPage() {
           <div className="fixed inset-0 z-50 bg-black/85 flex items-end pb-[72px]" onClick={() => setSalvageModal(false)}>
             <div className="w-full max-w-[420px] mx-auto bg-zinc-900 border-t-2 border-amber-700 rounded-t-2xl p-3 max-h-[calc(85vh-72px)] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="font-pixel text-sm text-amber-300 mb-2">🔨 Salvage Equipment</div>
-              <div className="text-[10px] text-zinc-400 mb-3">
-                Pick which rarities to scrap. Choices remember next time. Equipped + Mythic items are skipped automatically.
+              <div className="text-[10px] text-zinc-400 mb-2">
+                Pick which rarities to scrap. Choices persist between sessions.
+              </div>
+              <div className="text-[10px] text-emerald-400 mb-3 flex flex-wrap gap-x-3 gap-y-1">
+                <span>✓ Equipped items skipped</span>
+                <span>✓ Mythic gear protected</span>
+                <span>✓ 🔒 Locked items protected</span>
               </div>
               <div className="space-y-1.5 mb-3">
                 {ratityRows.map(({ r, label, color }) => {
-                  const count = equipment.filter(eq => !eq.equippedTo && !eq.craftedPieceId && ((eq.rarity ?? 1) as number) === r).length;
+                  const count = equipment.filter(eq => !eq.equippedTo && !eq.craftedPieceId && !eq.locked && ((eq.rarity ?? 1) as number) === r).length;
                   return (
                     <label key={r}
                       className={`flex items-center gap-2 rounded border-2 px-2 py-1.5 cursor-pointer transition-opacity ${rarityChecks[r] ? '' : 'opacity-50'}`}
@@ -379,5 +405,5 @@ export default function BagPage() {
 
 // Helper used inside the salvage modal closure
 function e_OK(eq: OwnedEquipment): boolean {
-  return !eq.equippedTo && !eq.craftedPieceId;
+  return !eq.equippedTo && !eq.craftedPieceId && !eq.locked;
 }
