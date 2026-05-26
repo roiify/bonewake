@@ -28,7 +28,7 @@ export default function FragmentsPage() {
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
       <PageHeader
-        title="🧩 Fragments"
+        title="Fragments"
         tagline="Duplicate pulls fuel star promotions"
         glow="#22d3ee"
       />

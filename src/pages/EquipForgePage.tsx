@@ -89,7 +89,7 @@ export default function EquipForgePage() {
   return (
     <div className="p-3 space-y-3 pb-5">
       <button onClick={() => navigate('/bag')} className="text-xs text-zinc-400">← Bag</button>
-      <PageHeader title="⚒ Forge" tagline={tab === 'equip' ? 'Spend salvage mats on a fresh piece' : 'Break gems into dust · craft a specific gem'} glow="#a78bfa" />
+      <PageHeader title="Forge" tagline={tab === 'equip' ? 'Spend salvage mats on a fresh piece' : 'Break gems into dust · craft a specific gem'} glow="#a78bfa" />
 
       {/* Tab switcher */}
       <div className="flex gap-1.5">
@@ -97,13 +97,13 @@ export default function EquipForgePage() {
           onClick={() => setTab('equip')}
           className={`btn-pixel flex-1 ${tab === 'equip' ? 'primary' : ''}`}
         >
-          ⚔ Equipment
+          Equipment
         </button>
         <button
           onClick={() => setTab('gems')}
           className={`btn-pixel flex-1 ${tab === 'gems' ? 'primary' : ''}`}
         >
-          💎 Gems
+          Gems
         </button>
       </div>
 

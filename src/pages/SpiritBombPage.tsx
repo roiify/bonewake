@@ -208,7 +208,7 @@ export default function SpiritBombPage() {
             <div className="font-pixel text-lg mb-2 text-rose-300">DAMAGE</div>
             <div className="font-pixel text-2xl text-amber-300">{result.damage.toLocaleString()}</div>
             <div className="text-[11px] text-zinc-400 mt-1">{(result.pct * 100).toFixed(2)}% total broken</div>
-            {result.killed && <div className="text-[11px] text-emerald-400 font-pixel mt-2">🏆 SHATTERED!</div>}
+            {result.killed && <div className="text-[11px] text-emerald-400 font-pixel mt-2">SHATTERED</div>}
             <button className="btn-pixel primary w-full mt-4" onClick={() => setResult(null)}>OK</button>
           </div>
         </div>

@@ -44,7 +44,7 @@ export default function MissionPassPage() {
       <div className="rounded-lg border-2 border-amber-700 bg-gradient-to-b from-amber-950/30 to-zinc-900 p-3">
         <div className="flex items-center justify-between mb-2">
           <div>
-            <h2 className="font-pixel text-sm text-amber-300">📜 Mission Pass</h2>
+            <h2 className="font-pixel text-sm text-amber-300">Mission Pass</h2>
             <div className="text-[10px] text-zinc-400">
               Season day {status.day}/{PASS_SEASON_DAYS} · {daysLeft}d remaining
             </div>

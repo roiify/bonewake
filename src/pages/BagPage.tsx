@@ -144,10 +144,10 @@ export default function BagPage() {
       {/* Bulk salvage + crafting hub */}
       <div className="flex gap-1.5">
         <button className="btn-pixel flex-1" onClick={() => setSalvageModal(true)}>
-          🔨 Salvage
+          Salvage
         </button>
         <Link to="/forge" className="btn-pixel primary flex-1 text-center">
-          ⚒ Forge
+          Forge
         </Link>
       </div>
 
@@ -338,7 +338,7 @@ export default function BagPage() {
         return (
           <div className="fixed inset-0 z-50 bg-black/85 flex items-end pb-[72px]" onClick={() => setSalvageModal(false)}>
             <div className="w-full max-w-[420px] mx-auto bg-zinc-900 border-t-2 border-amber-700 rounded-t-2xl p-3 max-h-[calc(85vh-72px)] overflow-y-auto" onClick={e => e.stopPropagation()}>
-              <div className="font-pixel text-sm text-amber-300 mb-2">🔨 Salvage Equipment</div>
+              <div className="font-pixel text-sm text-amber-300 mb-2">Salvage Equipment</div>
               <div className="text-[10px] text-zinc-400 mb-2">
                 Pick which rarities to scrap. Choices persist between sessions.
               </div>

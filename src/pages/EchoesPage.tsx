@@ -30,7 +30,7 @@ export default function EchoesPage() {
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
 
       <PageHeader
-        title="💀 Boss Echoes"
+        title="Boss Echoes"
         tagline="Memories of the bosses you've broken — equip for account-wide passives"
         glow="#fbbf24"
       />

@@ -48,7 +48,7 @@ export default function AchievementsPage() {
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
       <PageHeader
-        title="🏆 Achievements"
+        title="Achievements"
         tagline="Milestones with reward chests"
         glow="#fbbf24"
         rightSlot={<div className="text-[11px] text-amber-300 font-pixel">{claimedCount} / {totalCount}</div>}

@@ -201,7 +201,7 @@ export default function WorldBossPage() {
             <div className="font-pixel text-2xl text-amber-300">{result.damage.toLocaleString()}</div>
             <div className="text-[11px] text-zinc-400 mt-1">{(result.pct * 100).toFixed(2)}% of boss HP</div>
             <div className="font-pixel text-sm mt-3" style={{ color: '#fb923c' }}>Tier: {result.tier.name}</div>
-            {result.newBest && <div className="text-[11px] text-emerald-400 font-pixel mt-2">🏆 NEW BEST!</div>}
+            {result.newBest && <div className="text-[11px] text-emerald-400 font-pixel mt-2">NEW BEST</div>}
             <button className="btn-pixel primary w-full mt-4" onClick={() => setResult(null)}>OK</button>
           </div>
         </div>

@@ -178,7 +178,7 @@ export default function HeroesPage() {
 
       {heroes.length > 0 && equipment.length > 0 && (
         <div className="flex items-center gap-2">
-          <button className="btn-pixel" onClick={autoEquipAll}>⚙ Auto Equip All</button>
+          <button className="btn-pixel" onClick={autoEquipAll}>Auto Equip All</button>
           <div className="text-[9px] text-zinc-500 flex-1">
             Redistributes all loot — highest-tier heroes pick first.
           </div>
@@ -250,17 +250,24 @@ export default function HeroesPage() {
         </div>
       )}
 
-      {/* Missing roster — silhouette cards of every hero the player hasn't pulled yet. */}
-      {missing.length > 0 && (
+      {/* Missing roster — always visible. Once the roster grows past
+          15-20 heroes a "full roster" state is rare; better UX to
+          show the section as a permanent fixture so players track
+          progress toward 100% collection. */}
+      <div className="flex items-center justify-between mt-5">
+        <h2 className="font-pixel text-sm text-zinc-400">
+          Missing ({missing.length})
+        </h2>
+        <Link to="/summon" className="text-[10px] font-pixel text-amber-400 underline">
+          Summon →
+        </Link>
+      </div>
+      {missing.length === 0 ? (
+        <div className="rounded-md border border-emerald-900/60 bg-emerald-950/30 p-4 text-center text-[11px] text-emerald-300 font-pixel">
+          Full Roster — every pullable hero collected.
+        </div>
+      ) : (
         <>
-          <div className="flex items-center justify-between mt-5">
-            <h2 className="font-pixel text-sm text-zinc-400">
-              Missing ({missing.length})
-            </h2>
-            <Link to="/summon" className="text-[10px] font-pixel text-amber-400 underline">
-              Summon →
-            </Link>
-          </div>
           <div className="grid grid-cols-3 gap-2">
             {missing.map(tpl => (
               <div

@@ -162,7 +162,7 @@ export default function BattlePage() {
                         <div className="font-pixel text-[10px] text-zinc-400 flex items-center gap-2">
                           STAGE {s.chapter}-{s.num}
                           {isBoss && <span className="text-rose-400">★ BOSS</span>}
-                          {isNext && <span className="text-amber-300">▶ NEXT</span>}
+                          {isNext && <span className="text-amber-300">NEXT</span>}
                         </div>
                         <div className="text-sm text-zinc-100 mt-0.5 font-pixel">{s.name}</div>
                         <div className="text-[10px] text-zinc-500 mt-1">

@@ -74,7 +74,7 @@ export default function MailPage() {
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
       <PageHeader
-        title="📬 Mailbox"
+        title="Mailbox"
         tagline="Reward inbox & system messages"
         glow="#34d399"
         rightSlot={unclaimed > 0 ? <button className="btn-pixel primary" onClick={claimAll}>Claim All</button> : undefined}

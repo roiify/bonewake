@@ -89,7 +89,7 @@ export default function HomePage() {
           <h1 className="font-fantasy text-3xl font-bold tracking-widest" style={{
             color: '#fde68a',
             textShadow: '0 2px 0 rgba(0,0,0,0.95), 0 0 22px rgba(220,38,38,0.7), 0 0 8px rgba(0,0,0,0.9)',
-          }}>💀 BONEWAKE 💀</h1>
+          }}>BONEWAKE</h1>
           <p className="text-[11px] text-zinc-200 mt-2 text-shadow-deep tracking-wide italic">
             "Welcome back, {profile.displayName}."
           </p>

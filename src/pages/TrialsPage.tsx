@@ -227,7 +227,7 @@ export default function TrialsPage() {
                     onClick={() => openSquadFor(def)}
                     title="Pick a squad from heroes eligible for this trial only"
                   >
-                    👥 Squad
+                    Squad
                   </button>
                   <button
                     className={`btn-pixel ${!exhausted && check.ok ? 'primary' : ''}`}
