@@ -203,7 +203,8 @@ export function resolveBattle(
       const skill = (wastedHeal || wastedRevive) ? undefined : rawSkill;
 
       // Skill trigger — fires once per battle at 50+ energy, between
-      // basic attacks and the ult. Single-target heavy nuke (250% ATK).
+      // basic attacks and the ult. Single-target nuke (200% ATK — trimmed
+      // from 250% so fights don't get steamrolled by a free pre-ult hit).
       // Drains 50 energy, so unit keeps building toward ult after.
       const canSkill = !isUlt && unit.energy >= 50 && !(unit as any).skillUsed;
       if (canSkill) {
@@ -212,7 +213,7 @@ export function resolveBattle(
         if (target) {
           const eAdv = elementAdvantage(unit.element, target.element);
           const isCrit = rng() < unit.crit;
-          let dmg = mitigatedDamage(unit.atk * 2.5, target.def);
+          let dmg = mitigatedDamage(unit.atk * 2.0, target.def);
           dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv);
           target.hp = Math.max(0, target.hp - dmg);
           log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: false, skill: true });
