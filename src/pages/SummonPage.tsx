@@ -14,6 +14,7 @@ import { uid } from '../lib/id';
 import { addFragments, DUP_FRAGMENT_VALUE } from '../lib/fragments';
 import { recordEvent } from '../lib/lifetime';
 import { tierLabel, tierColor } from '../lib/tier';
+import { HeroBadges } from '../components/ui/HeroBadges';
 import { genLoot } from '../lib/loot';
 import { GEMS, GEM_TIER_NAME, GEM_TIER_COLOR } from '../data/gems';
 import { addGemToInventory } from '../lib/gems';
@@ -411,12 +412,17 @@ export default function SummonPage() {
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ delay: i * 0.08, type: 'spring', stiffness: 250 }}
-                        className="rounded-md border-2 p-2 bg-zinc-900 text-center"
+                        className="relative rounded-md border-2 p-2 bg-zinc-900 text-center"
                         style={{
                           borderColor: itemColor,
                           boxShadow: isMax ? `0 0 18px ${itemColor}` : 'none',
                         }}
                       >
+                        {r.kind === 'hero' && (
+                          <div className="absolute top-0.5 right-0.5 z-10">
+                            <HeroBadges archetype={r.hero.archetype} element={r.hero.element} size={16} />
+                          </div>
+                        )}
                         <div className="relative">
                           <div className={`relative ${reveal.length === 1 ? 'text-6xl' : 'text-2xl'} drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]`}>{itemEmoji}</div>
                         </div>

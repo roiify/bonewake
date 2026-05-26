@@ -20,6 +20,7 @@ import { BASE_BY_ID } from '../data/loot';
 import { EQUIP_BY_ID } from '../data/equipment';
 import type { OwnedEquipment } from '../lib/db';
 import type { EquipSlot } from '../types';
+import { ArchetypeBadge, ElementBadge } from '../components/ui/HeroBadges';
 
 export default function HeroesPage() {
   const heroes = useHeroes(s => s.heroes);
@@ -301,54 +302,4 @@ export default function HeroesPage() {
   );
 }
 
-// Archetype color + glyph map — uniform across the roster grid.
-const ARCH_BADGE: Record<string, { glyph: string; color: string }> = {
-  warrior:  { glyph: '⚔', color: '#fca5a5' },
-  mage:     { glyph: '✦', color: '#a78bfa' },
-  tank:     { glyph: '🛡', color: '#fbbf24' },
-  healer:   { glyph: '✚', color: '#86efac' },
-  assassin: { glyph: '🗡', color: '#c4b5fd' },
-};
-function ArchetypeBadge({ archetype }: { archetype: string }) {
-  const b = ARCH_BADGE[archetype];
-  if (!b) return null;
-  return (
-    <div
-      className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] leading-none"
-      style={{
-        background: '#0a0a0aee',
-        border: `1px solid ${b.color}`,
-        color: b.color,
-        boxShadow: `0 0 4px ${b.color}aa`,
-      }}
-      title={archetype}
-    >
-      {b.glyph}
-    </div>
-  );
-}
-
-const ELEMENT_BADGE: Record<string, { glyph: string; color: string }> = {
-  fire:  { glyph: '🔥', color: '#fb923c' },
-  water: { glyph: '💧', color: '#38bdf8' },
-  earth: { glyph: '🌿', color: '#84cc16' },
-  light: { glyph: '✨', color: '#fde047' },
-  dark:  { glyph: '🌙', color: '#a78bfa' },
-};
-function ElementBadge({ element }: { element: string }) {
-  const b = ELEMENT_BADGE[element];
-  if (!b) return null;
-  return (
-    <div
-      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] leading-none"
-      style={{
-        background: '#0a0a0aee',
-        border: `1px solid ${b.color}`,
-        boxShadow: `0 0 4px ${b.color}88`,
-      }}
-      title={element}
-    >
-      {b.glyph}
-    </div>
-  );
-}
+// Badges moved to shared component — see components/ui/HeroBadges.tsx

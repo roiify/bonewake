@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { STAGE_BY_ID } from '../data/stages';
+import { HeroBadges } from '../components/ui/HeroBadges';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
 import { HERO_BY_ID, HERO_PORTRAITS, ENEMY_SPRITES, HIDDEN_HERO_IDS } from '../data/heroes';
@@ -419,10 +420,13 @@ export default function StagePrebattlePage() {
                     }}
                   >
                     {inSquad && (
-                      <div className="absolute -top-2 -right-2 z-10 w-6 h-6 rounded-full bg-amber-400 border-2 border-zinc-950 flex items-center justify-center text-zinc-950 font-pixel text-xs">
+                      <div className="absolute -top-2 -left-2 z-10 w-6 h-6 rounded-full bg-amber-400 border-2 border-zinc-950 flex items-center justify-center text-zinc-950 font-pixel text-xs">
                         ✓
                       </div>
                     )}
+                    <div className="absolute top-0.5 right-0.5 z-10">
+                      <HeroBadges archetype={tpl.archetype} element={tpl.element} size={18} />
+                    </div>
                     <div className="aspect-square flex items-center justify-center overflow-hidden">
                       {HERO_PORTRAITS[tpl.id]
                         ? <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="w-[90%] h-[90%] object-contain" style={{ imageRendering: 'pixelated' }} />

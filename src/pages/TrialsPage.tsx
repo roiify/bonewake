@@ -6,6 +6,7 @@ import { TRIALS, type TrialDef } from '../data/trials';
 import { HERO_BY_ID, HERO_PORTRAITS, HIDDEN_HERO_IDS } from '../data/heroes';
 import SquadPicker from '../components/SquadPicker';
 import { MANNY_TPL, ensureMannySummons } from '../lib/mannySummons';
+import { HeroBadges } from '../components/ui/HeroBadges';
 import PageHeader from '../components/ui/PageHeader';
 import { db } from '../lib/db';
 import { resolveBattle } from '../lib/combat';
@@ -321,6 +322,9 @@ export default function TrialsPage() {
                             ✓
                           </div>
                         )}
+                        <div className="absolute top-0.5 right-0.5 z-10">
+                          <HeroBadges archetype={tpl.archetype} element={tpl.element} size={18} />
+                        </div>
                         <div className="aspect-square flex items-center justify-center overflow-hidden">
                           {HERO_PORTRAITS[tpl.id]
                             ? <img src={HERO_PORTRAITS[tpl.id]} alt={tpl.name} className="w-[90%] h-[90%] object-contain" style={{ imageRendering: 'pixelated' }} />

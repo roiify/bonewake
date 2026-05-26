@@ -7,6 +7,7 @@ import { SKILL_BY_ID } from '../data/skills';
 import { EQUIP_BY_ID } from '../data/equipment';
 import { BASE_BY_ID, LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/loot';
 import { equipPower, equipQuality, affixTier, tierColor as affixTierColor } from '../lib/loot';
+import { HeroBadges } from '../components/ui/HeroBadges';
 import { db, type OwnedEquipment } from '../lib/db';
 import { MYTHIC_COLOR, SET_BY_HERO } from '../data/ultimateGear';
 import { GEMS, GEM_BY_ID, GEM_TIER_COLOR, ULT_GEM_BY_HERO, gemInventoryKey } from '../data/gems';
@@ -268,6 +269,9 @@ export default function HeroDetailPage() {
           ) : (
             <div className="relative text-6xl drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]">{tpl.emoji}</div>
           )}
+          <div className="absolute top-1 right-1 z-10">
+            <HeroBadges archetype={tpl.archetype} element={tpl.element} size={22} />
+          </div>
         </div>
         <div className="font-pixel text-base text-zinc-100">{tpl.name}</div>
         <div className="text-sm font-pixel" style={{ color: tierColor(hero.star) }}>{tierLabel(hero.star)}</div>

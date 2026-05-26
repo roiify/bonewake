@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '../store/profile';
+import { HeroBadges } from '../components/ui/HeroBadges';
 import { useHeroes } from '../store/heroes';
 import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
@@ -168,11 +169,14 @@ export default function TrainingPage() {
                   <button
                     key={h.id}
                     onClick={() => placeHero(h.id)}
-                    className={`rounded border-2 p-2 bg-zinc-950 text-center ${atLvlCap ? 'opacity-40' : ''}`}
+                    className={`relative rounded border-2 p-2 bg-zinc-950 text-center ${atLvlCap ? 'opacity-40' : ''}`}
                     style={{ borderColor: tpl.color }}
                     disabled={atLvlCap}
                     title={atLvlCap ? `Maxed at ${tierLabel(h.star)} cap` : undefined}
                   >
+                    <div className="absolute top-0.5 right-0.5 z-10">
+                      <HeroBadges archetype={tpl.archetype} element={tpl.element} size={16} />
+                    </div>
                     <div className="aspect-square flex items-center justify-center overflow-hidden">
                       {HERO_PORTRAITS[tpl.id] ? <StaticSprite src={HERO_PORTRAITS[tpl.id]} size={56} /> : <div className="text-3xl">{tpl.emoji}</div>}
                     </div>
