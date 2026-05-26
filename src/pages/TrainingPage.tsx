@@ -4,7 +4,7 @@ import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
-import { xpForLevel, maxLevelForStar } from '../lib/stats';
+import { xpForLevel, effectiveMaxLevel } from '../lib/stats';
 import { tierLabel, tierColor } from '../lib/tier';
 
 // Accrual rates
@@ -56,7 +56,7 @@ export default function TrainingPage() {
     // Apply XP — level up the hero, respecting tier cap
     let lvl = trainingHero.level;
     let exp = trainingHero.exp + accruedXp;
-    const cap = maxLevelForStar(trainingHero.star);
+    const cap = effectiveMaxLevel(trainingHero.star, profile.level);
     while (lvl < cap && exp >= xpForLevel(lvl)) {
       exp -= xpForLevel(lvl);
       lvl++;
@@ -157,7 +157,7 @@ export default function TrainingPage() {
               {eligibleHeroes.map(h => {
                 const tpl = HERO_BY_ID[h.templateId];
                 if (!tpl) return null;
-                const cap = maxLevelForStar(h.star);
+                const cap = effectiveMaxLevel(h.star, profile.level);
                 const atLvlCap = h.level >= cap;
                 return (
                   <button

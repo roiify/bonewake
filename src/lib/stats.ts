@@ -240,4 +240,16 @@ export function buildEnemyUnit(
 
 export const xpForLevel = (level: number) => Math.floor(50 * Math.pow(1.18, level - 1));
 export const goldToLevelUp = (level: number) => 50 + level * 30;
-export const maxLevelForStar = (star: number) => 10 * star;
+// Theoretical per-star ceiling — generous so star tier never artificially
+// stops a hero from scaling alongside the player's account level.
+export const maxLevelForStar = (star: number) => star * 200;
+// Star-promotion gate — preserves the old "level 10 × star" feel so promoting
+// 3★ → 4★ still happens at hero lvl 30, not at player level. Decoupled from
+// the leveling cap so promotion friction stays bounded.
+export const promotionLevelThreshold = (star: number) => star * 10;
+// Effective level cap — clamps the star ceiling by the player's account
+// level. Used everywhere a hero gains XP or is shown a "current / max"
+// progress bar. Heroes can never be higher level than the player.
+export function effectiveMaxLevel(star: number, playerLevel: number): number {
+  return Math.min(maxLevelForStar(star), Math.max(1, playerLevel));
+}

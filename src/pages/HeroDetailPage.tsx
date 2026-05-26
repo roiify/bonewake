@@ -11,7 +11,7 @@ import { db, type OwnedEquipment } from '../lib/db';
 import { MYTHIC_COLOR, SET_BY_HERO } from '../data/ultimateGear';
 import { GEMS, GEM_BY_ID, GEM_TIER_COLOR, ULT_GEM_BY_HERO, gemInventoryKey } from '../data/gems';
 import { addGemToInventory, getGemInventoryMap, removeGemFromInventory, socketGem, unsocketGem, socketUltGem, unsocketUltGem, socketsAvailableFor, hasUltSocket, ensureSockets, transferSockets } from '../lib/gems';
-import { calcHeroStats, goldToLevelUp, maxLevelForStar, xpForLevel } from '../lib/stats';
+import { calcHeroStats, goldToLevelUp, effectiveMaxLevel, promotionLevelThreshold, xpForLevel } from '../lib/stats';
 import type { EquipSlot } from '../types';
 import { useItems } from '../store/items';
 import { consumeFragments, fragmentItemId, STAR_UP_COST, MAX_STAR } from '../lib/fragments';
@@ -29,6 +29,7 @@ export default function HeroDetailPage() {
   const updateHero = useHeroes(s => s.updateHero);
   const updateEquipment = useHeroes(s => s.updateEquipment);
   const spendGold = useProfile(s => s.spendGold);
+  const playerLevel = useProfile(s => s.profile.level);
   const items = useItems(s => s.items);
   const refreshItems = useItems(s => s.refresh);
   const [equipSlot, setEquipSlot] = useState<EquipSlot | null>(null);
@@ -41,7 +42,8 @@ export default function HeroDetailPage() {
   const tpl = HERO_BY_ID[hero.templateId];
   const stats = useMemo(() => calcHeroStats(hero, equipment), [hero, equipment]);
   const ult = SKILL_BY_ID[tpl.ultimateId];
-  const maxLevel = maxLevelForStar(hero.star);
+  const maxLevel = effectiveMaxLevel(hero.star, playerLevel);
+  const promotionGate = promotionLevelThreshold(hero.star);
   const canLevel = hero.level < maxLevel;
   const levelCost = goldToLevelUp(hero.level);
 
@@ -56,7 +58,10 @@ export default function HeroDetailPage() {
 
   const fragOwned = items.find(i => i.templateId === fragmentItemId(hero.templateId))?.count ?? 0;
   const starUpCost = STAR_UP_COST[hero.star] ?? null;
-  const canStarUp = hero.star < MAX_STAR && starUpCost !== null && fragOwned >= starUpCost && hero.level >= maxLevel;
+  // Promotion is gated by the legacy "star × 10" threshold so players don't
+  // have to grind a hero to player level just to promote — the per-star cap
+  // for leveling itself is much higher (see effectiveMaxLevel).
+  const canStarUp = hero.star < MAX_STAR && starUpCost !== null && fragOwned >= starUpCost && hero.level >= promotionGate;
 
   const starUp = async () => {
     if (!canStarUp || starUpCost === null) return;
@@ -285,7 +290,7 @@ export default function HeroDetailPage() {
             </div>
             <div className="text-[10px] text-zinc-500 mb-2">
               {fragOwned}/{starUpCost} fragments to <span style={{ color: tierColor(hero.star + 1) }}>{nextTierLabel(hero.star)}</span>
-              {hero.level < maxLevel && <span className="text-amber-400 ml-2">(reach LVL:{maxLevel} first)</span>}
+              {hero.level < promotionGate && <span className="text-amber-400 ml-2">(reach LVL:{promotionGate} first)</span>}
             </div>
             <button className="btn-pixel success w-full" disabled={!canStarUp} onClick={starUp}>
               {canStarUp ? `Promote to ${nextTierLabel(hero.star)}` : 'Locked'}

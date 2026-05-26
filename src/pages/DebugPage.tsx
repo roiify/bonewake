@@ -17,7 +17,7 @@ import { sendMail } from '../lib/mail';
 import { addGemToInventory, removeGemFromInventory } from '../lib/gems';
 import { GEMS, ULT_GEM_BY_HERO } from '../data/gems';
 import { MAX_STAR } from '../lib/fragments';
-import { maxLevelForStar } from '../lib/stats';
+import { effectiveMaxLevel } from '../lib/stats';
 import { MAX_ULT_LEVEL } from '../lib/ultLeveling';
 import { TALENT_TREE } from '../data/talents';
 import { craftSetPiece } from '../lib/crafting';
@@ -165,7 +165,9 @@ export default function DebugPage() {
     for (const tpl of HERO_TEMPLATES) {
       const allTalents = TALENT_TREE.filter(t => t.heroId === tpl.id).map(t => t.id);
       const existing = ownedByTpl.get(tpl.id);
-      const maxLevel = maxLevelForStar(MAX_STAR);
+      // After patching player level to 999 above, heroes can scale all the
+      // way up — effectiveMaxLevel respects both the star cap and player level.
+      const maxLevel = effectiveMaxLevel(MAX_STAR, 999);
       if (existing) {
         await db.heroes.update(existing.id, {
           star: MAX_STAR,

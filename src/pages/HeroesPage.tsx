@@ -2,13 +2,12 @@ import { useState, useMemo } from 'react';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
 import { HERO_BY_ID, HERO_PORTRAITS, HERO_TEMPLATES, HIDDEN_HERO_IDS } from '../data/heroes';
-import { calcHeroStats, playerLevelMult, PLAYER_LEVEL_STAT_BONUS_PER_LEVEL } from '../lib/stats';
+import { calcHeroStats, playerLevelMult, PLAYER_LEVEL_STAT_BONUS_PER_LEVEL, promotionLevelThreshold } from '../lib/stats';
 import { Link } from 'react-router-dom';
 import type { Rarity } from '../types';
 import { tierLabel, tierColor } from '../lib/tier';
 import { useItems } from '../store/items';
 import { fragmentItemId, STAR_UP_COST } from '../lib/fragments';
-import { maxLevelForStar } from '../lib/stats';
 import { equipPower } from '../lib/loot';
 import { BASE_BY_ID } from '../data/loot';
 import { EQUIP_BY_ID } from '../data/equipment';
@@ -70,7 +69,7 @@ export default function HeroesPage() {
   function canPromote(h: typeof heroes[0]): boolean {
     const cost = STAR_UP_COST[h.star];
     if (cost == null) return false;
-    if (h.level < maxLevelForStar(h.star)) return false;
+    if (h.level < promotionLevelThreshold(h.star)) return false;
     return fragmentsFor(h.templateId) >= cost;
   }
 

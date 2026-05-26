@@ -5,7 +5,7 @@ import { HERO_TEMPLATES, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { fragmentItemId, STAR_UP_COST, MAX_STAR } from '../lib/fragments';
 import { tierLabel, tierColor, nextTierLabel } from '../lib/tier';
-import { maxLevelForStar } from '../lib/stats';
+import { promotionLevelThreshold } from '../lib/stats';
 
 export default function FragmentsPage() {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ export default function FragmentsPage() {
     const ownedStar = owned?.star ?? 0;
     const cost = owned ? (STAR_UP_COST[ownedStar] ?? null) : null;
     const atMaxStar = ownedStar >= MAX_STAR;
-    const levelGated = owned && cost != null && owned.level < maxLevelForStar(ownedStar);
+    const levelGated = owned && cost != null && owned.level < promotionLevelThreshold(ownedStar);
     const canPromote = !!owned && cost != null && !atMaxStar && fragCount >= cost && !levelGated;
     return { tpl, fragCount, owned, ownedStar, cost, atMaxStar, levelGated, canPromote };
   }).sort((a, b) => b.fragCount - a.fragCount);
@@ -66,7 +66,7 @@ export default function FragmentsPage() {
                   <div className="text-[10px] text-zinc-400 mt-1">
                     🧩 {fragCount} / {cost} → <span style={{ color: tierColor(ownedStar + 1) }}>{nextTierLabel(ownedStar)}</span>
                     {levelGated && (
-                      <span className="text-amber-400 ml-1.5">need LVL:{maxLevelForStar(ownedStar)}</span>
+                      <span className="text-amber-400 ml-1.5">need LVL:{promotionLevelThreshold(ownedStar)}</span>
                     )}
                   </div>
                 </>

@@ -5,7 +5,7 @@ import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
 import { HERO_BY_ID, HERO_PORTRAITS, ENEMY_SPRITES, HIDDEN_HERO_IDS } from '../data/heroes';
 import { ensureMannySummons, MANNY_TPL } from '../lib/mannySummons';
-import { buildEnemyUnit, calcHeroStats, toCombatUnit, xpForLevel } from '../lib/stats';
+import { buildEnemyUnit, calcHeroStats, toCombatUnit, xpForLevel, effectiveMaxLevel } from '../lib/stats';
 import { tierLabel } from '../lib/tier';
 import { resolveBattle } from '../lib/combat';
 import { db, type OwnedEquipment } from '../lib/db';
@@ -164,12 +164,14 @@ export default function StagePrebattlePage() {
       await useProfile.getState().addGold(stage.rewards.gold);
       totalGold += stage.rewards.gold;
       totalExp += stage.rewards.exp;
+      const playerLevel = useProfile.getState().profile.level;
       for (const hid of squad) {
         const h = heroes.find(x => x.id === hid);
         if (!h) continue;
         let lvl = h.level;
         let exp = h.exp + stage.rewards.exp;
-        while (exp >= xpForLevel(lvl) && lvl < 100) { exp -= xpForLevel(lvl); lvl++; }
+        const cap = effectiveMaxLevel(h.star, playerLevel);
+        while (exp >= xpForLevel(lvl) && lvl < cap) { exp -= xpForLevel(lvl); lvl++; }
         await updateHero(h.id, { level: lvl, exp });
       }
       await useProfile.getState().gainExp(stage.rewards.exp);

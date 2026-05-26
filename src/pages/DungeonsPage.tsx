@@ -4,7 +4,7 @@ import { DUNGEONS, dungeonsForToday, buildDungeonTeam, weekdayNames, hasClearedD
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import { resolveBattle } from '../lib/combat';
-import { toCombatUnit, xpForLevel } from '../lib/stats';
+import { toCombatUnit, xpForLevel, effectiveMaxLevel } from '../lib/stats';
 import { recordEvent } from '../lib/lifetime';
 import { genLoot } from '../lib/loot';
 import SquadPicker from '../components/SquadPicker';
@@ -59,12 +59,14 @@ export default function DungeonsPage() {
       }
       if (r.exp) {
         // distribute exp to squad
+        const playerLevel = useProfile.getState().profile.level;
         for (const id of loadSquad()) {
           const h = heroes.find(x => x.id === id);
           if (!h) continue;
           let lvl = h.level;
           let exp = h.exp + r.exp;
-          while (exp >= xpForLevel(lvl) && lvl < 100) {
+          const cap = effectiveMaxLevel(h.star, playerLevel);
+          while (exp >= xpForLevel(lvl) && lvl < cap) {
             exp -= xpForLevel(lvl);
             lvl++;
           }

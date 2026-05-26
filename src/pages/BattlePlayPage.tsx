@@ -12,7 +12,7 @@ import { currentSpiritBoss, buildSpiritBossUnit } from '../data/spiritBomb';
 import type { Stage } from '../types';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
-import { buildEnemyUnit, toCombatUnit, xpForLevel } from '../lib/stats';
+import { buildEnemyUnit, toCombatUnit, xpForLevel, effectiveMaxLevel } from '../lib/stats';
 import { resolveBattle } from '../lib/combat';
 import { db } from '../lib/db';
 import { incrementTask } from '../lib/tasks';
@@ -544,12 +544,14 @@ export default function BattlePlayPage() {
           await recordEvent({ kind: 'goldEarned', amount: r.gold });
         }
         if (r.exp) {
+          const playerLevel = useProfile.getState().profile.level;
           for (const id of loadSquad()) {
             const h = heroes.find(x => x.id === id);
             if (!h) continue;
             let lvl = h.level;
             let exp = h.exp + r.exp;
-            while (exp >= xpForLevel(lvl) && lvl < 100) {
+            const cap = effectiveMaxLevel(h.star, playerLevel);
+            while (exp >= xpForLevel(lvl) && lvl < cap) {
               exp -= xpForLevel(lvl);
               lvl++;
             }
@@ -584,12 +586,14 @@ export default function BattlePlayPage() {
       await useProfile.getState().addGold(stage.rewards.gold);
       // distribute exp to squad heroes
       const squad = loadSquad();
+      const playerLevel = useProfile.getState().profile.level;
       for (const id of squad) {
         const h = heroes.find(x => x.id === id);
         if (!h) continue;
         let lvl = h.level;
         let exp = h.exp + stage.rewards.exp;
-        while (exp >= xpForLevel(lvl) && lvl < 100) {
+        const cap = effectiveMaxLevel(h.star, playerLevel);
+        while (exp >= xpForLevel(lvl) && lvl < cap) {
           exp -= xpForLevel(lvl);
           lvl++;
         }
