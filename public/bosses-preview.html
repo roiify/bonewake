@@ -41,39 +41,45 @@
     border-color: #fda4af;
     box-shadow: 0 0 24px rgba(253, 164, 175, 0.35);
   }
-  /* Sprite viewport — the painted idle is the background image; on hover
-     we swap the background to the 9-frame _attack atlas and run a steps(9)
-     animation across it. The viewport is square; the attack atlas is
-     9 frames wide so we scale background-size accordingly. */
+  /* Sprite viewport — uses ONLY the 9-frame pixel-art _attack atlas so
+     the visual style is consistent across idle + hover. Default shows
+     just the first frame (background-position: 0 center). On hover, a
+     steps(9) animation cycles through all 9 frames. The viewport hides
+     anything past one frame's width via overflow.
+     The atlas is 9 frames wide at 170px each = 1530px total. We size
+     the background to be 9x the viewport width and animate background
+     position across that span. */
   .viewport {
     width: 100%;
     aspect-ratio: 1 / 1;
     border-radius: 6px;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
+    overflow: hidden;
     background-color: #1c1917;
-    background-image:
-      var(--idle),
-      repeating-conic-gradient(#1c1917 0% 25%, #2a2522 0% 50%);
-    background-blend-mode: normal;
+    /* Checkerboard backdrop so transparent pixels read */
+    background-image: repeating-conic-gradient(#1c1917 0% 25%, #2a2522 0% 50%);
+    background-size: 16px 16px;
+    position: relative;
+  }
+  .viewport .sprite {
+    position: absolute;
+    inset: 0;
+    background-image: var(--attack);
+    background-repeat: no-repeat;
+    /* Atlas is 9 frames wide — make background 900% of viewport width so
+       each frame fills the viewport exactly when offset by 100% increments. */
+    background-size: 900% 100%;
+    background-position: 0% center;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     transition: filter 0.15s ease;
   }
-  /* On hover, swap to the attack-atlas viewport. We size the bg so the
-     atlas's height matches the viewport (background-size auto 100% with
-     y centered), then animate background-position-x across 9 steps. */
-  .card:hover .viewport {
-    background-image: var(--attack);
-    background-size: auto 100%;
-    background-position: 0 center;
+  .card:hover .viewport .sprite {
     animation: bossAttackPlay var(--anim-dur, 0.9s) steps(9) infinite;
     filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.55));
   }
   @keyframes bossAttackPlay {
     from { background-position: 0% center; }
-    to   { background-position: -900% center; }
+    to   { background-position: 100% center; }
   }
   .name { margin-top: 8px; color: #fde68a; font-size: 13px; font-weight: 600; }
   .slot { color: #71717a; font-size: 10px; margin-top: 2px; }
@@ -141,22 +147,13 @@ function render(targetId, list) {
   for (const [slug, name, slot] of list) {
     const card = document.createElement('div');
     card.className = 'card';
-    const idle = `${BASE}/sprites/bosses/${slug}_idle.png?v=${V}`;
     const attack = `${BASE}/sprites/bosses/${slug}_attack.png?v=${V}`;
     const vp = document.createElement('div');
     vp.className = 'viewport';
-    // CSS custom properties drive the per-card hover swap
-    vp.style.setProperty('--idle', `url("${idle}")`);
-    vp.style.setProperty('--attack', `url("${attack}")`);
-    // Probe attack atlas existence; if it 404s, hide the hover swap so the
-    // card just stays on idle.
-    const probe = new Image();
-    probe.onerror = () => {
-      // No attack atlas — remove the --attack so the hover-swap rule
-      // falls back to the idle bg.
-      vp.style.setProperty('--attack', `url("${idle}")`);
-    };
-    probe.src = attack;
+    const sprite = document.createElement('div');
+    sprite.className = 'sprite';
+    sprite.style.setProperty('--attack', `url("${attack}")`);
+    vp.appendChild(sprite);
     card.appendChild(vp);
 
     const nm = document.createElement('div');
@@ -180,7 +177,7 @@ document.querySelectorAll('.speed-bar button').forEach(btn => {
     document.querySelectorAll('.speed-bar button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     const dur = btn.dataset.dur;
-    document.querySelectorAll('.viewport').forEach(v => {
+    document.querySelectorAll('.sprite').forEach(v => {
       v.style.setProperty('--anim-dur', dur);
     });
   });
