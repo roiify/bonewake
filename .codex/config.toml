@@ -1,5 +1,0 @@
-[mcp_servers.pixellab]
-url = "https://api.pixellab.ai/mcp"
-
-[mcp_servers.pixellab.http_headers]
-Authorization = "Bearer aea9878f-54b3-4b82-ac22-5d2253120c85"

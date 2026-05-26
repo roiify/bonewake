@@ -331,3 +331,17 @@ a, button { -webkit-tap-highlight-color: transparent; }
   50%      { box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.9), 0 0 18px rgba(251, 191, 36, 0.55); }
 }
 .daily-pulse { animation: daily-pulse 1.8s ease-in-out infinite; }
+
+/* Painted-boss attack effect — stationary single-frame bosses don't
+   have an attack-frame atlas, so we layer a CSS-driven roar instead:
+   scale + tilt + red drop-shadow flash. Runs alongside the existing
+   lunge transform, so the boss surges forward + roars simultaneously
+   without needing PixelLab attack frames (which would overwrite the
+   painted dark-fantasy identity with generic pixel art). */
+@keyframes boss-attack-roar {
+  0%   { transform: scale(1)    rotate(0deg);  filter: brightness(0.78) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85)); }
+  25%  { transform: scale(1.18) rotate(-3deg); filter: brightness(1.20) contrast(1.20) saturate(1.40) drop-shadow(0 0 14px rgba(239,68,68,0.85)) drop-shadow(0 6px 10px rgba(0,0,0,0.9)); }
+  60%  { transform: scale(1.10) rotate(2deg);  filter: brightness(1.05) contrast(1.15) saturate(1.25) drop-shadow(0 0 8px rgba(239,68,68,0.6)) drop-shadow(0 6px 8px rgba(0,0,0,0.85)); }
+  100% { transform: scale(1)    rotate(0deg);  filter: brightness(0.78) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85)); }
+}
+.boss-attacking { animation: boss-attack-roar 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.1); }

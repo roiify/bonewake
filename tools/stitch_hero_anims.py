@@ -16,8 +16,8 @@ QUEUE = Path(__file__).parent / "hero_anim_queue.json"
 MCP = Path(__file__).parent / "pixellab_mcp.py"
 HERO_DIR = Path("/Users/kiddos/Desktop/bonewake-web/public/sprites/pixellab/heroes")
 KEYS = {
-    "kidbot": "a022012e-1bd3-428a-b6ea-f1e33f3b7a17",
-    "rolfi":  "aea9878f-54b3-4b82-ac22-5d2253120c85",
+    "kidbot": os.environ.get("PIXELLAB_KEY_KIDBOT", ""),
+    "rolfi":  os.environ.get("PIXELLAB_KEY_ROLFI",  os.environ.get("PIXELLAB_API_KEY", "")),
 }
 
 

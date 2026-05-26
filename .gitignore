@@ -15,6 +15,9 @@ dist-ssr
 .env.*
 !.env.example
 
+# Codex/MCP local config — contains bearer tokens, must never be committed
+.codex/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
