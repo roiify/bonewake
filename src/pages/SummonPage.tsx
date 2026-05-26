@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Card from '../components/ui/Card';
 import { SUMMON_POOLS } from '../data/summonPools';
 import { HERO_BY_ID } from '../data/heroes';
 import { pullOnce, pullTen } from '../lib/summon';
@@ -98,37 +99,49 @@ export default function SummonPage() {
 
   return (
     <div className="p-3 space-y-3">
-      <h2 className="font-pixel text-sm">Summon Heroes</h2>
+      <div>
+        <h2 className="font-fantasy text-2xl tracking-widest text-amber-200" style={{ textShadow: '0 2px 0 rgba(0,0,0,0.95), 0 0 14px rgba(167,139,250,0.5)' }}>Summon</h2>
+        <p className="text-[10px] text-zinc-400 leading-snug mt-1">
+          Pull heroes from the void. Stellar pulls have a guaranteed SSS at pity 120.
+        </p>
+      </div>
 
       {SUMMON_POOLS.map(pool => {
         const featured = pool.featuredHeroId ? HERO_BY_ID[pool.featuredHeroId] : null;
         const currIcon = pool.cost.currency === 'gold' ? '🪙' : pool.cost.currency === 'gems' ? '💎' : '🤝';
+        const isPremium = pool.id === 'premium';
         return (
-          <div key={pool.id} className="rounded-lg border border-zinc-800 bg-gradient-to-br from-zinc-900 to-zinc-950 p-3">
-            <div className="flex items-start gap-3 mb-3">
-              <div
-                className="w-16 h-16 rounded-md flex items-center justify-center text-4xl border-2"
-                style={{ borderColor: featured?.color ?? '#3f3f46', background: `linear-gradient(135deg, ${featured?.color ?? '#27272a'}40, transparent)` }}
-              >
-                {featured?.emoji ?? '🎁'}
+          <Card key={pool.id} tint={featured?.color} goldFrame={isPremium}>
+            <div className="p-3">
+              <div className="flex items-start gap-3 mb-3">
+                <div
+                  className="w-16 h-16 rounded-lg flex items-center justify-center text-4xl border-2 shrink-0"
+                  style={{
+                    borderColor: featured?.color ?? '#3f3f46',
+                    background: `radial-gradient(circle at 30% 30%, ${featured?.color ?? '#3f3f46'}55, transparent 70%), #0c0a09`,
+                    boxShadow: featured ? `0 0 14px ${featured.color}55` : undefined,
+                  }}
+                >
+                  {featured?.emoji ?? '🎁'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-pixel text-xs text-zinc-100 text-shadow-soft">{pool.name}</div>
+                  <div className="text-[10px] text-zinc-400 mt-0.5 leading-snug">{pool.description}</div>
+                  {pool.pityFive && (
+                    <div className="text-[10px] text-amber-400 mt-1 font-pixel">PITY {profile.pityCounter}/{pool.pityFive}</div>
+                  )}
+                </div>
               </div>
-              <div className="flex-1">
-                <div className="font-pixel text-xs text-zinc-100">{pool.name}</div>
-                <div className="text-[10px] text-zinc-400 mt-0.5">{pool.description}</div>
-                {pool.pityFive && (
-                  <div className="text-[10px] text-amber-400 mt-1">Pity: {profile.pityCounter}/{pool.pityFive}</div>
-                )}
+              <div className="flex gap-2">
+                <button className="btn-pixel flex-1" onClick={() => doPull(pool, 1)}>
+                  Pull ×1 ({pool.cost.amount} {currIcon})
+                </button>
+                <button className="btn-pixel primary flex-1" onClick={() => doPull(pool, 10)}>
+                  Pull ×10 ({pool.cost.amount * 9} {currIcon})
+                </button>
               </div>
             </div>
-            <div className="flex gap-2">
-              <button className="btn-pixel flex-1" onClick={() => doPull(pool, 1)}>
-                Pull ×1 ({pool.cost.amount} {currIcon})
-              </button>
-              <button className="btn-pixel primary flex-1" onClick={() => doPull(pool, 10)}>
-                Pull ×10 ({pool.cost.amount * 9} {currIcon})
-              </button>
-            </div>
-          </div>
+          </Card>
         );
       })}
 

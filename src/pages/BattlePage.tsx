@@ -2,6 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { STAGES } from '../data/stages';
 import { db, type StageClear } from '../lib/db';
+import Card from '../components/ui/Card';
+import { asset } from '../lib/assetPath';
+
+const MODE_BOSS_ICON  = asset('sprites/ui/mode_boss.png');
+const MODE_STORY_ICON = asset('sprites/ui/mode_story.png');
 
 export default function BattlePage() {
   const [clears, setClears] = useState<Record<string, StageClear>>({});
@@ -89,56 +94,91 @@ export default function BattlePage() {
   }
 
   return (
-    <div className="p-3 space-y-4">
-      <h2 className="font-pixel text-sm">Story</h2>
-      <p className="text-[10px] text-zinc-400 leading-snug -mt-2">
-        Main progression. Beat each stage for <span className="text-amber-300">stars, gear drops, and chapter unlocks</span> —
-        clear three stars to unlock instant-skip on that stage.
-      </p>
+    <div className="p-3 space-y-5">
+      <div>
+        <h2 className="font-fantasy text-2xl tracking-widest text-amber-200" style={{ textShadow: '0 2px 0 rgba(0,0,0,0.95), 0 0 14px rgba(220,38,38,0.5)' }}>Story</h2>
+        <p className="text-[10px] text-zinc-400 leading-snug mt-1">
+          Main progression. Beat each stage for <span className="text-amber-300">stars, gear drops, and chapter unlocks</span> —
+          clear three stars to unlock instant-skip.
+        </p>
+      </div>
+
       {Object.entries(byChapter).map(([ch, stages]) => (
-        <div key={ch}>
-          <div className="relative rounded-md overflow-hidden mb-2 h-20 border border-zinc-800">
-            <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-900/60 to-zinc-800" />
-            <div className="relative flex items-center gap-2 h-full px-3">
-              <span className="text-2xl drop-shadow">{chapterEmoji[Number(ch) as 1]}</span>
+        <div key={ch} className="space-y-2">
+          {/* Chapter header — painted gradient with Cinzel chapter name */}
+          <div
+            className="relative rounded-lg overflow-hidden h-20 border"
+            style={{
+              borderColor: '#5a2222',
+              background:
+                'radial-gradient(circle at 20% 50%, rgba(220,38,38,0.35) 0%, transparent 55%), ' +
+                'linear-gradient(90deg, #1a0807 0%, #0a0303 100%)',
+              boxShadow: 'var(--shadow-card)',
+            }}
+          >
+            <div className="relative flex items-center gap-3 h-full px-4">
+              <span className="text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{chapterEmoji[Number(ch) as 1]}</span>
               <div>
-                <div className="text-[9px] text-zinc-400 font-pixel">Chapter {ch}</div>
-                <h3 className="font-pixel text-sm text-amber-300 drop-shadow">{chapterNames[Number(ch) as 1]}</h3>
+                <div className="text-[9px] text-zinc-400 font-pixel tracking-widest">CHAPTER {ch}</div>
+                <h3 className="font-fantasy text-lg tracking-wide text-amber-200" style={{ textShadow: '0 2px 0 rgba(0,0,0,0.9), 0 0 8px rgba(220,38,38,0.5)' }}>
+                  {chapterNames[Number(ch) as 1]}
+                </h3>
               </div>
             </div>
           </div>
+
+          {/* Stages — each one a premium Card */}
           <div className="space-y-2">
             {stages.map(s => {
               const clear = clears[s.id];
               const locked = isLocked(s.id);
               const isBoss = s.num === 5;
+              const isNext = s.id === nextStageId;
+              const tint = locked ? undefined : isBoss ? '#dc2626' : isNext ? '#fbbf24' : undefined;
               return (
                 <Link
                   to={locked ? '#' : `/battle/stage/${s.id}`}
                   key={s.id}
-                  ref={s.id === nextStageId ? nextStageRef : undefined}
-                  className={`block rounded-md border p-3 transition-all ${
-                    locked
-                      ? 'border-zinc-800 bg-zinc-900/40 opacity-50 cursor-not-allowed'
-                      : s.id === nextStageId
-                        ? 'border-amber-500 bg-amber-950/30 ring-2 ring-amber-500/40'
-                        : 'border-zinc-700 bg-zinc-900 hover:border-amber-500'
-                  } ${isBoss && !locked ? 'border-rose-600 bg-gradient-to-r from-rose-950/30 to-zinc-900' : ''}`}
+                  ref={isNext ? nextStageRef : undefined}
                   onClick={e => locked && e.preventDefault()}
+                  className={`block ${locked ? 'pointer-events-none' : ''}`}
+                  style={locked ? { opacity: 0.4 } : undefined}
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-pixel text-[10px] text-zinc-400">Stage {s.chapter}-{s.num} {isBoss && <span className="text-rose-400">★ BOSS</span>}</div>
-                      <div className="text-sm text-zinc-100 mt-0.5">{s.name}</div>
-                      <div className="text-[10px] text-zinc-500 mt-1">Energy ⚡{s.energyCost} · {s.rewards.gold}🪙 · {s.rewards.exp}xp</div>
+                  <Card
+                    interactive={!locked}
+                    tint={tint}
+                    goldFrame={isBoss && !locked}
+                    style={isNext && !locked ? { boxShadow: 'var(--shadow-card-hover), 0 0 0 2px rgba(251,191,36,0.6), 0 0 18px rgba(251,191,36,0.3)' } : undefined}
+                  >
+                    <div className="p-3 flex items-center gap-3">
+                      {/* Stage icon — boss skull or sword cluster */}
+                      <img
+                        src={isBoss ? MODE_BOSS_ICON : MODE_STORY_ICON}
+                        alt=""
+                        className="w-10 h-10 object-contain shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                        style={{ imageRendering: 'pixelated', filter: locked ? 'grayscale(1) brightness(0.4)' : undefined }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-pixel text-[10px] text-zinc-400 flex items-center gap-2">
+                          STAGE {s.chapter}-{s.num}
+                          {isBoss && <span className="text-rose-400">★ BOSS</span>}
+                          {isNext && <span className="text-amber-300">▶ NEXT</span>}
+                        </div>
+                        <div className="text-sm text-zinc-100 mt-0.5 font-pixel">{s.name}</div>
+                        <div className="text-[10px] text-zinc-500 mt-1">
+                          ⚡{s.energyCost} · {s.rewards.gold.toLocaleString()}🪙 · {s.rewards.exp}xp
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        {locked
+                          ? <span className="text-zinc-500 text-xl">🔒</span>
+                          : clear
+                            ? <div className="text-amber-400 text-sm">{'★'.repeat(clear.stars)}{'☆'.repeat(3 - clear.stars)}</div>
+                            : <span className="text-zinc-600 text-sm">☆☆☆</span>
+                        }
+                      </div>
                     </div>
-                    <div className="text-right">
-                      {locked && <span className="text-zinc-500">🔒</span>}
-                      {clear && (
-                        <div className="text-amber-400 text-sm">{'★'.repeat(clear.stars)}{'☆'.repeat(3 - clear.stars)}</div>
-                      )}
-                    </div>
-                  </div>
+                  </Card>
                 </Link>
               );
             })}

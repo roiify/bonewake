@@ -106,12 +106,18 @@ export default function HeroesPage() {
   return (
     <div className="p-3 space-y-3">
       <div
-        className="relative rounded-md overflow-hidden h-20 border border-zinc-800 -mx-3 -mt-3 mb-3"
-        style={{ backgroundImage: `url(${import.meta.env.BASE_URL}sprites/bg/mountain_lake.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center 40%' }}
+        className="relative rounded-lg overflow-hidden h-24 border -mx-3 -mt-3 mb-3"
+        style={{
+          backgroundImage: `url(${import.meta.env.BASE_URL}sprites/ui/banner_home.png)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 60%',
+          borderColor: '#5a2222',
+          boxShadow: 'var(--shadow-card)',
+        }}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 to-transparent" />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 20%, rgba(10,3,3,0.92) 90%)' }} />
         <div className="relative h-full flex items-end justify-between p-3">
-          <h2 className="font-pixel text-sm text-amber-300 drop-shadow">Heroes Roster</h2>
+          <h2 className="font-fantasy text-xl tracking-widest text-amber-200" style={{ textShadow: '0 2px 0 rgba(0,0,0,0.95), 0 0 14px rgba(220,38,38,0.55)' }}>Heroes Roster</h2>
           <div
             className="text-right text-[9px] font-pixel text-cyan-300 drop-shadow leading-tight"
             title={[
@@ -130,15 +136,20 @@ export default function HeroesPage() {
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <h2 className="font-pixel text-sm text-zinc-200">Owned ({heroes.filter(h => !HIDDEN_HERO_IDS.has(h.templateId)).length})</h2>
-        <div className="flex gap-1">
+        <h2 className="font-pixel text-sm text-zinc-200 text-shadow-soft">
+          Owned <span className="text-amber-300">{heroes.filter(h => !HIDDEN_HERO_IDS.has(h.templateId)).length}</span>
+        </h2>
+        <div className="flex gap-1.5">
           {[null, 3, 4, 5].map(r => (
             <button
               key={String(r)}
-              className={`text-[10px] font-pixel px-2 py-1 rounded border ${
-                filterRarity === r ? 'border-amber-400 bg-amber-400/20 text-amber-300' : 'border-zinc-700 text-zinc-400'
-              }`}
               onClick={() => setFilterRarity(r as Rarity | null)}
+              className={`text-[10px] font-pixel px-2.5 py-1 rounded-full transition border ${
+                filterRarity === r
+                  ? 'border-amber-400 text-amber-300 bg-amber-500/15'
+                  : 'border-zinc-800 text-zinc-500 bg-zinc-950 hover:border-zinc-600 hover:text-zinc-300'
+              }`}
+              style={filterRarity === r ? { boxShadow: '0 0 10px rgba(251,191,36,0.35)' } : undefined}
             >
               {r == null ? 'All' : tierLabel(r)}
             </button>
@@ -148,11 +159,9 @@ export default function HeroesPage() {
 
       {heroes.length > 0 && equipment.length > 0 && (
         <div className="flex items-center gap-2">
-          <button className="btn-pixel" onClick={autoEquipAll}>
-            ⚙️ Auto Equip All
-          </button>
+          <button className="btn-pixel" onClick={autoEquipAll}>⚙ Auto Equip All</button>
           <div className="text-[9px] text-zinc-500 flex-1">
-            Redistributes all loot. Highest tier+level heroes pick first.
+            Redistributes all loot — highest-tier heroes pick first.
           </div>
         </div>
       )}
