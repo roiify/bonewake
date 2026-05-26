@@ -1214,22 +1214,18 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
         const isPaintedBoss = PAINTED_BOSS_IDS.has(unit.templateId);
         const containerSize = isPaintedBoss ? 'w-72 h-72' : 'w-44 h-44';
         const renderSize = isPaintedBoss ? 400 : (heroSprites ? 234 : 220);
-        // Painted bosses are forward-facing card art (not side-profile
-        // sprites), so mirroring just makes them look uncanny. Leave the
-        // orientation alone; darken + saturation tweak so they match the
-        // gloomy battlefield instead of feeling studio-lit.
-        // Per-sprite orientation overrides — some PixelLab heroes shipped
-        // facing the wrong way and the asset can't be flipped at source
-        // without re-generation. Mirror them at render time so the squad
-        // visually faces east toward the enemies. (Bigger animation
-        // container reserved for boss-tier so future attack atlases can
-        // grow without re-layout — see size constants above.)
+        // Per-sprite orientation: PixelLab side-view sprites face east
+        // by default. Heroes are on the left and need to face east →
+        // no flip. Enemies (including painted bosses, now that their
+        // idle is the first frame of a side-view attack atlas) are on
+        // the right and need to face west → flip horizontally.
+        // Plus one-off chino override (his sprite shipped reversed).
         const REVERSED_HEROES = new Set<string>(['chino']);
         const flipHero = REVERSED_HEROES.has(unit.templateId);
-        const baseFilter = 'brightness(0.78) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85))';
-        const wrapStyle = isPaintedBoss
-          ? { filter: baseFilter }
-          : flipHero
+        const baseFilter = 'brightness(0.85) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85))';
+        const wrapStyle: React.CSSProperties | undefined = isPaintedBoss
+          ? { filter: baseFilter, transform: side === 'enemy' ? 'scaleX(-1)' : undefined }
+          : (flipHero || (side === 'enemy' && !heroSprites))
             ? { transform: 'scaleX(-1)' }
             : undefined;
         return (

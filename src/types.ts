@@ -122,6 +122,10 @@ export interface BattleAction {
   // animate the per-unit energy bar in lockstep with the log replay.
   srcEnergyAfter?: number;
   dstEnergyAfter?: number;
+  // Element-matchup tag for damage floats: 'strong' = 1.5× super-effective,
+  // 'weak' = 0.75× resisted, undefined for neutral. UI surfaces this as
+  // a small badge next to the floating damage number.
+  ele?: 'strong' | 'weak';
 }
 
 export interface BattleResult {
