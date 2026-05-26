@@ -161,11 +161,11 @@ export default function BattlePlayPage() {
     // just keep current attacker so the animation we already started keeps
     // playing while the additional targets apply.
     if (action.cont) return;
-    // Compute the real attacker→target offset so basic attacks lunge to the
-    // actual enemy position. Skills, ults, and heals stay rooted (cast in
-    // place — healers don't run up to their target).
+    // Compute the real attacker→target offset so attacks lunge to the
+    // actual enemy position. Heals stay rooted (healers don't run up to
+    // their target). Ults/skills currently animate as basic attacks.
     const isHealAction = (action.heal ?? 0) > 0 && (action.dmg ?? 0) === 0;
-    if (!action.ult && !action.skill && !isHealAction) {
+    if (!isHealAction) {
       const a = unitRefs.current[action.src];
       const t = unitRefs.current[action.dst];
       if (a && t) {
@@ -182,14 +182,10 @@ export default function BattlePlayPage() {
       setLungeOffset(null);
     }
     setAttacker(action.src);
-    setSkillCaster(action.skill ? action.src : null);
+    // Ult/skill animations are disabled — they play as basic attacks for now.
+    setSkillCaster(null);
     setHealCaster(isHealAction ? action.src : null);
-    if (action.ult) {
-      const u = units[action.src];
-      setUltFlash(u);
-      const t = setTimeout(() => setUltFlash(null), 5000 / speed);
-      return () => clearTimeout(t);
-    }
+    setUltFlash(null);
     return;
   }, [tick, battle, done]);
 
@@ -199,8 +195,8 @@ export default function BattlePlayPage() {
     const a = battle.log[tick];
     // Continuation entries (extra targets of a multi-target ult) get a
     // very short wait — the animation already played on the first entry.
-    const isBasic = !a.cont && !a.ult && !a.skill;
-    const baseDuration = a.cont ? 250 : (a.ult ? 6000 : a.skill ? 2400 : 1000);
+    const isBasic = !a.cont;
+    const baseDuration = a.cont ? 250 : 1000;
     // For basic attacks, the impact lands while the attacker is still
     // at the target (after the dash, before the retreat) so the screen
     // shake / damage number / SFX hit in sync with the swing rather than
