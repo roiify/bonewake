@@ -1214,12 +1214,15 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
         const isPaintedBoss = PAINTED_BOSS_IDS.has(unit.templateId);
         // Math: mobile frame is max-w-[420px], battlefield has p-3 (12px
         // each side) + gap-2 (8px) = 28px chrome, so each flex column =
-        // (420 - 28) / 2 = 196px wide. w-48 = 192px is the largest safe
-        // container that fits the enemy column without bleeding past the
-        // right edge of the frame. Boss = 192px, heroes = 176px, so boss
-        // reads visibly bigger (~10%) while staying in-bounds.
-        const containerSize = isPaintedBoss ? 'w-48 h-48' : 'w-44 h-44';
-        const renderSize = isPaintedBoss ? 192 : (heroSprites ? 234 : 220);
+        // (420 - 28) / 2 = 196px wide. WIDTH max-safe is w-48 (192px).
+        // Vertically there's tons of headroom (only one boss enemy in
+        // world-boss/shatter), so bump HEIGHT to h-56 (224px) and render
+        // the sprite at 224 — uniformly scaled. The container's
+        // overflow-hidden + items-end + justify-center clips the 16px
+        // horizontal bleed on each side so the boss still fits the
+        // column edge while standing 16% taller than before.
+        const containerSize = isPaintedBoss ? 'w-48 h-56' : 'w-44 h-44';
+        const renderSize = isPaintedBoss ? 224 : (heroSprites ? 234 : 220);
         // Per-sprite orientation: PixelLab side-view sprites face east
         // by default. Heroes are on the left and need to face east →
         // no flip. Enemies (including painted bosses, now that their
@@ -1235,7 +1238,10 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
             ? { transform: 'scaleX(-1)' }
             : undefined;
         return (
-          <div className={`relative ${containerSize} flex items-end justify-center`} style={wrapStyle}>
+          <div
+            className={`relative ${containerSize} flex items-end justify-center ${isPaintedBoss ? 'overflow-hidden' : ''}`}
+            style={wrapStyle}
+          >
             {animSrc ? (
               <SpriteAnimator
                 src={animSrc}
