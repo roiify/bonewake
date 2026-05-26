@@ -2,7 +2,14 @@ import { useState, useMemo } from 'react';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
 import { HERO_BY_ID, HERO_PORTRAITS, HERO_TEMPLATES, HIDDEN_HERO_IDS } from '../data/heroes';
-import { calcHeroStats, playerLevelMult, PLAYER_LEVEL_STAT_BONUS_PER_LEVEL, promotionLevelThreshold } from '../lib/stats';
+import {
+  calcHeroStats,
+  playerLevelMult,
+  PLAYER_LEVEL_STAT_BONUS_PER_LEVEL,
+  playerLevelCritBonus,
+  playerLevelCritDamageMult,
+  promotionLevelThreshold,
+} from '../lib/stats';
 import { Link } from 'react-router-dom';
 import type { Rarity } from '../types';
 import { tierLabel, tierColor } from '../lib/tier';
@@ -106,10 +113,19 @@ export default function HeroesPage() {
         <div className="relative h-full flex items-end justify-between p-3">
           <h2 className="font-pixel text-sm text-amber-300 drop-shadow">Heroes Roster</h2>
           <div
-            className="text-right text-[10px] font-pixel text-cyan-300 drop-shadow"
-            title={`Account level boosts every hero's HP/ATK/DEF by ${(PLAYER_LEVEL_STAT_BONUS_PER_LEVEL * 100).toFixed(2)}% per player level.`}
+            className="text-right text-[9px] font-pixel text-cyan-300 drop-shadow leading-tight"
+            title={[
+              `Per player level:`,
+              `  +${(PLAYER_LEVEL_STAT_BONUS_PER_LEVEL * 100).toFixed(2)}% HP/ATK/DEF`,
+              `  +0.01% crit chance`,
+              `  +0.05% crit damage`,
+              `  SPD → dodge: (SPD/1500) × (1 + lvl × 0.002), capped at 35%`,
+            ].join('\n')}
           >
-            LV {playerLevel} · +{((playerLevelMult(playerLevel) - 1) * 100).toFixed(1)}% HP/ATK/DEF
+            <div>LV {playerLevel}</div>
+            <div className="text-cyan-400">+{((playerLevelMult(playerLevel) - 1) * 100).toFixed(0)}% HP/ATK/DEF</div>
+            <div className="text-amber-300">+{(playerLevelCritBonus(playerLevel) * 100).toFixed(1)}% crit · {playerLevelCritDamageMult(playerLevel).toFixed(2)}× crit dmg</div>
+            <div className="text-emerald-300">SPD → dodge active</div>
           </div>
         </div>
       </div>

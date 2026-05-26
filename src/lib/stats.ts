@@ -34,6 +34,40 @@ export function getPlayerLevelForBoost(): number {
   return _playerLevelForBoost;
 }
 
+// === Crit/Speed kit identity scaling (account-level driven) ===========
+// Universal HP/ATK/DEF growth (playerLevelMult above) accidentally erases
+// what makes crit/speed builds distinct — bruisers and assassins both gain
+// the same +250% at lvl 999, so the assassin's identity flatlines.
+//
+// These three helpers add identity-preserving scaling that ONLY benefits
+// crit-rate, crit-damage, and speed-derived dodge — bounded so they can't
+// snowball into crit-cap or invincibility:
+//
+//   CRIT chance      +0.01% per player level   → +10% at lvl 999
+//                                                (22% kit → 32%, not 100%)
+//   CRIT damage      +0.05% per player level   → 1.5x → 2.0x at lvl 999
+//   SPD → dodge       (spd / 1500) × (1 + lvl × 0.002)
+//                                              → 95 SPD ≈ 19% at lvl 999
+export const PLAYER_LEVEL_CRIT_CHANCE_PER_LEVEL = 0.0001;
+export const PLAYER_LEVEL_CRIT_DAMAGE_PER_LEVEL = 0.0005;
+export const PLAYER_LEVEL_DODGE_SCALE_PER_LEVEL = 0.002;
+export const BASE_CRIT_DAMAGE_MULT = 1.5;
+
+export function playerLevelCritBonus(playerLevel: number): number {
+  return Math.max(0, playerLevel - 1) * PLAYER_LEVEL_CRIT_CHANCE_PER_LEVEL;
+}
+export function playerLevelCritDamageMult(playerLevel: number): number {
+  return BASE_CRIT_DAMAGE_MULT + Math.max(0, playerLevel - 1) * PLAYER_LEVEL_CRIT_DAMAGE_PER_LEVEL;
+}
+export function playerLevelDodgeChance(spd: number, playerLevel: number): number {
+  const base = Math.max(0, spd) / 1500;
+  const scale = 1 + Math.max(0, playerLevel - 1) * PLAYER_LEVEL_DODGE_SCALE_PER_LEVEL;
+  // Cap at 35% so the fastest unit at max player level still gets hit
+  // ~65% of the time. Without a cap a 200-SPD char at lvl 999 could exceed
+  // 50% dodge which starts trivializing damage-output design.
+  return Math.min(0.35, base * scale);
+}
+
 export interface HeroStats {
   hp: number; atk: number; def: number; spd: number; crit: number;
   power: number;

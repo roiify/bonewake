@@ -2,6 +2,12 @@ import seedrandom from 'seedrandom';
 import { SKILL_BY_ID } from '../data/skills';
 import { skillsForHero } from '../data/heroSkills';
 import { ultLevelMultiplier } from './ultLeveling';
+import {
+  getPlayerLevelForBoost,
+  playerLevelCritBonus,
+  playerLevelCritDamageMult,
+  playerLevelDodgeChance,
+} from './stats';
 import type { CombatUnit, BattleAction, BattleResult, Element } from '../types';
 
 interface DamageMods {
@@ -32,6 +38,16 @@ function getDamageMods(unit: CombatUnit): DamageMods {
   return { damageMultiplier, critBonus };
 }
 
+// Crit-resolution helpers — centralized so every damage site applies the
+// same player-level scaling (crit chance bonus + crit damage multiplier).
+function rollCrit(unitCrit: number, rng: () => number, extraBonus = 0): boolean {
+  const playerLevel = getPlayerLevelForBoost();
+  return rng() < (unitCrit + extraBonus + playerLevelCritBonus(playerLevel));
+}
+function critMult(): number {
+  return playerLevelCritDamageMult(getPlayerLevelForBoost());
+}
+
 // Modify incoming damage based on target's on_hit passives. Returns the dmg actually dealt
 // and (optionally) reflected damage back to the attacker.
 function applyOnHit(target: CombatUnit, dmg: number, rng: () => number): { dmg: number; reflect: number } {
@@ -46,6 +62,13 @@ function applyOnHit(target: CombatUnit, dmg: number, rng: () => number): { dmg: 
     if (sk.effect.kind === 'reflect' && rng() < 0.30) {
       reflect = Math.floor(dmg * sk.effect.value);
     }
+  }
+  // SPD-derived dodge from player-level scaling. Stacks ON TOP of any
+  // kit-specific on_hit dodge passive — speed-built characters now actually
+  // benefit from their SPD as an account-wide survival stat.
+  const dodgeChance = playerLevelDodgeChance(target.spd, getPlayerLevelForBoost());
+  if (dodgeChance > 0 && rng() < dodgeChance) {
+    actual = Math.floor(actual * 0.5);
   }
   return { dmg: actual, reflect };
 }
@@ -229,9 +252,9 @@ export function resolveBattle(
         const target = pickEnemyTarget(enemies, rng);
         if (target) {
           const eAdv = elementAdvantage(unit.element, target.element);
-          const isCrit = rng() < unit.crit;
+          const isCrit = rollCrit(unit.crit, rng);
           let dmg = mitigatedDamage(unit.atk * 2.0, target.def);
-          dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv);
+          dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv);
           target.hp = Math.max(0, target.hp - dmg);
           log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: false, skill: true });
           if (target.hp <= 0) {
@@ -297,9 +320,9 @@ export function resolveBattle(
           for (const target of enemies) {
             if (!target.alive) continue;
             const eAdv = elementAdvantage(unit.element, target.element);
-            const isCrit = rng() < unit.crit;
+            const isCrit = rollCrit(unit.crit, rng);
             let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier, target.def);
-            dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv * ultMult);
+            dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult);
             target.hp = Math.max(0, target.hp - dmg);
             log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true, cont: !isFirst });
             isFirst = false;
@@ -314,9 +337,9 @@ export function resolveBattle(
             : pickEnemyTarget(enemies, rng);
           if (target) {
             const eAdv = elementAdvantage(unit.element, target.element);
-            const isCrit = rng() < unit.crit;
+            const isCrit = rollCrit(unit.crit, rng);
             let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier, target.def);
-            dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv * ultMult);
+            dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult);
             target.hp = Math.max(0, target.hp - dmg);
             log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true });
             if (skill.effect && (target.effects as any)) {
@@ -347,9 +370,9 @@ export function resolveBattle(
         if (!target) break;
         const eAdv = elementAdvantage(unit.element, target.element);
         const mods = getDamageMods(unit);
-        const isCrit = rng() < (unit.crit + mods.critBonus);
+        const isCrit = rollCrit(unit.crit, rng, mods.critBonus);
         let dmg = mitigatedDamage(unit.atk, target.def);
-        dmg = Math.floor(dmg * (isCrit ? 1.5 : 1) * eAdv * mods.damageMultiplier);
+        dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * mods.damageMultiplier);
         // on_hit dodge/reflect
         const hit = applyOnHit(target, dmg, rng);
         dmg = hit.dmg;
