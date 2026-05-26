@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useHeroes } from '../store/heroes';
-import { HERO_BY_ID, HERO_PORTRAITS, HIDDEN_HERO_IDS } from '../data/heroes';
+import { HERO_BY_ID, HERO_PORTRAITS, HERO_TEMPLATES, HIDDEN_HERO_IDS } from '../data/heroes';
 import { calcHeroStats } from '../lib/stats';
 import { Link } from 'react-router-dom';
 import type { Rarity } from '../types';
@@ -82,6 +82,18 @@ export default function HeroesPage() {
       .sort((a, b) => b.stats.power - a.stats.power);
     return list;
   }, [heroes, equipment, filterRarity]);
+
+  // Missing roster — every pullable template the player hasn't summoned yet.
+  // Filters out hidden Manny summons (not directly obtainable) and respects
+  // the same rarity filter as the owned grid so the two sections stay aligned.
+  const missing = useMemo(() => {
+    const ownedIds = new Set(heroes.map(h => h.templateId));
+    return HERO_TEMPLATES
+      .filter(t => !HIDDEN_HERO_IDS.has(t.id))
+      .filter(t => !ownedIds.has(t.id))
+      .filter(t => filterRarity == null || t.rarity === filterRarity)
+      .sort((a, b) => a.pullWeight - b.pullWeight);
+  }, [heroes, filterRarity]);
 
   return (
     <div className="p-3 space-y-3">
@@ -175,6 +187,55 @@ export default function HeroesPage() {
             );
           })}
         </div>
+      )}
+
+      {/* Missing roster — silhouette cards of every hero the player hasn't pulled yet. */}
+      {missing.length > 0 && (
+        <>
+          <div className="flex items-center justify-between mt-5">
+            <h2 className="font-pixel text-sm text-zinc-400">
+              Missing ({missing.length})
+            </h2>
+            <Link to="/summon" className="text-[10px] font-pixel text-amber-400 underline">
+              Summon →
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {missing.map(tpl => (
+              <div
+                key={tpl.id}
+                className="relative rounded-md border-2 border-dashed border-zinc-800 p-2 bg-zinc-950"
+                style={{ borderColor: `${tpl.color}55` }}
+                title={`${tpl.name} — not yet summoned`}
+              >
+                <div
+                  className="relative aspect-square rounded flex items-center justify-center mb-1 overflow-hidden"
+                  style={{ background: `linear-gradient(135deg, ${tpl.color}18, transparent)` }}
+                >
+                  {HERO_PORTRAITS[tpl.id] ? (
+                    <img
+                      src={HERO_PORTRAITS[tpl.id]}
+                      alt={tpl.name}
+                      className="relative w-[90%] h-[90%] object-contain"
+                      style={{
+                        imageRendering: 'pixelated',
+                        filter: 'brightness(0) opacity(0.55)',
+                      }}
+                    />
+                  ) : (
+                    <div className="relative text-4xl opacity-50">{tpl.emoji}</div>
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-2xl text-zinc-500 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">?</span>
+                  </div>
+                </div>
+                <div className="text-[10px] font-pixel text-zinc-500 truncate">{tpl.name}</div>
+                <div className="text-[8px] text-zinc-600 mt-0.5">{tpl.archetype} · {tpl.element}</div>
+                <div className="text-[8px] text-zinc-600">Pull wt {tpl.pullWeight}</div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
