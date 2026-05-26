@@ -20,7 +20,7 @@ const SOURCE_LABEL: Record<BattleLogEntry['source'], { name: string; color: stri
   stage:     { name: 'Story',       color: '#fbbf24' },
   tower:     { name: 'Tower',       color: '#06b6d4' },
   worldboss: { name: 'World Boss',  color: '#f97316' },
-  spirit:    { name: 'Spirit Bomb', color: '#a855f7' },
+  spirit:    { name: 'Shatter',     color: '#a855f7' },
   dungeon:   { name: 'Dungeon',     color: '#84cc16' },
   trial:     { name: 'Trial',       color: '#fb7185' },
 };

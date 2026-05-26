@@ -139,6 +139,10 @@ export default function TrialsPage() {
         <p className="text-[10px] text-zinc-500 mt-1">
           Themed runs with squad restrictions. Each trial gives bonus rewards once per day.
         </p>
+        <p className="text-[10px] text-zinc-400 mt-2 leading-snug">
+          Tests <span className="text-amber-300">team flexibility</span> — you'll need to build
+          element- or class-specific squads to enter. Rewards lean toward gems and soulshards.
+        </p>
       </div>
 
       <div className="space-y-2">

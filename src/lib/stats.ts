@@ -12,6 +12,28 @@ import type { CombatUnit, Element, Archetype, Rarity } from '../types';
 export const STAR_MULT = [1.0, 1.0, 1.25, 1.55, 1.95, 2.45, 3.05];
 export const levelMult = (lvl: number) => 1 + (lvl - 1) * 0.05;
 
+// Player-level account boost — every owned hero gets a permanent multiplier
+// to HP/ATK/DEF based on the player's account level. Gives long-term player
+// progression a real payoff: at lvl 100 your toons are +25% stronger, lvl
+// 500 = +125%, lvl 999 ≈ +250%. SPD/CRIT are intentionally untouched (they
+// shouldn't trivialize speed-tier or crit-cap design).
+export const PLAYER_LEVEL_STAT_BONUS_PER_LEVEL = 0.0025;
+export function playerLevelMult(playerLevel: number): number {
+  return 1 + Math.max(0, playerLevel - 1) * PLAYER_LEVEL_STAT_BONUS_PER_LEVEL;
+}
+
+// Module-level mirror of the player's account level so calcHeroStats can
+// apply the account-wide stat boost without importing the profile store
+// (which would create a circular dep since profile.ts already imports from
+// here). The profile store keeps this in sync via setPlayerLevelForBoost().
+let _playerLevelForBoost = 1;
+export function setPlayerLevelForBoost(n: number): void {
+  _playerLevelForBoost = Math.max(1, Math.floor(n));
+}
+export function getPlayerLevelForBoost(): number {
+  return _playerLevelForBoost;
+}
+
 export interface HeroStats {
   hp: number; atk: number; def: number; spd: number; crit: number;
   power: number;
@@ -52,9 +74,13 @@ export function calcHeroStats(
   if (!tpl) return { hp: 0, atk: 0, def: 0, spd: 0, crit: 0, power: 0 };
   const sm = STAR_MULT[hero.star] ?? 1;
   const lm = levelMult(hero.level);
-  let hp = tpl.baseStats.hp * sm * lm;
-  let atk = tpl.baseStats.atk * sm * lm;
-  let def = tpl.baseStats.def * sm * lm;
+  // Player-level account boost — multiplies the base HP/ATK/DEF tier so the
+  // boost still scales with star/level promotions instead of being a flat
+  // post-tax. SPD/CRIT are intentionally untouched.
+  const plm = playerLevelMult(_playerLevelForBoost);
+  let hp = tpl.baseStats.hp * sm * lm * plm;
+  let atk = tpl.baseStats.atk * sm * lm * plm;
+  let def = tpl.baseStats.def * sm * lm * plm;
   let spd = tpl.baseStats.spd;
   let crit = tpl.baseStats.crit;
 

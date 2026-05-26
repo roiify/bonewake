@@ -143,9 +143,13 @@ export default function TowerPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-zinc-950/20" />
         <div className="relative z-10 text-center pb-3">
           <h2 className="font-pixel text-base text-rose-300">🗼 Tower of Trials</h2>
-          <p className="text-[10px] text-zinc-300 mt-1">Climb. Resets every Monday.</p>
+          <p className="text-[10px] text-zinc-300 mt-1">Daily attempts · F1-100 reset Monday</p>
         </div>
       </div>
+      <p className="text-[10px] text-zinc-400 px-2 leading-snug text-center">
+        Climb one floor at a time for <span className="text-amber-300">escalating rewards</span>.
+        Floors 1-100 reset each week; everything past 100 is endless and persists forever.
+      </p>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-2">

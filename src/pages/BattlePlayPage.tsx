@@ -140,7 +140,7 @@ function makeSpiritBombVirtualStage(): Stage {
     id: 'spiritbomb',
     chapter: 96,
     num: 2,
-    name: `Spirit Bomb — ${boss.name}`,
+    name: `Shatter — ${boss.name}`,
     energyCost: 0,
     enemyTeam: [],
     rewards: { gold: 0, exp: 0 },

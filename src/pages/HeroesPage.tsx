@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useHeroes } from '../store/heroes';
+import { useProfile } from '../store/profile';
 import { HERO_BY_ID, HERO_PORTRAITS, HERO_TEMPLATES, HIDDEN_HERO_IDS } from '../data/heroes';
-import { calcHeroStats } from '../lib/stats';
+import { calcHeroStats, playerLevelMult, PLAYER_LEVEL_STAT_BONUS_PER_LEVEL } from '../lib/stats';
 import { Link } from 'react-router-dom';
 import type { Rarity } from '../types';
 import { tierLabel, tierColor } from '../lib/tier';
@@ -17,6 +18,7 @@ import type { EquipSlot } from '../types';
 export default function HeroesPage() {
   const heroes = useHeroes(s => s.heroes);
   const equipment = useHeroes(s => s.equipment);
+  const playerLevel = useProfile(s => s.profile.level);
   const updateHero = useHeroes(s => s.updateHero);
   const updateEquipment = useHeroes(s => s.updateEquipment);
   const items = useItems(s => s.items);
@@ -102,8 +104,14 @@ export default function HeroesPage() {
         style={{ backgroundImage: `url(${import.meta.env.BASE_URL}sprites/bg/mountain_lake.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center 40%' }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 to-transparent" />
-        <div className="relative h-full flex items-end p-3">
+        <div className="relative h-full flex items-end justify-between p-3">
           <h2 className="font-pixel text-sm text-amber-300 drop-shadow">Heroes Roster</h2>
+          <div
+            className="text-right text-[10px] font-pixel text-cyan-300 drop-shadow"
+            title={`Account level boosts every hero's HP/ATK/DEF by ${(PLAYER_LEVEL_STAT_BONUS_PER_LEVEL * 100).toFixed(2)}% per player level.`}
+          >
+            LV {playerLevel} · +{((playerLevelMult(playerLevel) - 1) * 100).toFixed(1)}% HP/ATK/DEF
+          </div>
         </div>
       </div>
       <div className="flex items-center justify-between">

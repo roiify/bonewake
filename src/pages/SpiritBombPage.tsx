@@ -108,8 +108,13 @@ export default function SpiritBombPage() {
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
 
       <div className="text-center">
-        <h2 className="font-pixel text-base text-amber-300">🌌 Spirit Bomb</h2>
+        <h2 className="font-pixel text-base text-amber-300">💥 Shatter</h2>
         <p className="text-[10px] text-zinc-500 mt-1">Weekly · Damage carries between attempts</p>
+        <p className="text-[10px] text-zinc-400 mt-2 px-4 leading-snug">
+          Chip away at one massive boss across the week.
+          Every hit you land <span className="text-amber-300">stacks toward the same HP pool</span> —
+          consistent damage wins over single big swings.
+        </p>
       </div>
 
       {/* Boss */}

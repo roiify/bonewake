@@ -6,9 +6,11 @@ import { useProfile } from '../store/profile';
 import { GATE_BY_PATH } from '../data/gating';
 
 const sections = [
-  { to: '/tower', label: 'Tower of Trials', icon: '🗼', desc: 'Climb 100 floors, weekly reset' },
-  { to: '/worldboss', label: 'World Boss', icon: '🌋', desc: 'Weekly raid, 3 attempts, tiered rewards' },
-  { to: '/dungeons', label: 'Material Dungeons', icon: '⛏️', desc: 'Themed farming, weekday rotation' },
+  { to: '/tower', label: 'Tower of Trials', icon: '🗼', desc: 'Climb endless floors. Daily attempts; floors 1-100 reset weekly.' },
+  { to: '/worldboss', label: 'World Boss', icon: '🌋', desc: 'Weekly boss. Your BEST single-attempt damage sets the reward tier.' },
+  { to: '/spirit', label: 'Shatter', icon: '💥', desc: 'Weekly cumulative-damage boss. Every hit stacks toward one HP pool.' },
+  { to: '/trials', label: 'Hero Trials', icon: '🎯', desc: 'Themed daily runs with squad restrictions. Bonus gems + soulshards.' },
+  { to: '/dungeons', label: 'Material Dungeons', icon: '⛏️', desc: 'Themed farming. Weekday rotation; guaranteed gold / XP / gear / gems.' },
   { to: '/training', label: 'Training Chamber', icon: '💤', desc: 'Idle XP + gold while away' },
   { to: '/shop', label: 'Shop', icon: '🏪', desc: 'Spend gold/gems on essentials' },
   { to: '/mail', label: 'Mail', icon: '📬', desc: 'Reward inbox & messages' },

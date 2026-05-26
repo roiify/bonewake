@@ -100,6 +100,10 @@ export default function DungeonsPage() {
         <p className="text-[10px] text-zinc-500 mt-1">
           Themed farming. Each dungeon is open only on its weekdays. Today is <span className="text-emerald-400 font-pixel">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()]}</span>.
         </p>
+        <p className="text-[10px] text-zinc-400 mt-2 leading-snug">
+          Pure <span className="text-amber-300">resource faucets</span> — pick the dungeon that
+          matches what you're short on (gold, XP, gear, or gems) and farm it on its open day.
+        </p>
       </div>
 
       <div className="space-y-2">

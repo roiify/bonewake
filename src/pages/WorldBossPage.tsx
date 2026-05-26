@@ -114,6 +114,10 @@ export default function WorldBossPage() {
           <p className="text-[10px] text-zinc-300 mt-1">Weekly · Resets Monday</p>
         </div>
       </div>
+      <p className="text-[10px] text-zinc-400 px-2 leading-snug text-center">
+        One huge boss per week. Only your <span className="text-amber-300">best single-attempt damage</span> counts —
+        burst comps win here, not consistency.
+      </p>
 
       {/* Boss — big-sprite hero shot */}
       <div className="rounded-lg border-2 border-rose-700 bg-gradient-to-b from-rose-950/40 to-zinc-900 p-4">

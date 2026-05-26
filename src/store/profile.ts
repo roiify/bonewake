@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { db, type Profile, DEFAULT_PROFILE, normalizeSettings } from '../lib/db';
-import { xpForLevel } from '../lib/stats';
+import { xpForLevel, setPlayerLevelForBoost } from '../lib/stats';
 
 interface ProfileState {
   profile: Profile;
@@ -28,6 +28,7 @@ export const useProfile = create<ProfileState>((set, get) => ({
         await db.profile.put(normalized);
       }
       set({ profile: normalized, loaded: true });
+      setPlayerLevelForBoost(normalized.level);
     } else set({ loaded: true });
   },
   patch: async (p) => {
@@ -35,6 +36,7 @@ export const useProfile = create<ProfileState>((set, get) => ({
     const merged = { ...current, ...p };
     await db.profile.put(merged);
     set({ profile: merged });
+    if (p.level != null) setPlayerLevelForBoost(merged.level);
   },
   addGold: async (n) => {
     const p = get().profile;

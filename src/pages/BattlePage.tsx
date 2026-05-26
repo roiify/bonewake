@@ -91,6 +91,10 @@ export default function BattlePage() {
   return (
     <div className="p-3 space-y-4">
       <h2 className="font-pixel text-sm">Story</h2>
+      <p className="text-[10px] text-zinc-400 leading-snug -mt-2">
+        Main progression. Beat each stage for <span className="text-amber-300">stars, gear drops, and chapter unlocks</span> —
+        clear three stars to unlock instant-skip on that stage.
+      </p>
       {Object.entries(byChapter).map(([ch, stages]) => (
         <div key={ch}>
           <div className="relative rounded-md overflow-hidden mb-2 h-20 border border-zinc-800">
