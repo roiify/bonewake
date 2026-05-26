@@ -305,7 +305,7 @@ export default function StagePrebattlePage() {
               onClick={() => setSquad([])}
               disabled={squad.length === 0}
               title="Remove all heroes from squad"
-            >🗑️</button>
+            >Clear</button>
           </div>
         </div>
         {/* Preset chips */}

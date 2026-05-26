@@ -120,6 +120,12 @@ export default function SquadPicker({ title = 'Your Squad', onChange }: Props) {
           >Auto</button>
           <button
             className="btn-pixel text-[10px] px-2 py-1"
+            onClick={() => setSquad([])}
+            disabled={squad.length === 0}
+            title="Remove all heroes from the squad"
+          >Clear</button>
+          <button
+            className="btn-pixel text-[10px] px-2 py-1"
             onClick={() => setEditing(e => !e)}
           >{editing ? 'Done' : 'Edit'}</button>
         </div>
