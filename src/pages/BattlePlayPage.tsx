@@ -1238,17 +1238,24 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
         const containerSize = isPaintedBoss ? 'w-48 h-56' : 'w-44 h-44';
         const renderSize = isPaintedBoss ? 192 : (heroSprites ? 234 : 220);
         // Per-sprite orientation (verified empirically in-game):
-        //   - Heroes face EAST natively → correct on player side (left),
-        //     no flip needed.
-        //   - Enemies (including painted bosses) face WEST natively →
-        //     correct on enemy side (right), no flip needed.
-        //   - chino is the only outlier — his sprite shipped reversed
-        //     (faces west) so he gets the one-off flip override.
+        //   - Heroes face EAST natively → correct on player side, no flip.
+        //   - Regular enemies face WEST natively → correct on enemy side,
+        //     no flip.
+        //   - Most painted bosses face WEST or FORWARD (symmetric) → no
+        //     flip on enemy side.
+        //   - Specific painted bosses were generated facing EAST (their
+        //     directional poses — like plague_doctor's scythe-arm and
+        //     soul_reaper's scythe-arm — clearly point right). Those
+        //     need a flip on the enemy side so they face the heroes.
+        //   - chino's hero sprite shipped reversed (faces west) — one-off
+        //     flip override on the player side.
         const REVERSED_HEROES = new Set<string>(['chino']);
         const flipHero = REVERSED_HEROES.has(unit.templateId);
+        const EAST_FACING_BOSSES = new Set<string>(['plague_doctor', 'soul_reaper']);
+        const flipPaintedBoss = isPaintedBoss && side === 'enemy' && EAST_FACING_BOSSES.has(unit.templateId);
         const baseFilter = 'brightness(0.85) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85))';
         const wrapStyle: React.CSSProperties | undefined = isPaintedBoss
-          ? { filter: baseFilter }
+          ? { filter: baseFilter, transform: flipPaintedBoss ? 'scaleX(-1)' : undefined }
           : flipHero
             ? { transform: 'scaleX(-1)' }
             : undefined;
