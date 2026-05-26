@@ -26,6 +26,7 @@ import { genLoot } from '../lib/loot';
 import { LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/loot';
 import { rollClearDrops, addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD, essenceItemId, MATERIAL_META, essenceMeta, ULTIMATE_SETS } from '../data/ultimateGear';
+import MaterialIcon from '../components/ui/MaterialIcon';
 import { useItems } from '../store/items';
 import { logBattle } from '../lib/battleLog';
 import { pickHotStages, COMPASS_REWARD } from '../data/compass';
@@ -1019,11 +1020,14 @@ export default function BattlePlayPage() {
                         className="flex items-center gap-2 rounded border-2 bg-zinc-950 px-2 py-1.5 text-left"
                         style={{ borderColor: '#fb7185' }}
                       >
-                        <span className="text-2xl">
-                          {m.kind === 'soulshard' ? MATERIAL_META[MAT_SOULSHARD].emoji
-                            : m.kind === 'essence' ? essenceMeta(m.heroId!).emoji
-                            : MATERIAL_META[m.matId!]?.emoji ?? '⚒'}
-                        </span>
+                        {m.kind === 'forge' && m.matId ? (
+                          <MaterialIcon matId={m.matId} size={36} />
+                        ) : (
+                          <span className="text-2xl">
+                            {m.kind === 'soulshard' ? MATERIAL_META[MAT_SOULSHARD].emoji
+                              : essenceMeta(m.heroId!).emoji}
+                          </span>
+                        )}
                         <div className="flex-1 min-w-0">
                           <div className="text-[11px] font-pixel text-rose-300">
                             +{m.count} {m.kind === 'soulshard' ? 'Soulshard'

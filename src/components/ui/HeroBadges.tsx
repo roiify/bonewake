@@ -1,13 +1,20 @@
 // Shared archetype + element badges used by every screen that lists
 // heroes (HeroesPage grid, SquadPicker, HeroDetail, Summon reveal,
 // pre-battle pickers, etc.) so the visual language is uniform.
+//
+// Archetype now renders the painted Nano Banana class seal —
+// crossed-swords / sigil / shield / cross / dagger discs — instead of
+// a unicode glyph. Color stays so the rim glow matches the class
+// (red warrior / purple mage / gold tank / green healer / lavender
+// assassin) without needing per-asset variations.
+import { asset } from '../../lib/assetPath';
 
-const ARCH_BADGE: Record<string, { glyph: string; color: string }> = {
-  warrior:  { glyph: '⚔', color: '#fca5a5' },
-  mage:     { glyph: '✦', color: '#a78bfa' },
-  tank:     { glyph: '🛡', color: '#fbbf24' },
-  healer:   { glyph: '✚', color: '#86efac' },
-  assassin: { glyph: '🗡', color: '#c4b5fd' },
+const ARCH_BADGE: Record<string, { iconSrc: string; color: string }> = {
+  warrior:  { iconSrc: 'sprites/ui/archetype/warrior.png',  color: '#fca5a5' },
+  mage:     { iconSrc: 'sprites/ui/archetype/mage.png',     color: '#a78bfa' },
+  tank:     { iconSrc: 'sprites/ui/archetype/tank.png',     color: '#fbbf24' },
+  healer:   { iconSrc: 'sprites/ui/archetype/healer.png',   color: '#86efac' },
+  assassin: { iconSrc: 'sprites/ui/archetype/assassin.png', color: '#c4b5fd' },
 };
 
 const ELEMENT_BADGE: Record<string, { glyph: string; color: string }> = {
@@ -27,21 +34,18 @@ export function ArchetypeBadge({ archetype, size = 20 }: BadgeProps & { archetyp
   const b = ARCH_BADGE[archetype];
   if (!b) return null;
   return (
-    <div
-      className="rounded-full flex items-center justify-center leading-none"
+    <img
+      src={asset(b.iconSrc)}
+      alt={archetype}
+      title={archetype}
+      className="rounded-full"
       style={{
         width: size,
         height: size,
-        fontSize: Math.max(8, size - 11),
-        background: '#0a0a0aee',
-        border: `1px solid ${b.color}`,
-        color: b.color,
-        boxShadow: `0 0 4px ${b.color}aa`,
+        objectFit: 'contain',
+        filter: `drop-shadow(0 0 3px ${b.color}cc)`,
       }}
-      title={archetype}
-    >
-      {b.glyph}
-    </div>
+    />
   );
 }
 

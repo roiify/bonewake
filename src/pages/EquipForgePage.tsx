@@ -13,6 +13,7 @@ import { salvageGems, craftGem, GEM_SALVAGE_YIELD, GEM_CRAFT_COST } from '../lib
 import type { EquipSlot } from '../types';
 import type { LootStat } from '../data/loot';
 import PageHeader from '../components/ui/PageHeader';
+import MaterialIcon from '../components/ui/MaterialIcon';
 
 // Material cost per craft, indexed by target rarity. Builds on the
 // salvage system — high-rarity crafts demand the higher-tier mats
@@ -115,8 +116,8 @@ export default function EquipForgePage() {
         <div className="grid grid-cols-4 gap-2">
           {[MAT_SCRAP, MAT_ARCANE_DUST, MAT_RELIC_SHARD, MAT_LEGENDARY_ESSENCE].map(m => (
             <div key={m} className="text-center">
-              <div className="text-2xl">{MATERIAL_META[m]?.emoji}</div>
-              <div className="text-[9px] text-zinc-500">{MATERIAL_META[m]?.name}</div>
+              <MaterialIcon matId={m} size={36} />
+              <div className="text-[9px] text-zinc-500 mt-1">{MATERIAL_META[m]?.name}</div>
               <div className="text-xs font-pixel text-zinc-100">{have(m)}</div>
             </div>
           ))}
@@ -163,8 +164,8 @@ export default function EquipForgePage() {
                   <span className="font-pixel text-xs" style={{ color: c }}>{LOOT_RARITY_NAME[r]}</span>
                   <span className="flex gap-2 text-[10px]">
                     {Object.entries(rcost).map(([m, n]) => (
-                      <span key={m} className={have(m) >= n ? 'text-zinc-300' : 'text-rose-400'}>
-                        {MATERIAL_META[m]?.emoji} {have(m)}/{n}
+                      <span key={m} className={`inline-flex items-center gap-1 ${have(m) >= n ? 'text-zinc-300' : 'text-rose-400'}`}>
+                        <MaterialIcon matId={m} size={16} /> {have(m)}/{n}
                       </span>
                     ))}
                   </span>
@@ -269,7 +270,7 @@ function GemForgeTab() {
       {/* Dust wallet */}
       <div className="rounded-md border border-zinc-800 bg-zinc-950 p-3">
         <div className="text-[10px] font-pixel text-zinc-400 mb-1">YOUR GEM DUST</div>
-        <div className="text-2xl font-pixel text-purple-300">{MATERIAL_META[MAT_GEM_DUST].emoji} {dust}</div>
+        <div className="text-2xl font-pixel text-purple-300 inline-flex items-center gap-2"><MaterialIcon matId={MAT_GEM_DUST} size={32} /> {dust}</div>
       </div>
 
       {/* Salvage section */}

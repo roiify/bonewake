@@ -11,6 +11,7 @@ import type { OwnedEquipment } from '../lib/db';
 import { salvageEquipment, bulkSalvageRarities, upgradeCost, upgradeEquipment, MAX_UPGRADE_LEVEL, salvageValue } from '../lib/equipmentMgmt';
 import { DEFAULT_SETTINGS, normalizeSettings } from '../lib/db';
 import PageHeader from '../components/ui/PageHeader';
+import MaterialIcon from '../components/ui/MaterialIcon';
 
 function itemDisplayName(eq: OwnedEquipment): string {
   if (eq.name) return eq.name;
@@ -372,8 +373,8 @@ export default function BagPage() {
                   <div className="text-[10px] text-zinc-500 mb-1">~ Expected mats:</div>
                   <div className="flex flex-wrap gap-2 text-[11px]">
                     {Object.entries(matPreview).map(([id, n]) => (
-                      <span key={id} className="font-pixel text-zinc-200">
-                        {MATERIAL_META[id]?.emoji} {n}
+                      <span key={id} className="font-pixel text-zinc-200 inline-flex items-center gap-1">
+                        <MaterialIcon matId={id} size={20} /> {n}
                       </span>
                     ))}
                   </div>

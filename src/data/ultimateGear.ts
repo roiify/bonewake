@@ -477,35 +477,44 @@ export const MAT_LEGENDARY_ESSENCE = 'mat_legendary_essence';
 // Gem Forge to mint a specific gem at a chosen stat + tier.
 export const MAT_GEM_DUST = 'mat_gem_dust';
 
-export const MATERIAL_META: Record<string, { name: string; emoji: string; description: string }> = {
+// Each material has an emoji (kept as fallback) plus an iconSrc that
+// points to the painted Nano Banana icon under sprites/ui/materials/.
+// UI prefers the painted icon when present.
+export const MATERIAL_META: Record<string, { name: string; emoji: string; iconSrc?: string; description: string }> = {
   [MAT_SOULSHARD]: {
     name: 'Soulshard',
     emoji: '💠',
+    iconSrc: 'sprites/ui/materials/soulshard.png',
     description: '3-star clear drop. Used in every craft.',
   },
   [MAT_SCRAP]: {
     name: 'Scrap',
     emoji: '🔩',
+    iconSrc: 'sprites/ui/materials/scrap.png',
     description: 'Salvaged from Common / Magic gear. Used to craft new equipment.',
   },
   [MAT_ARCANE_DUST]: {
     name: 'Arcane Dust',
     emoji: '✨',
+    iconSrc: 'sprites/ui/materials/arcane_dust.png',
     description: 'Salvaged from Rare+ gear. Crafts Rare/Epic equipment.',
   },
   [MAT_RELIC_SHARD]: {
     name: 'Relic Shard',
     emoji: '🟪',
+    iconSrc: 'sprites/ui/materials/relic_shard.png',
     description: 'Salvaged from Epic+ gear. Required for high-tier crafts.',
   },
   [MAT_LEGENDARY_ESSENCE]: {
     name: 'Legendary Essence',
     emoji: '🌟',
+    iconSrc: 'sprites/ui/materials/legendary_essence.png',
     description: 'Salvaged only from Legendary gear. Crafts Legendary equipment.',
   },
   [MAT_GEM_DUST]: {
     name: 'Gem Dust',
     emoji: '💫',
+    iconSrc: 'sprites/ui/materials/gem_dust.png',
     description: 'Salvaged from unwanted gems. Spend at the Gem Forge to mint a specific gem.',
   },
 };
