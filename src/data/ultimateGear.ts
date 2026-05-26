@@ -459,11 +459,44 @@ export const MAT_SOULSHARD = 'mat_soulshard';
 export const MAT_ESSENCE_PREFIX = 'mat_essence_';
 export const essenceItemId = (heroId: string) => `${MAT_ESSENCE_PREFIX}${heroId}`;
 
+// Salvage-tier crafting materials. Each rarity of salvaged equipment
+// yields its own material; higher rarities also drop some lower-tier
+// material so a Legendary salvage feels like a windfall.
+//   Common (1)    → Scrap
+//   Magic  (2)    → Scrap (more)
+//   Rare   (3)    → Scrap + Arcane Dust
+//   Epic   (4)    → Arcane Dust + Relic Shard
+//   Legendary (5) → Relic Shard + Legendary Essence
+export const MAT_SCRAP             = 'mat_scrap';
+export const MAT_ARCANE_DUST       = 'mat_arcane_dust';
+export const MAT_RELIC_SHARD       = 'mat_relic_shard';
+export const MAT_LEGENDARY_ESSENCE = 'mat_legendary_essence';
+
 export const MATERIAL_META: Record<string, { name: string; emoji: string; description: string }> = {
   [MAT_SOULSHARD]: {
     name: 'Soulshard',
     emoji: '💠',
     description: '3-star clear drop. Used in every craft.',
+  },
+  [MAT_SCRAP]: {
+    name: 'Scrap',
+    emoji: '🔩',
+    description: 'Salvaged from Common / Magic gear. Used to craft new equipment.',
+  },
+  [MAT_ARCANE_DUST]: {
+    name: 'Arcane Dust',
+    emoji: '✨',
+    description: 'Salvaged from Rare+ gear. Crafts Rare/Epic equipment.',
+  },
+  [MAT_RELIC_SHARD]: {
+    name: 'Relic Shard',
+    emoji: '🟪',
+    description: 'Salvaged from Epic+ gear. Required for high-tier crafts.',
+  },
+  [MAT_LEGENDARY_ESSENCE]: {
+    name: 'Legendary Essence',
+    emoji: '🌟',
+    description: 'Salvaged only from Legendary gear. Crafts Legendary equipment.',
   },
 };
 

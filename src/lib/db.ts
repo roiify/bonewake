@@ -66,6 +66,11 @@ export interface GameSettings {
   showScanlines: boolean;
   reduceMotion: boolean;
   manualUltTrigger?: boolean;
+  // Auto-salvage: which rarities get salvaged when the player taps
+  // "Salvage" on the bag page. Persists across sessions so the player
+  // doesn't have to re-check boxes every visit. Default: only Common +
+  // Magic — anything Rare+ requires explicit confirmation to scrap.
+  autoSalvage?: { 1?: boolean; 2?: boolean; 3?: boolean; 4?: boolean; 5?: boolean };
 }
 
 export const DEFAULT_SETTINGS: GameSettings = {
@@ -73,6 +78,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   showScanlines: false,
   reduceMotion: false,
   manualUltTrigger: false,
+  autoSalvage: { 1: true, 2: true, 3: false, 4: false, 5: false },
 };
 
 export function normalizeSettings(settings?: Partial<GameSettings> | null): GameSettings {

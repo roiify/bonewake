@@ -2,8 +2,8 @@ import { db, type OwnedEquipment } from './db';
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import { equipPower } from './loot';
-import { MAT_SOULSHARD } from '../data/ultimateGear';
-import { getMaterialCount, spendMaterial } from './crafting';
+import { MAT_SOULSHARD, MAT_SCRAP, MAT_ARCANE_DUST, MAT_RELIC_SHARD, MAT_LEGENDARY_ESSENCE } from '../data/ultimateGear';
+import { getMaterialCount, spendMaterial, addMaterial } from './crafting';
 import { useItems } from '../store/items';
 
 // Upgrade cost scales with current upgrade level and rarity
@@ -84,47 +84,90 @@ export async function upgradeEquipment(eqId: string): Promise<{ ok: boolean; err
   return { ok: true };
 }
 
-// Salvage value scales with rarity and current power.
-export function salvageValue(eq: OwnedEquipment): { gold: number; gems: number } {
+// Salvage yield — gold/gems plus crafting materials. Materials scale with
+// rarity. Higher rarities also drop a small amount of lower-tier mats so
+// a Legendary salvage feels like a real windfall.
+export interface SalvageYield {
+  gold: number;
+  gems: number;
+  mats: Record<string, number>;  // materialId → count
+}
+
+export function salvageValue(eq: OwnedEquipment): SalvageYield {
   const rarity = (eq.rarity ?? 1) as number;
   const power = equipPower(eq);
+  const mats: Record<string, number> = {};
+  if (rarity === 1) mats[MAT_SCRAP] = 1 + Math.floor(Math.random() * 2);                  // 1-2
+  else if (rarity === 2) mats[MAT_SCRAP] = 2 + Math.floor(Math.random() * 3);             // 2-4
+  else if (rarity === 3) {
+    mats[MAT_SCRAP] = 2 + Math.floor(Math.random() * 2);                                  // 2-3
+    mats[MAT_ARCANE_DUST] = 1;
+  } else if (rarity === 4) {
+    mats[MAT_ARCANE_DUST] = 1 + Math.floor(Math.random() * 2);                            // 1-2
+    mats[MAT_RELIC_SHARD] = 1;
+  } else if (rarity === 5) {
+    mats[MAT_RELIC_SHARD] = 1;
+    mats[MAT_LEGENDARY_ESSENCE] = 1;
+  }
   return {
     gold: Math.round(power * 0.4 + rarity * 50),
     gems: rarity >= 4 ? rarity - 3 : 0,
+    mats,
   };
 }
 
-export async function salvageEquipment(eqId: string): Promise<{ ok: boolean; granted?: { gold: number; gems: number } }> {
+async function grantSalvage(value: SalvageYield) {
+  if (value.gold > 0) await useProfile.getState().addGold(value.gold);
+  if (value.gems > 0) await useProfile.getState().addGems(value.gems);
+  for (const [matId, count] of Object.entries(value.mats)) {
+    if (count > 0) await addMaterial(matId, count);
+  }
+}
+
+export async function salvageEquipment(eqId: string): Promise<{ ok: boolean; granted?: SalvageYield }> {
   const eq = await db.equipment.get(eqId);
   if (!eq) return { ok: false };
-  // Don't allow salvaging Mythic crafted gear or items equipped right now
+  // Mythic crafted gear and equipped items can't be salvaged
   if (eq.craftedPieceId) return { ok: false };
   if (eq.equippedTo) return { ok: false };
   const value = salvageValue(eq);
-  await useProfile.getState().addGold(value.gold);
-  if (value.gems > 0) await useProfile.getState().addGems(value.gems);
+  await grantSalvage(value);
   await db.equipment.delete(eqId);
   await useHeroes.getState().load();
+  await useItems.getState().refresh();
   return { ok: true, granted: value };
 }
 
-// Bulk salvage: scrap all unequipped items of given max rarity
-export async function bulkSalvageBelow(maxRarity: number): Promise<{ count: number; granted: { gold: number; gems: number } }> {
+// Bulk salvage by exact rarity set (selected via the auto-salvage modal).
+// Pass a Set of LootRarity numbers to salvage every unequipped non-Mythic
+// piece whose rarity is in the set.
+export async function bulkSalvageRarities(rarities: Set<number>): Promise<{ count: number; granted: SalvageYield }> {
   const all = await db.equipment.toArray();
   const targets = all.filter(eq =>
     !eq.equippedTo &&
     !eq.craftedPieceId &&
-    ((eq.rarity ?? 1) as number) <= maxRarity
+    rarities.has((eq.rarity ?? 1) as number)
   );
-  let totalGold = 0, totalGems = 0;
+  const total: SalvageYield = { gold: 0, gems: 0, mats: {} };
   for (const eq of targets) {
     const v = salvageValue(eq);
-    totalGold += v.gold;
-    totalGems += v.gems;
+    total.gold += v.gold;
+    total.gems += v.gems;
+    for (const [matId, count] of Object.entries(v.mats)) {
+      total.mats[matId] = (total.mats[matId] ?? 0) + count;
+    }
     await db.equipment.delete(eq.id);
   }
-  if (totalGold > 0) await useProfile.getState().addGold(totalGold);
-  if (totalGems > 0) await useProfile.getState().addGems(totalGems);
+  await grantSalvage(total);
   await useHeroes.getState().load();
-  return { count: targets.length, granted: { gold: totalGold, gems: totalGems } };
+  await useItems.getState().refresh();
+  return { count: targets.length, granted: total };
+}
+
+// Back-compat wrapper for legacy callers that used the "up to N" pattern.
+export async function bulkSalvageBelow(maxRarity: number) {
+  const set = new Set<number>();
+  for (let r = 1; r <= maxRarity; r++) set.add(r);
+  const result = await bulkSalvageRarities(set);
+  return { count: result.count, granted: result.granted };
 }

@@ -1230,12 +1230,15 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
         // in full and naturally composes with the player side.
         const containerSize = isPaintedBoss ? 'w-56 h-56' : 'w-44 h-44';
         const renderSize = isPaintedBoss ? 224 : (heroSprites ? 234 : 220);
-        // Per-sprite orientation: PixelLab side-view sprites face east
-        // by default. Heroes are on the left and need to face east →
-        // no flip. Enemies (including painted bosses, now that their
-        // idle is the first frame of a side-view attack atlas) are on
-        // the right and need to face west → flip horizontally.
-        // Plus one-off chino override (his sprite shipped reversed).
+        // Per-sprite orientation:
+        //   - Hero sprites (PixelLab character) natively face east → no
+        //     flip → face the enemies on the right. ✓
+        //   - Regular enemy sprites natively face west → no flip → face
+        //     the heroes on the left. ✓
+        //   - Painted bosses use the new pixel attack atlas which was
+        //     generated with view='sidescroller' (east-facing). Need a
+        //     flip on the enemy side so they face the heroes.
+        //   - chino is the one hero whose sprite ships reversed.
         const REVERSED_HEROES = new Set<string>(['chino']);
         const flipHero = REVERSED_HEROES.has(unit.templateId);
         const baseFilter = 'brightness(0.85) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85))';
@@ -1244,15 +1247,12 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
               filter: baseFilter,
               transform: side === 'enemy' ? 'scaleX(-1)' : undefined,
               // 224px container is 28px wider than the 196px enemy column.
-              // The items-end alignment pins the container's right edge to
-              // the column edge, so the extra 28px bleeds RIGHT past the
-              // 420px frame. Pull the container 32px back from the right
-              // edge so the bleed goes LEFT into the gap + player-column
-              // slack instead. (Apply only on the enemy side — player-side
-              // painted bosses, if any, would need the opposite shift.)
+              // items-end pins the right edge to the column edge so the
+              // 28px bleed goes RIGHT past the frame. Pull 32px back so
+              // the bleed lands LEFT into the gap + player-column slack.
               marginRight: side === 'enemy' ? 32 : undefined,
             }
-          : (flipHero || (side === 'enemy' && !heroSprites))
+          : flipHero
             ? { transform: 'scaleX(-1)' }
             : undefined;
         return (
