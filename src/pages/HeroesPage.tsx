@@ -213,6 +213,16 @@ export default function HeroesPage() {
                     🧩 PROMOTE
                   </div>
                 )}
+                {/* Archetype + element badges, top-right corner so the
+                    player can scan team composition (mage/tank/etc.)
+                    without opening every hero card. Element badge sits
+                    just below archetype to keep both glanceable. */}
+                {!promoteReady && (
+                  <div className="absolute top-1 right-1 z-10 flex flex-col items-end gap-0.5 pointer-events-none">
+                    <ArchetypeBadge archetype={tpl.archetype} />
+                    <ElementBadge element={tpl.element} />
+                  </div>
+                )}
                 <div className="relative aspect-square rounded flex items-center justify-center mb-1 overflow-hidden"
                   style={{ background: `linear-gradient(135deg, ${tpl.color}30, transparent)` }}
                 >
@@ -287,6 +297,58 @@ export default function HeroesPage() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+// Archetype color + glyph map — uniform across the roster grid.
+const ARCH_BADGE: Record<string, { glyph: string; color: string }> = {
+  warrior:  { glyph: '⚔', color: '#fca5a5' },
+  mage:     { glyph: '✦', color: '#a78bfa' },
+  tank:     { glyph: '🛡', color: '#fbbf24' },
+  healer:   { glyph: '✚', color: '#86efac' },
+  assassin: { glyph: '🗡', color: '#c4b5fd' },
+};
+function ArchetypeBadge({ archetype }: { archetype: string }) {
+  const b = ARCH_BADGE[archetype];
+  if (!b) return null;
+  return (
+    <div
+      className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] leading-none"
+      style={{
+        background: '#0a0a0aee',
+        border: `1px solid ${b.color}`,
+        color: b.color,
+        boxShadow: `0 0 4px ${b.color}aa`,
+      }}
+      title={archetype}
+    >
+      {b.glyph}
+    </div>
+  );
+}
+
+const ELEMENT_BADGE: Record<string, { glyph: string; color: string }> = {
+  fire:  { glyph: '🔥', color: '#fb923c' },
+  water: { glyph: '💧', color: '#38bdf8' },
+  earth: { glyph: '🌿', color: '#84cc16' },
+  light: { glyph: '✨', color: '#fde047' },
+  dark:  { glyph: '🌙', color: '#a78bfa' },
+};
+function ElementBadge({ element }: { element: string }) {
+  const b = ELEMENT_BADGE[element];
+  if (!b) return null;
+  return (
+    <div
+      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] leading-none"
+      style={{
+        background: '#0a0a0aee',
+        border: `1px solid ${b.color}`,
+        boxShadow: `0 0 4px ${b.color}88`,
+      }}
+      title={element}
+    >
+      {b.glyph}
     </div>
   );
 }
