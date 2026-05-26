@@ -187,13 +187,32 @@ export default function SpiritBombPage() {
         </div>
       </div>
 
-      <button
-        className="btn-pixel danger w-full"
-        disabled={attemptsLeft <= 0 || killed || busy}
-        onClick={attack}
-      >
-        {busy ? 'Fighting…' : killed ? 'Boss already shattered' : attemptsLeft > 0 ? `Strike (${attemptsLeft}/${SPIRIT_BOMB_ATTEMPTS_PER_WEEK} left)` : 'Out of strikes — back Monday'}
-      </button>
+      {/* Strike — Play (animated) + Skip (instant). Skip is always
+          available; cumulative damage accumulates regardless of path. */}
+      {killed ? (
+        <button className="btn-pixel w-full" disabled>Boss already shattered</button>
+      ) : attemptsLeft <= 0 ? (
+        <button className="btn-pixel w-full" disabled>Out of strikes — back Monday</button>
+      ) : (
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            className="btn-pixel danger"
+            disabled={busy}
+            onClick={() => navigate(`/battle/play/spiritbomb`)}
+            title="Play through the strike"
+          >
+            {busy ? '…' : `▶ Play (${attemptsLeft}/${SPIRIT_BOMB_ATTEMPTS_PER_WEEK})`}
+          </button>
+          <button
+            className="btn-pixel"
+            disabled={busy}
+            onClick={attack}
+            title="Instant strike (auto-resolve)"
+          >
+            ⏩ Skip
+          </button>
+        </div>
+      )}
 
       {result && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setResult(null)}>

@@ -266,14 +266,27 @@ export default function WorldBossPage() {
         )}
       </div>
 
-      {/* Attack */}
-      <button
-        className="btn-pixel danger w-full text-base"
-        disabled={attemptsLeft <= 0 || busy}
-        onClick={attack}
-      >
-        {busy ? 'Fighting…' : attemptsLeft > 0 ? `Attack (${attemptsLeft}/${WORLD_BOSS_ATTEMPTS_PER_WEEK} attempts left)` : 'No attempts — back Monday'}
-      </button>
+      {/* Attack — Play (animated) + Skip (instant). Skip is always
+          available because every attempt is meaningful (damage carries
+          across the week); no first-clear gate applies. */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          className="btn-pixel danger text-base"
+          disabled={attemptsLeft <= 0 || busy}
+          onClick={() => navigate(`/battle/play/worldboss`)}
+          title="Play through the attack"
+        >
+          {busy ? '…' : attemptsLeft > 0 ? `▶ Play (${attemptsLeft}/${WORLD_BOSS_ATTEMPTS_PER_WEEK})` : 'No attempts'}
+        </button>
+        <button
+          className="btn-pixel text-base"
+          disabled={attemptsLeft <= 0 || busy}
+          onClick={attack}
+          title="Instant attack (auto-resolve)"
+        >
+          ⏩ Skip
+        </button>
+      </div>
 
       {result && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setResult(null)}>

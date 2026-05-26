@@ -6,6 +6,9 @@ import { TRIAL_BY_ID } from '../data/trials';
 import type { TrialDef } from '../data/trials';
 import { DUNGEON_BY_ID, buildDungeonTeam, markDungeonCleared } from '../data/dungeons';
 import type { DungeonDef, DungeonTier } from '../data/dungeons';
+import { generateFloor, TOWER_MAX_FLOOR, isoWeek } from '../data/tower';
+import { currentBoss, buildBossTeam } from '../data/worldBoss';
+import { currentSpiritBoss, buildSpiritBossUnit } from '../data/spiritBomb';
 import type { Stage } from '../types';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
@@ -25,7 +28,6 @@ import { MAT_SOULSHARD, essenceItemId, MATERIAL_META, essenceMeta } from '../dat
 import { useItems } from '../store/items';
 import { logBattle } from '../lib/battleLog';
 import { pickHotStages, COMPASS_REWARD } from '../data/compass';
-import { isoWeek } from '../data/tower';
 import { awardPassXp, PASS_XP_PER_WIN, PASS_XP_PER_3STAR, PASS_XP_PER_BOSS } from '../lib/missionPass';
 import { recordEvent } from '../lib/lifetime';
 import { maybeRollGem, addGemToInventory } from '../lib/gems';
@@ -95,21 +97,84 @@ function makeDungeonVirtualStage(def: DungeonDef, tier: DungeonTier): Stage {
   };
 }
 
+// Tower / World Boss / Spirit Bomb — same virtual-stage trick. enemyTeam
+// stays empty because we hand BattlePlayPage a pre-built CombatUnit list
+// directly (the data-layer helpers already produce CombatUnits, not
+// templates, so we'd lose stat data going through buildEnemyUnit).
+function parseTowerId(raw: string): { floor: number } | null {
+  if (!raw.startsWith('tower-')) return null;
+  const n = parseInt(raw.slice('tower-'.length), 10);
+  if (!Number.isFinite(n) || n < 1) return null;
+  return { floor: n };
+}
+function makeTowerVirtualStage(floor: number): Stage {
+  return {
+    id: `tower-${floor}`,
+    chapter: 97,
+    num: Math.min(99, floor),
+    name: `Tower — Floor ${floor}`,
+    energyCost: 0,            // tower spends attempts, not energy
+    enemyTeam: [],
+    rewards: { gold: 0, exp: 0 },
+    firstClearBonus: { gems: 0 },
+  };
+}
+function makeWorldBossVirtualStage(): Stage {
+  const week = isoWeek();
+  const boss = currentBoss(week);
+  return {
+    id: 'worldboss',
+    chapter: 96,
+    num: 1,
+    name: `World Boss — ${boss.name}`,
+    energyCost: 0,
+    enemyTeam: [],
+    rewards: { gold: 0, exp: 0 },
+    firstClearBonus: { gems: 0 },
+  };
+}
+function makeSpiritBombVirtualStage(): Stage {
+  const week = isoWeek();
+  const boss = currentSpiritBoss(week);
+  return {
+    id: 'spiritbomb',
+    chapter: 96,
+    num: 2,
+    name: `Spirit Bomb — ${boss.name}`,
+    energyCost: 0,
+    enemyTeam: [],
+    rewards: { gold: 0, exp: 0 },
+    firstClearBonus: { gems: 0 },
+  };
+}
+
 export default function BattlePlayPage() {
   const { stageId } = useParams();
   const navigate = useNavigate();
-  // Stage vs trial vs dungeon routing — id prefix decides which builder
-  // produces the virtual stage + reward branch downstream.
+  // Stage vs trial vs dungeon vs tower vs worldboss vs spiritbomb routing
+  // — id prefix decides which builder produces the virtual stage and
+  // which reward branch fires in endBattle.
   const trialId = stageId?.startsWith('trial-') ? stageId.slice(6) : null;
   const trialSource: TrialDef | null = trialId ? (TRIAL_BY_ID[trialId] ?? null) : null;
   const dungeonSource = stageId?.startsWith('dungeon-')
     ? parseDungeonId(stageId)
     : null;
+  const towerSource = stageId?.startsWith('tower-')
+    ? parseTowerId(stageId)
+    : null;
+  const isWorldBoss = stageId === 'worldboss';
+  const isSpiritBomb = stageId === 'spiritbomb';
   const stage: Stage | null = trialSource
     ? makeTrialVirtualStage(trialSource)
     : dungeonSource
       ? makeDungeonVirtualStage(dungeonSource.def, dungeonSource.tier)
-      : (stageId ? STAGE_BY_ID[stageId] : null);
+      : towerSource
+        ? makeTowerVirtualStage(towerSource.floor)
+        : isWorldBoss
+          ? makeWorldBossVirtualStage()
+          : isSpiritBomb
+            ? makeSpiritBombVirtualStage()
+            : (stageId ? STAGE_BY_ID[stageId] : null);
 
   // Remember the last stage played so the Story page can scroll back here
   // instead of resetting to chapter 1 every time.
@@ -132,14 +197,28 @@ export default function BattlePlayPage() {
     const playerUnits = squad
       .map((h, i, arr) => toCombatUnit(h, equipForCombat, 'player', `p${i}`, arr.map(x => x.templateId)))
       .filter((u): u is NonNullable<typeof u> => !!u);
-    // Dungeons build their team via the dungeon helper (so enemy stats
-    // come from the tier definition, not from stage.enemyTeam).
-    const enemyUnits = dungeonSource
-      ? buildDungeonTeam(dungeonSource.def, dungeonSource.tier)
-      : stage.enemyTeam.map((e, i) => {
-          const enemyTpls = stage.enemyTeam.map(x => x.templateId);
-          return buildEnemyUnit(e.templateId, e.level, e.star, `e${i}`, enemyTpls);
-        });
+    // Dungeons/tower/worldboss/spiritbomb build their team via their own
+    // data-layer helpers (which return CombatUnits directly so we don't
+    // lose enemy stats going through buildEnemyUnit).
+    let enemyUnits;
+    if (dungeonSource) {
+      enemyUnits = buildDungeonTeam(dungeonSource.def, dungeonSource.tier);
+    } else if (towerSource) {
+      enemyUnits = generateFloor(towerSource.floor).enemyTeam;
+    } else if (isWorldBoss) {
+      enemyUnits = buildBossTeam(currentBoss(isoWeek()));
+    } else if (isSpiritBomb) {
+      const wk = isoWeek();
+      const sb = currentSpiritBoss(wk);
+      const profile = useProfile.getState().profile;
+      const dmgSoFar = profile.spiritBossWeek === wk ? (profile.spiritBossDamage ?? 0) : 0;
+      enemyUnits = [buildSpiritBossUnit(sb, Math.max(0, sb.hp - dmgSoFar))];
+    } else {
+      enemyUnits = stage.enemyTeam.map((e, i) => {
+        const enemyTpls = stage.enemyTeam.map(x => x.templateId);
+        return buildEnemyUnit(e.templateId, e.level, e.star, `e${i}`, enemyTpls);
+      });
+    }
     return resolveBattle(playerUnits, enemyUnits);
   }, [stageId]);
 
@@ -351,12 +430,105 @@ export default function BattlePlayPage() {
         const usedKey = `trial_used_${trialSource.id}_${day}`;
         const prev = await db.items.get(usedKey);
         await db.items.put({ templateId: usedKey, count: (prev?.count ?? 0) + 1 });
+        // Permanent first-clear flag — TrialsPage reads this to decide
+        // whether to show the Skip button.
+        const clearedKey = `trial_cleared_${trialSource.id}`;
+        if (!(await db.items.get(clearedKey))) {
+          await db.items.put({ templateId: clearedKey, count: 1 });
+        }
         await recordEvent({ kind: 'battleWon' });
         await recordEvent({ kind: 'goldEarned', amount: trialSource.rewards.gold });
       } else {
         await recordEvent({ kind: 'battleLost' });
       }
       // Skip the rest of the stage-flavored reward pipeline.
+      return;
+    }
+
+    // Tower short-circuit — apply floor rewards, bump highestFloor,
+    // increment the daily-attempts counter. Same logic as TowerPage.climb()
+    // but driven from the played-through battle.
+    if (towerSource) {
+      const floor = towerSource.floor;
+      const floorDef = generateFloor(floor);
+      const profile0 = useProfile.getState().profile;
+      const today = new Date().toISOString().slice(0, 10);
+      const attemptsToday = profile0.towerAttemptsDate === today ? (profile0.towerAttemptsToday ?? 0) : 0;
+      await useProfile.getState().patch({
+        towerAttemptsDate: today,
+        towerAttemptsToday: attemptsToday + 1,
+      });
+      if (won) {
+        const r = floorDef.rewards;
+        if (r.gold) await useProfile.getState().addGold(r.gold);
+        if (r.gems > 0) await useProfile.getState().addGems(r.gems);
+        if (r.soulshards > 0) await addMaterial(MAT_SOULSHARD, r.soulshards);
+        const prevHigh = profile0.towerHighestFloor ?? 0;
+        const newHigh = Math.max(prevHigh, floor);
+        await useProfile.getState().patch({ towerHighestFloor: Math.min(TOWER_MAX_FLOOR, newHigh) });
+        await recordEvent({ kind: 'towerFloor', floor: newHigh });
+        await recordEvent({ kind: 'goldEarned', amount: r.gold });
+        await useItems.getState().refresh();
+      } else {
+        await recordEvent({ kind: 'battleLost' });
+      }
+      return;
+    }
+
+    // World Boss short-circuit — sum damage dealt to 'wb_boss' from the
+    // log, bump bestDamage + attempts. Matches WorldBossPage.attack().
+    if (isWorldBoss) {
+      const wk = isoWeek();
+      const boss = currentBoss(wk);
+      const startingHp = boss.hpMillions * 1_000_000;
+      let damage = 0;
+      for (const a of battle.log) {
+        if (a.dst === 'wb_boss' && a.dmg > 0) damage += a.dmg;
+      }
+      damage = Math.min(damage, startingHp);
+      const profile0 = useProfile.getState().profile;
+      const weekMatched = profile0.worldBossWeek === wk;
+      const attemptsUsed = weekMatched ? (profile0.worldBossAttemptsUsed ?? 0) : 0;
+      const bestDamage = weekMatched ? (profile0.worldBossBestDamage ?? 0) : 0;
+      await useProfile.getState().patch({
+        worldBossWeek: wk,
+        worldBossAttemptsUsed: attemptsUsed + 1,
+        worldBossBestDamage: Math.max(damage, bestDamage),
+        // reset claimed tier on week change
+        worldBossClaimedTier: weekMatched ? (profile0.worldBossClaimedTier ?? -1) : -1,
+      });
+      if (won) await recordEvent({ kind: 'battleWon' });
+      else await recordEvent({ kind: 'battleLost' });
+      // (We don't show a tier modal here — WorldBossPage's progress bar
+      // updates on its own when the user navigates back. The end-screen
+      // already shows "Damage Dealt" floaters and win/loss.)
+      return;
+    }
+
+    // Spirit Bomb short-circuit — sum damage to 'spirit_boss', accumulate
+    // into spiritBossDamage. Matches SpiritBombPage.attack().
+    if (isSpiritBomb) {
+      const wk = isoWeek();
+      const boss = currentSpiritBoss(wk);
+      const profile0 = useProfile.getState().profile;
+      const weekMatched = profile0.spiritBossWeek === wk;
+      const dmgSoFar = weekMatched ? (profile0.spiritBossDamage ?? 0) : 0;
+      const attemptsUsed = weekMatched ? (profile0.spiritBossAttemptsUsed ?? 0) : 0;
+      const remainingHp = Math.max(0, boss.hp - dmgSoFar);
+      let dealt = 0;
+      for (const a of battle.log) {
+        if (a.dst === 'spirit_boss' && a.dmg > 0) dealt += a.dmg;
+      }
+      dealt = Math.min(dealt, remainingHp);
+      const newDamage = dmgSoFar + dealt;
+      await useProfile.getState().patch({
+        spiritBossWeek: wk,
+        spiritBossDamage: newDamage,
+        spiritBossAttemptsUsed: attemptsUsed + 1,
+        spiritBossClaimedTier: weekMatched ? (profile0.spiritBossClaimedTier ?? -1) : -1,
+      });
+      if (won) await recordEvent({ kind: 'battleWon' });
+      else await recordEvent({ kind: 'battleLost' });
       return;
     }
 

@@ -228,21 +228,28 @@ export default function TowerPage() {
         </div>
       </div>
 
-      {/* Climb button */}
+      {/* Climb buttons — Play (animated) + Skip (instant). Skip is always
+          available because tower floors are one-shot per attempt; there is
+          no "first 3-star clear" gate to apply here. */}
       {highestFloor < TOWER_MAX_FLOOR && (
-        <button
-          className="btn-pixel primary w-full text-base"
-          disabled={!canAttempt || busy}
-          onClick={climb}
-        >
-          {busy
-            ? 'Climbing…'
-            : freeAttemptsLeft > 0
-              ? `Climb Floor ${nextFloor}`
-              : refillsAvailable > 0
-                ? `Refill Attempt (${TOWER_REFILL_GEM_COST} 💎)`
-                : 'Out of attempts — come back tomorrow'}
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            className="btn-pixel primary text-base"
+            disabled={!canAttempt || busy}
+            onClick={() => navigate(`/battle/play/tower-${nextFloor}`)}
+            title="Play through the floor"
+          >
+            {busy ? '…' : freeAttemptsLeft > 0 ? `▶ Play F${nextFloor}` : refillsAvailable > 0 ? `▶ Play (${TOWER_REFILL_GEM_COST}💎)` : 'No attempts'}
+          </button>
+          <button
+            className="btn-pixel text-base"
+            disabled={!canAttempt || busy}
+            onClick={climb}
+            title="Instant climb (auto-resolve)"
+          >
+            ⏩ Skip
+          </button>
+        </div>
       )}
 
       {/* Weekly history (personal leaderboard) */}
