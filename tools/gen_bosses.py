@@ -167,19 +167,23 @@ def main() -> int:
         if target.exists():
             print(f"  [{slug}] already exists — skip", flush=True)
             continue
-        # Retry on transient errors (rate limit, 5xx)
-        for attempt in range(5):
+        # Retry on transient errors (rate limit, 5xx, network drops)
+        for attempt in range(6):
             try:
                 generate(key, slug, name, prompt)
                 break
-            except SystemExit as e:
+            except (SystemExit, urllib.error.URLError, OSError, ConnectionError, TimeoutError) as e:
                 msg = str(e).lower()
-                if "rate" in msg or "429" in msg or "5" in msg[:8]:
-                    backoff = 10 * (attempt + 1)
-                    print(f"  [{slug}] transient err, sleeping {backoff}s", flush=True)
-                    time.sleep(backoff)
-                    continue
-                raise
+                # Hard 4xx (other than 429) — fail loudly
+                if "401" in msg or "403" in msg or "400" in msg or "422" in msg:
+                    print(f"  [{slug}] FATAL: {msg[:160]}", flush=True)
+                    raise
+                backoff = 10 * (attempt + 1)
+                print(f"  [{slug}] transient err ({msg[:80]}), sleep {backoff}s then retry", flush=True)
+                time.sleep(backoff)
+        else:
+            print(f"  [{slug}] gave up after retries", flush=True)
+            continue
         # Small inter-call pause to be polite to the API
         time.sleep(1.5)
     print(f"done — {len(BOSSES)} bosses in {OUT}", flush=True)

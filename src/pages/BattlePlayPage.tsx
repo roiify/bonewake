@@ -9,6 +9,7 @@ import type { DungeonDef, DungeonTier } from '../data/dungeons';
 import { generateFloor, TOWER_MAX_FLOOR, isoWeek } from '../data/tower';
 import { currentBoss, buildBossTeam } from '../data/worldBoss';
 import { currentSpiritBoss, buildSpiritBossUnit } from '../data/spiritBomb';
+import { ECHO_BY_BOSS, FIRST_KILL_DROP_RATE, REPEAT_DROP_RATE } from '../data/echoes';
 import type { Stage } from '../types';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
@@ -410,6 +411,22 @@ export default function BattlePlayPage() {
     setTimeout(() => setTick(t => t + 1), 200 / speed);
   }
 
+  // Boss Echo drop helper — first-ever kill of a boss is a guaranteed
+  // drop; subsequent kills only roll the REPEAT rate. Already-owned echoes
+  // never re-drop (no duplicate spam in the result modal).
+  async function maybeDropBossEcho(bossTemplateId: string) {
+    const echo = ECHO_BY_BOSS[bossTemplateId];
+    if (!echo) return;
+    const profile0 = useProfile.getState().profile;
+    const owned = profile0.ownedEchoes ?? [];
+    if (owned.includes(echo.id)) return;            // never dupe
+    const isFirstKill = !owned.length || true;       // first time owning this specific echo
+    const roll = Math.random();
+    const dropRate = isFirstKill ? FIRST_KILL_DROP_RATE : REPEAT_DROP_RATE;
+    if (roll > dropRate) return;
+    await useProfile.getState().patch({ ownedEchoes: [...owned, echo.id] });
+  }
+
   async function endBattle() {
     if (done || !battle || !stage) return;
     setDone(true);
@@ -499,9 +516,11 @@ export default function BattlePlayPage() {
       });
       if (won) await recordEvent({ kind: 'battleWon' });
       else await recordEvent({ kind: 'battleLost' });
-      // (We don't show a tier modal here — WorldBossPage's progress bar
-      // updates on its own when the user navigates back. The end-screen
-      // already shows "Damage Dealt" floaters and win/loss.)
+      // Boss Echo drop — only triggers on a kill (full HP shaved). The
+      // echo id matches the World Boss templateId.
+      if (won && damage >= startingHp) {
+        await maybeDropBossEcho(boss.templateId);
+      }
       return;
     }
 
@@ -529,6 +548,10 @@ export default function BattlePlayPage() {
       });
       if (won) await recordEvent({ kind: 'battleWon' });
       else await recordEvent({ kind: 'battleLost' });
+      // Boss Echo drop on Shatter kill (shatter = cumulative damage >= max HP).
+      if (newDamage >= boss.hp) {
+        await maybeDropBossEcho(boss.templateId);
+      }
       return;
     }
 

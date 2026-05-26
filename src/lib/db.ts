@@ -54,6 +54,11 @@ export interface Profile {
   // Soul Compass
   compassWeek?: string;
   compassFound?: string[];        // stage IDs where the hidden cache was already claimed this week
+  // Boss Echoes (meta progression). owned = IDs the player has ever
+  // collected; equipped = subset currently active (capped by unlocked slot
+  // count from data/echoes.ts).
+  ownedEchoes?: string[];
+  equippedEchoes?: string[];
 }
 
 export interface GameSettings {
@@ -349,6 +354,8 @@ export const DEFAULT_PROFILE: Profile = {
   spiritBossClaimedTier: -1,
   compassWeek: '',
   compassFound: [],
+  ownedEchoes: [],
+  equippedEchoes: [],
 };
 
 // Energy regenerates 1 unit every 3 minutes, capped at 100.

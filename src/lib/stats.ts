@@ -75,6 +75,18 @@ export function playerLevelDodgeChance(spd: number, playerLevel: number): number
   return Math.min(0.35, base * scale);
 }
 
+// === Boss Echo mirror ===
+// Equipped boss echo IDs are mirrored here so combat.ts and stat composers
+// can read them without importing the profile store (circular-dep avoidance,
+// same pattern as setPlayerLevelForBoost above).
+let _equippedEchoIds: string[] = [];
+export function setEquippedEchoes(ids: string[]): void {
+  _equippedEchoIds = [...ids];
+}
+export function getEquippedEchoes(): string[] {
+  return _equippedEchoIds;
+}
+
 export interface HeroStats {
   hp: number; atk: number; def: number; spd: number; crit: number;
   power: number;

@@ -7,8 +7,85 @@ import {
   playerLevelCritBonus,
   playerLevelCritDamageMult,
   playerLevelDodgeChance,
+  getEquippedEchoes,
 } from './stats';
+import { ECHO_BY_ID, type EchoEffect } from '../data/echoes';
 import type { CombatUnit, BattleAction, BattleResult, Element } from '../types';
+
+// === Boss Echo aggregator ===
+// Reads the equipped-echo mirror once per battle and returns a structure
+// of summed bonuses (decimal multipliers / additives) so per-tick combat
+// code stays cheap. Unknown effect kinds are silently ignored so future
+// effects can ship without touching combat.ts.
+interface EchoBonuses {
+  basicDmgMult: number;       // +N (decimal) applied multiplicatively to basic dmg
+  ultDmgMult: number;
+  critDmgBonus: number;       // additive to BASE_CRIT_DAMAGE_MULT
+  critPerAliveEnemy: number;
+  squadDodge: number;         // flat dodge added per-incoming-hit
+  squadHpMult: number;        // +N applied at battle init
+  fullHpAtkMult: number;      // +N when attacker hp == maxHp
+  lowHpDmgMult: number;       // +N when attacker hp < 30% maxHp
+  firstRoundSpdMult: number;  // +N on round 0 only
+  basicLifesteal: number;     // +N of basic dmg returned as heal to attacker
+  bossDmgMult: number;        // +N vs target.star >= 5
+  mageDmgReduction: number;   // -N from mage attackers (capped 0..1)
+  stackPerTurnDmg: number;    // per-round stacking +N to outgoing dmg
+  stackPerTurnDmgCap: number; // cap on the per-turn stack
+  reviveFirstFallenPct: number; // 0 if no echo, else revive% (one-time)
+}
+function blankBonuses(): EchoBonuses {
+  return {
+    basicDmgMult: 0, ultDmgMult: 0, critDmgBonus: 0, critPerAliveEnemy: 0,
+    squadDodge: 0, squadHpMult: 0, fullHpAtkMult: 0, lowHpDmgMult: 0,
+    firstRoundSpdMult: 0, basicLifesteal: 0, bossDmgMult: 0,
+    mageDmgReduction: 0, stackPerTurnDmg: 0, stackPerTurnDmgCap: 0,
+    reviveFirstFallenPct: 0,
+  };
+}
+// Per-battle mirror of the aggregated echo bonuses. Set at the top of
+// resolveBattle() and read by the helper functions below — saves us from
+// threading EchoBonuses through every damage call.
+let _activeEchoes: EchoBonuses = {
+  basicDmgMult: 0, ultDmgMult: 0, critDmgBonus: 0, critPerAliveEnemy: 0,
+  squadDodge: 0, squadHpMult: 0, fullHpAtkMult: 0, lowHpDmgMult: 0,
+  firstRoundSpdMult: 0, basicLifesteal: 0, bossDmgMult: 0,
+  mageDmgReduction: 0, stackPerTurnDmg: 0, stackPerTurnDmgCap: 0,
+  reviveFirstFallenPct: 0,
+};
+let _currentRound = 0;
+let _playerSide: 'player' | 'enemy' = 'player';  // for dodge/lifesteal echo gating
+// _revivedThisBattle reserved for the revive-first-fallen echo (not yet
+// wired — that one needs a death hook in the per-attack pipeline).
+
+function aggregateEquippedEchoes(): EchoBonuses {
+  const b = blankBonuses();
+  for (const id of getEquippedEchoes()) {
+    const ec = ECHO_BY_ID[id];
+    if (!ec) continue;
+    const e: EchoEffect = ec.effect;
+    switch (e.kind) {
+      case 'basic_dmg_mult':       b.basicDmgMult       += e.value; break;
+      case 'ult_dmg_mult':         b.ultDmgMult         += e.value; break;
+      case 'crit_dmg_bonus':       b.critDmgBonus       += e.value; break;
+      case 'crit_chance_per_enemy':b.critPerAliveEnemy  += e.value; break;
+      case 'squad_dodge_bonus':    b.squadDodge         += e.value; break;
+      case 'squad_hp_mult':        b.squadHpMult        += e.value; break;
+      case 'full_hp_atk_mult':     b.fullHpAtkMult      += e.value; break;
+      case 'low_hp_dmg_mult':      b.lowHpDmgMult       += e.value; break;
+      case 'first_round_spd_mult': b.firstRoundSpdMult  += e.value; break;
+      case 'lifesteal_basic':      b.basicLifesteal     += e.value; break;
+      case 'boss_dmg_mult':        b.bossDmgMult        += e.value; break;
+      case 'mage_dmg_reduction':   b.mageDmgReduction   += e.value; break;
+      case 'stack_per_turn_dmg':
+        b.stackPerTurnDmg    += e.value;
+        b.stackPerTurnDmgCap += e.cap;
+        break;
+      case 'revive_first_fallen':  b.reviveFirstFallenPct = Math.max(b.reviveFirstFallenPct, e.value); break;
+    }
+  }
+  return b;
+}
 
 interface DamageMods {
   damageMultiplier: number;  // applied to outgoing damage
@@ -40,17 +117,38 @@ function getDamageMods(unit: CombatUnit): DamageMods {
 
 // Crit-resolution helpers — centralized so every damage site applies the
 // same player-level scaling (crit chance bonus + crit damage multiplier).
-function rollCrit(unitCrit: number, rng: () => number, extraBonus = 0): boolean {
+// Echo bonuses fold in here too: critDmgBonus stacks onto the base crit
+// multiplier, and a per-alive-enemy crit bonus optionally boosts roll odds.
+function rollCrit(unitCrit: number, rng: () => number, extraBonus = 0, aliveEnemyCount = 0): boolean {
   const playerLevel = getPlayerLevelForBoost();
-  return rng() < (unitCrit + extraBonus + playerLevelCritBonus(playerLevel));
+  const echoCritBonus = _activeEchoes.critPerAliveEnemy * aliveEnemyCount;
+  return rng() < (unitCrit + extraBonus + playerLevelCritBonus(playerLevel) + echoCritBonus);
 }
 function critMult(): number {
-  return playerLevelCritDamageMult(getPlayerLevelForBoost());
+  return playerLevelCritDamageMult(getPlayerLevelForBoost()) + _activeEchoes.critDmgBonus;
+}
+
+// Per-attacker damage multiplier from echoes that depend on attacker state
+// (full HP / low HP) plus per-target multiplier (vs boss / mage reduction).
+function echoOffensiveMult(attacker: CombatUnit, target: CombatUnit, mode: 'basic' | 'ult'): number {
+  let m = 1;
+  if (attacker.side === 'player') {
+    if (mode === 'basic' && _activeEchoes.basicDmgMult > 0) m *= 1 + _activeEchoes.basicDmgMult;
+    if (mode === 'ult'   && _activeEchoes.ultDmgMult   > 0) m *= 1 + _activeEchoes.ultDmgMult;
+    if (_activeEchoes.fullHpAtkMult > 0 && attacker.hp >= attacker.maxHp) m *= 1 + _activeEchoes.fullHpAtkMult;
+    if (_activeEchoes.lowHpDmgMult  > 0 && attacker.hp < attacker.maxHp * 0.3) m *= 1 + _activeEchoes.lowHpDmgMult;
+    if (_activeEchoes.bossDmgMult   > 0 && (target as any).star >= 5)        m *= 1 + _activeEchoes.bossDmgMult;
+    if (_activeEchoes.stackPerTurnDmg > 0) {
+      const stack = Math.min(_activeEchoes.stackPerTurnDmgCap, _activeEchoes.stackPerTurnDmg * _currentRound);
+      m *= 1 + stack;
+    }
+  }
+  return m;
 }
 
 // Modify incoming damage based on target's on_hit passives. Returns the dmg actually dealt
 // and (optionally) reflected damage back to the attacker.
-function applyOnHit(target: CombatUnit, dmg: number, rng: () => number): { dmg: number; reflect: number } {
+function applyOnHit(target: CombatUnit, dmg: number, rng: () => number, attacker?: CombatUnit): { dmg: number; reflect: number } {
   let actual = dmg;
   let reflect = 0;
   const skills = skillsForHero(target.templateId);
@@ -69,6 +167,14 @@ function applyOnHit(target: CombatUnit, dmg: number, rng: () => number): { dmg: 
   const dodgeChance = playerLevelDodgeChance(target.spd, getPlayerLevelForBoost());
   if (dodgeChance > 0 && rng() < dodgeChance) {
     actual = Math.floor(actual * 0.5);
+  }
+  // Echo: squad-wide dodge bonus applies when target is on player side.
+  if (target.side === _playerSide && _activeEchoes.squadDodge > 0) {
+    if (rng() < _activeEchoes.squadDodge) actual = Math.floor(actual * 0.5);
+  }
+  // Echo: -damage taken from mage attackers (player only).
+  if (target.side === _playerSide && attacker?.archetype === 'mage' && _activeEchoes.mageDmgReduction > 0) {
+    actual = Math.floor(actual * (1 - _activeEchoes.mageDmgReduction));
   }
   return { dmg: actual, reflect };
 }
@@ -175,9 +281,22 @@ export function resolveBattle(
 ): BattleResult {
   const s = seed ?? Date.now().toString();
   const rng = seedrandom(s);
+  // Snapshot active echoes for this battle. Reset per-battle state.
+  _activeEchoes = aggregateEquippedEchoes();
+  _currentRound = 0;
+  _playerSide = 'player';
   // deep clone
   const p = player.map(u => ({ ...u, hp: u.maxHp, energy: 0, alive: true, effects: [] as any[] }));
   const e = enemy.map(u => ({ ...u, hp: u.maxHp, energy: 0, alive: true, effects: [] as any[] }));
+  // Echo: squad HP boost — applied at init so the bonus carries through
+  // damage calcs as if it were base HP.
+  if (_activeEchoes.squadHpMult > 0) {
+    const mult = 1 + _activeEchoes.squadHpMult;
+    for (const u of p) {
+      u.maxHp = Math.floor(u.maxHp * mult);
+      u.hp = u.maxHp;
+    }
+  }
   const initial = {
     player: p.map(u => ({ ...u, effects: [] })),
     enemy: e.map(u => ({ ...u, effects: [] })),
@@ -217,7 +336,15 @@ export function resolveBattle(
   // mid-fight, which used to silently mark a player "win" even though
   // enemies were alive.
   while (p.some(u => u.alive) && e.some(u => u.alive) && round < 60) {
-    const order = [...p, ...e].filter(u => u.alive).sort((a, b) => b.spd - a.spd);
+    _currentRound = round;
+    // Echo: round-0 SPD boost to player side only (e.g. Crimson Centaur echo).
+    const firstRoundBoost = round === 0 && _activeEchoes.firstRoundSpdMult > 0
+      ? _activeEchoes.firstRoundSpdMult : 0;
+    const order = [...p, ...e].filter(u => u.alive).sort((a, b) => {
+      const aSpd = a.side === 'player' ? a.spd * (1 + firstRoundBoost) : a.spd;
+      const bSpd = b.side === 'player' ? b.spd * (1 + firstRoundBoost) : b.spd;
+      return bSpd - aSpd;
+    });
     for (const unit of order) {
       if (!unit.alive) continue;
       if (!p.some(u => u.alive) || !e.some(u => u.alive)) break;
@@ -322,7 +449,7 @@ export function resolveBattle(
             const eAdv = elementAdvantage(unit.element, target.element);
             const isCrit = rollCrit(unit.crit, rng);
             let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier, target.def);
-            dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult);
+            dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult * echoOffensiveMult(unit, target, 'ult'));
             target.hp = Math.max(0, target.hp - dmg);
             log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true, cont: !isFirst });
             isFirst = false;
@@ -339,7 +466,7 @@ export function resolveBattle(
             const eAdv = elementAdvantage(unit.element, target.element);
             const isCrit = rollCrit(unit.crit, rng);
             let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier, target.def);
-            dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult);
+            dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult * echoOffensiveMult(unit, target, 'ult'));
             target.hp = Math.max(0, target.hp - dmg);
             log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true });
             if (skill.effect && (target.effects as any)) {
@@ -370,15 +497,26 @@ export function resolveBattle(
         if (!target) break;
         const eAdv = elementAdvantage(unit.element, target.element);
         const mods = getDamageMods(unit);
-        const isCrit = rollCrit(unit.crit, rng, mods.critBonus);
+        const aliveEnemies = enemies.filter(en => en.alive).length;
+        const isCrit = rollCrit(unit.crit, rng, mods.critBonus, aliveEnemies);
         let dmg = mitigatedDamage(unit.atk, target.def);
-        dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * mods.damageMultiplier);
-        // on_hit dodge/reflect
-        const hit = applyOnHit(target, dmg, rng);
+        dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * mods.damageMultiplier * echoOffensiveMult(unit, target, 'basic'));
+        // on_hit dodge/reflect (passes attacker so mage-damage-reduction echo can fire)
+        const hit = applyOnHit(target, dmg, rng, unit);
         dmg = hit.dmg;
         target.hp = Math.max(0, target.hp - dmg);
         if (target.hp <= 0) target.alive = false;
         log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: false });
+        // Echo: basic-attack lifesteal — player units only, applied after the swing.
+        if (unit.side === _playerSide && unit.alive && _activeEchoes.basicLifesteal > 0 && dmg > 0) {
+          const heal = Math.floor(dmg * _activeEchoes.basicLifesteal);
+          if (heal > 0) {
+            const before = unit.hp;
+            unit.hp = Math.min(unit.maxHp, unit.hp + heal);
+            const gained = unit.hp - before;
+            if (gained > 0) log.push({ tick: ++tick, src: unit.id, dst: unit.id, dmg: 0, crit: false, ult: false, heal: gained });
+          }
+        }
         // Reflect damage back — only triggers if target survived the swing.
         // Otherwise we'd log a dead target "attacking" which renders the
         // dead-unit attack animation in the UI.

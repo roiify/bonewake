@@ -8,6 +8,7 @@ import { maybeNotifyPatchNotes } from './lib/patchNotes';
 import SettingsPage from './pages/SettingsPage';
 import MissionPassPage from './pages/MissionPassPage';
 import SpiritBombPage from './pages/SpiritBombPage';
+import EchoesPage from './pages/EchoesPage';
 import BattleLogPage from './pages/BattleLogPage';
 import TrialsPage from './pages/TrialsPage';
 import CompassPage from './pages/CompassPage';
@@ -143,6 +144,7 @@ export default function App() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/pass" element={<MissionPassPage />} />
           <Route path="/spirit" element={<SpiritBombPage />} />
+          <Route path="/echoes" element={<EchoesPage />} />
           <Route path="/log" element={<BattleLogPage />} />
           <Route path="/trials" element={<TrialsPage />} />
           <Route path="/compass" element={<CompassPage />} />
