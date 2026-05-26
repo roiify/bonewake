@@ -4,7 +4,7 @@ import { EQUIP_BY_ID } from '../data/equipment';
 import { HERO_BY_ID } from '../data/heroes';
 import { BASE_BY_ID, LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/loot';
 import { MYTHIC_COLOR } from '../data/ultimateGear';
-import { equipPower, equipStats } from '../lib/loot';
+import { equipPower, equipQuality, affixTier, tierColor } from '../lib/loot';
 import type { OwnedEquipment } from '../lib/db';
 import { salvageEquipment, bulkSalvageBelow, upgradeCost, upgradeEquipment, MAX_UPGRADE_LEVEL, salvageValue } from '../lib/equipmentMgmt';
 import PageHeader from '../components/ui/PageHeader';
@@ -132,7 +132,6 @@ export default function BagPage() {
             const color = colorFor(rarity);
             const equippedHero = eq.equippedTo ? heroes.find(h => h.id === eq.equippedTo) : null;
             const eqTpl = equippedHero ? HERO_BY_ID[equippedHero.templateId] : null;
-            const stats = eq.primary || eq.affixes ? equipStats(eq) : null;
             const power = equipPower(eq);
             const isSelected = selected === eq.id;
             return (
@@ -167,7 +166,16 @@ export default function BagPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-xs font-pixel truncate" style={{ color }}>{itemDisplayName(eq)}</div>
-                    <div className="text-[10px] text-zinc-500 shrink-0">⚔{power}</div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {(() => {
+                        const q = equipQuality(eq);
+                        // Color the quality score like the affix tier — gold-ish for
+                        // high-quality items so the eye picks them out in the bag.
+                        const qColor = q >= 80 ? '#fbbf24' : q >= 60 ? '#a855f7' : q >= 40 ? '#3b82f6' : q >= 20 ? '#9ca3af' : '#52525b';
+                        return <span className="text-[9px] font-pixel" style={{ color: qColor }}>Q{q}</span>;
+                      })()}
+                      <span className="text-[10px] text-zinc-500">⚔{power}</span>
+                    </div>
                   </div>
                   <div className="text-[9px] text-zinc-500 mb-1">
                     {rarityNameFor(rarity)}
@@ -175,11 +183,30 @@ export default function BagPage() {
                     {eq.isUltimateWeapon && <span className="ml-1 text-amber-400">· ★ULT</span>}
                     {eq.setRestrictedTo && <span className="ml-1 text-rose-300">· Set: {eq.setRestrictedTo}</span>}
                   </div>
-                  {stats ? (
-                    <div className="text-[10px] text-zinc-300 leading-tight">
-                      {Object.entries(stats).map(([k, v]) => (
-                        <span key={k} className="inline-block mr-2">{statLabel(k, v as number)}</span>
-                      ))}
+                  {/* Show individual rolls with their quality tier so you can spot
+                      a god-roll affix at a glance — classic ARPG-looter affordance. */}
+                  {(eq.primary || (eq.affixes && eq.affixes.length > 0)) ? (
+                    <div className="text-[10px] text-zinc-300 leading-tight space-y-0.5">
+                      {eq.primary && (() => {
+                        const t = affixTier(eq.primary.q);
+                        const tc = tierColor(t);
+                        return (
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-pixel text-[9px] px-1 rounded" style={{ background: `${tc}33`, color: tc, border: `1px solid ${tc}55` }}>T{t}</span>
+                            <span>{statLabel(eq.primary.stat, eq.primary.value)}</span>
+                          </div>
+                        );
+                      })()}
+                      {eq.affixes && eq.affixes.map((a, i) => {
+                        const t = affixTier(a.q);
+                        const tc = tierColor(t);
+                        return (
+                          <div key={i} className="flex items-center gap-1.5">
+                            <span className="font-pixel text-[9px] px-1 rounded" style={{ background: `${tc}33`, color: tc, border: `1px solid ${tc}55` }}>T{t}</span>
+                            <span className="text-zinc-400">{statLabel(a.stat, a.value)}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : eq.templateId ? (
                     <div className="text-[10px] text-zinc-400">

@@ -6,7 +6,7 @@ import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { SKILL_BY_ID } from '../data/skills';
 import { EQUIP_BY_ID } from '../data/equipment';
 import { BASE_BY_ID, LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/loot';
-import { equipPower, equipStats } from '../lib/loot';
+import { equipPower, equipQuality, affixTier, tierColor as affixTierColor } from '../lib/loot';
 import { db, type OwnedEquipment } from '../lib/db';
 import { MYTHIC_COLOR, SET_BY_HERO } from '../data/ultimateGear';
 import { GEMS, GEM_BY_ID, GEM_TIER_COLOR, ULT_GEM_BY_HERO, gemInventoryKey } from '../data/gems';
@@ -594,29 +594,41 @@ export default function HeroDetailPage() {
                   const isEquipped = eq.equippedTo === hero.id;
                   const r = itemRarity(eq);
                   const color = itemColor(r);
-                  const stats = eq.primary || eq.affixes ? equipStats(eq) : null;
+                  const q = equipQuality(eq);
+                  const qColor = q >= 80 ? '#fbbf24' : q >= 60 ? '#a855f7' : q >= 40 ? '#3b82f6' : q >= 20 ? '#9ca3af' : '#52525b';
+                  const hasRolls = !!(eq.primary || (eq.affixes && eq.affixes.length > 0));
                   return (
                     <button
                       key={eq.id}
                       onClick={() => equipItem(equipSlot, eq.id)}
-                      className={`w-full text-left rounded border-2 p-2 flex items-center gap-2 transition-colors ${
+                      className={`w-full text-left rounded border-2 p-2 flex items-start gap-2 transition-colors ${
                         isEquipped ? 'ring-2 ring-amber-400' : ''
                       }`}
                       style={{ borderColor: color, background: isEquipped ? '#1f1d12' : '#09090b' }}
                     >
-                      <span className="text-2xl">{itemEmoji(eq)}</span>
+                      <span className="text-2xl shrink-0">{itemEmoji(eq)}</span>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs truncate font-pixel" style={{ color }}>{itemName(eq)}{eq.isUltimateWeapon && ' ★'}</div>
-                        <div className="text-[9px] text-zinc-500">{itemRarityName(r)}{eq.itemLevel ? ` · iL${eq.itemLevel}` : ''} · ⚔{equipPower(eq)}</div>
-                        <div className="text-[10px] text-zinc-300 mt-0.5">
-                          {stats
-                            ? Object.entries(stats).map(([k, v]) =>
-                                k === 'crit'
-                                  ? `+${((v as number) * 100).toFixed(1)}% crit`
-                                  : `+${v} ${k.toUpperCase()}`
-                              ).join(' · ')
-                            : Object.entries(EQUIP_BY_ID[eq.templateId!]?.stats ?? {}).map(([k, v]) => `${k.toUpperCase()}+${v}`).join(' · ')}
+                        <div className="flex items-center justify-between gap-1">
+                          <div className="text-xs truncate font-pixel" style={{ color }}>{itemName(eq)}{eq.isUltimateWeapon && ' ★'}</div>
+                          <span className="text-[9px] font-pixel shrink-0" style={{ color: qColor }}>Q{q}</span>
                         </div>
+                        <div className="text-[9px] text-zinc-500">{itemRarityName(r)}{eq.itemLevel ? ` · iL${eq.itemLevel}` : ''} · ⚔{equipPower(eq)}</div>
+                        {hasRolls ? (
+                          <div className="text-[10px] mt-0.5 space-y-0.5">
+                            {eq.primary && (() => {
+                              const t = affixTier(eq.primary.q); const tc = affixTierColor(t);
+                              return <div className="flex items-center gap-1"><span className="font-pixel text-[8px] px-1 rounded" style={{ background: `${tc}33`, color: tc, border: `1px solid ${tc}55` }}>T{t}</span><span className="text-zinc-300">{eq.primary.stat === 'crit' ? `+${(eq.primary.value*100).toFixed(1)}% crit` : `+${eq.primary.value} ${eq.primary.stat.toUpperCase()}`}</span></div>;
+                            })()}
+                            {(eq.affixes ?? []).map((a, i) => {
+                              const t = affixTier(a.q); const tc = affixTierColor(t);
+                              return <div key={i} className="flex items-center gap-1"><span className="font-pixel text-[8px] px-1 rounded" style={{ background: `${tc}33`, color: tc, border: `1px solid ${tc}55` }}>T{t}</span><span className="text-zinc-400">{a.stat === 'crit' ? `+${(a.value*100).toFixed(1)}% crit` : `+${a.value} ${a.stat.toUpperCase()}`}</span></div>;
+                            })}
+                          </div>
+                        ) : (
+                          <div className="text-[10px] text-zinc-400 mt-0.5">
+                            {Object.entries(EQUIP_BY_ID[eq.templateId!]?.stats ?? {}).map(([k, v]) => `${k.toUpperCase()}+${v}`).join(' · ')}
+                          </div>
+                        )}
                         {eq.equippedTo && eq.equippedTo !== hero.id && (
                           <div className="text-[9px] text-rose-400">Equipped by another hero</div>
                         )}

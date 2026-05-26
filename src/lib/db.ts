@@ -124,8 +124,13 @@ export interface OwnedEquipment {
   rarity?: 1 | 2 | 3 | 4 | 5 | 6; // 6 = Mythic (crafted)
   itemLevel?: number;
   name?: string;
-  primary?: { stat: string; value: number };
-  affixes?: { stat: string; value: number }[];
+  // Random-loot affixes. `q` is the roll quality (0-1) — 1 means the
+  // value rolled at the top of its range, 0 means the bottom. Used for
+  // the T1/T20 quality-tier badges and the overall item quality score.
+  // Optional for back-compat with pre-rework saves; missing q falls
+  // back to a neutral T10 tier.
+  primary?: { stat: string; value: number; q?: number };
+  affixes?: { stat: string; value: number; q?: number }[];
   upgradeLevel?: number;
   obtainedAt?: number;
   // Crafted set-piece markers

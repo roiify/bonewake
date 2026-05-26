@@ -110,16 +110,51 @@ export const RARITY_WEIGHTS: Record<LootRarity, number> = {
   5: 0.5, // Legendary
 };
 
-// Affix count per rarity
+// Minimum affix count per rarity. Actual count = min + chance of +1
+// (see AFFIX_BONUS_CHANCE) so the player sometimes gets a "lucky"
+// extra mod — classic ARPG-looter excitement. Common rolls 0 affixes;
+// Legendary always rolls 4, with 60% chance to add a 5th.
 export const AFFIX_COUNT: Record<LootRarity, number> = {
   1: 0, 2: 1, 3: 2, 4: 3, 5: 4,
 };
 
+// Chance to roll an extra affix on top of the rarity's minimum. Tunes
+// the "did I get a god drop" frequency without changing the base curve.
+export const AFFIX_BONUS_CHANCE: Record<LootRarity, number> = {
+  1: 0.00,
+  2: 0.40,
+  3: 0.50,
+  4: 0.55,
+  5: 0.60,
+};
+
 // Primary stat magnitude multiplier per rarity (above the baseMin/Max range)
 export const PRIMARY_MULT: Record<LootRarity, [number, number]> = {
-  1: [0.5, 0.8],   // 50-80% of base range
+  1: [0.5, 0.8],
   2: [0.7, 1.0],
   3: [0.9, 1.2],
   4: [1.1, 1.4],
   5: [1.3, 1.7],
 };
+
+// Per-affix-stat value ranges at item level 1. Wide ranges by design —
+// a tier-1 god-roll atk affix lands near the top, a tier-20 dud near
+// the bottom. Same stat can appear on different slots; the spread is
+// what creates "hunt for the perfect roll" tension.
+//
+// Compared to the original tight bands (atk 8-24, hp 40-120), these are
+// 3-4x wider. Most rolls cluster around the mid range due to the
+// quality-roll bias curve in lib/loot.ts; god rolls genuinely matter.
+export const AFFIX_RANGE: Record<LootStat, [number, number]> = {
+  hp:   [15,   260],
+  atk:  [3,     62],
+  def:  [2,     48],
+  spd:  [1,     22],
+  crit: [0.005, 0.18],
+};
+
+// Item-level scaling for affix values. At iLvl N, the rolled value is
+// multiplied by (1 + (N-1) * AFFIX_ILVL_SCALE). Steeper than the
+// original 0.08 because the wider base ranges already handle most of
+// the variance — ilvl now mainly bumps the floor.
+export const AFFIX_ILVL_SCALE = 0.06;
