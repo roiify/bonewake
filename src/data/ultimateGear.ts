@@ -28,9 +28,18 @@ export interface UltimateSetDef {
   bonuses: { atPieces: number; stats: Stats; description: string }[];
 }
 
-// Helper to make a craft cost
+// Helper to make a craft cost.
+// Steeper-grind rebalance multiplier (was 1.0): every ultimate-set piece
+// now costs 2.5× the original soulshards/essence/gold. A full 5-piece set
+// goes from ~270 shards + 140 essence → ~675 + 350 — turns gear progression
+// into a real long-term goal instead of a one-weekend craft.
+const COST_MULT = 2.5;
 const c = (shard: number, ess: number, gold: number) =>
-  ({ soulshard: shard, essence: ess, gold });
+  ({
+    soulshard: Math.ceil(shard * COST_MULT),
+    essence: Math.ceil(ess * COST_MULT),
+    gold: Math.ceil(gold * COST_MULT),
+  });
 
 export const ULTIMATE_SETS: UltimateSetDef[] = [
   // LUNA — Healer / Light

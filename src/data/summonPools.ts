@@ -19,17 +19,21 @@ export const SUMMON_POOLS: SummonPool[] = [
     id: 'standard',
     name: 'Standard Wish',
     description: 'Cheap. Mostly S, rare SS, almost never SSS.',
+    // Steeper-grind: SSS halved (0.5% → 0.25%), SS trimmed.
     cost: { currency: 'gold', amount: 100 },
-    rates: { 3: 0.90, 4: 0.095, 5: 0.005 },
+    rates: { 3: 0.9275, 4: 0.07, 5: 0.0025 },
     pityFive: null,
   },
   {
     id: 'premium',
     name: 'Stellar Wish',
-    description: 'Better SS/SSS odds. Pity at 90.',
-    cost: { currency: 'gems', amount: 5 },
-    rates: { 3: 0.70, 4: 0.26, 5: 0.04 },
-    pityFive: 90,
+    // Steeper-grind: gem cost doubled (5 → 10), SSS rate halved (4% → 2%),
+    // pity pushed out (90 → 120). A guaranteed SSS now costs at most 1200
+    // gems instead of 450 — pulls feel like a real commitment.
+    description: 'Better SS/SSS odds. Pity at 120.',
+    cost: { currency: 'gems', amount: 10 },
+    rates: { 3: 0.74, 4: 0.24, 5: 0.02 },
+    pityFive: 120,
     featuredHeroId: 'luna',
   },
   {
