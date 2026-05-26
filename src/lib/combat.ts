@@ -250,6 +250,14 @@ function elementAdvantage(a: Element, b: Element): number {
   return 1.0;
 }
 
+// Tag for the UI damage-float badge. >1 → 'strong' (super-effective),
+// <1 → 'weak' (resisted), exactly 1 → undefined (neutral, no badge).
+function eleTag(eAdv: number): 'strong' | 'weak' | undefined {
+  if (eAdv > 1.05) return 'strong';
+  if (eAdv < 0.95) return 'weak';
+  return undefined;
+}
+
 function pickEnemyTarget(enemies: CombatUnit[], rng: () => number): CombatUnit | undefined {
   const alive = enemies.filter(e => e.alive);
   if (!alive.length) return undefined;
@@ -383,7 +391,7 @@ export function resolveBattle(
           let dmg = mitigatedDamage(unit.atk * 2.0, target.def);
           dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv);
           target.hp = Math.max(0, target.hp - dmg);
-          log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: false, skill: true });
+          log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: false, skill: true, ele: eleTag(eAdv) });
           if (target.hp <= 0) {
             target.alive = false;
             applyOnKill(unit);
@@ -451,7 +459,7 @@ export function resolveBattle(
             let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier, target.def);
             dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult * echoOffensiveMult(unit, target, 'ult'));
             target.hp = Math.max(0, target.hp - dmg);
-            log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true, cont: !isFirst });
+            log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true, cont: !isFirst, ele: eleTag(eAdv) });
             isFirst = false;
             if (skill.effect && (target.effects as any)) {
               (target.effects as any).push({ kind: skill.effect.type, value: skill.effect.value, remaining: skill.effect.duration ?? 2 });
@@ -468,7 +476,7 @@ export function resolveBattle(
             let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier, target.def);
             dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult * echoOffensiveMult(unit, target, 'ult'));
             target.hp = Math.max(0, target.hp - dmg);
-            log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true });
+            log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true, ele: eleTag(eAdv) });
             if (skill.effect && (target.effects as any)) {
               (target.effects as any).push({ kind: skill.effect.type, value: skill.effect.value, remaining: skill.effect.duration ?? 2 });
             }
@@ -506,7 +514,7 @@ export function resolveBattle(
         dmg = hit.dmg;
         target.hp = Math.max(0, target.hp - dmg);
         if (target.hp <= 0) target.alive = false;
-        log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: false });
+        log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: false, ele: eleTag(eAdv) });
         // Echo: basic-attack lifesteal — player units only, applied after the swing.
         if (unit.side === _playerSide && unit.alive && _activeEchoes.basicLifesteal > 0 && dmg > 0) {
           const heal = Math.floor(dmg * _activeEchoes.basicLifesteal);

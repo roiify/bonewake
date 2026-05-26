@@ -41,13 +41,24 @@ function loadSquad(): string[] {
   try { return JSON.parse(localStorage.getItem(SQUAD_KEY) ?? '[]'); } catch { return []; }
 }
 
+// Top-right element badge on every combat unit. Matches the bigger
+// SquadPicker variant — same glyphs/colors so the visual language is
+// consistent. Lets the player quickly read enemy elements during
+// battle (counter-pick on retry).
+const ELEMENT_ICON: Record<string, { glyph: string; color: string }> = {
+  fire:  { glyph: '🔥', color: '#fb923c' },
+  water: { glyph: '💧', color: '#38bdf8' },
+  earth: { glyph: '🌿', color: '#84cc16' },
+  light: { glyph: '✨', color: '#fde047' },
+  dark:  { glyph: '🌙', color: '#a78bfa' },
+};
+
 interface FloatingNumber {
   id: number; x: number; y: number; value: string; color: string;
-  // Owner unit id — used to render the float over the unit it actually
-  // belongs to. Without this, every UnitCard with hit===u.id was rendering
-  // the same global float list, so a slow-decaying float from tick N
-  // could appear over tick N+1's victim.
   dstId: string;
+  // Element-matchup badge — 'strong' = ×1.5 super-effective, 'weak' = 0.75×
+  // resisted, undefined = neutral (no badge shown).
+  ele?: 'strong' | 'weak';
 }
 
 // Trial mode: BattlePlayPage receives a stageId like "trial-light_brigade".
@@ -395,6 +406,7 @@ export default function BattlePlayPage() {
         x: 0, y: 0,
         value: isHeal ? `+${action.heal}` : action.dmg.toString(),
         color: isHeal ? '#22c55e' : action.crit ? '#fde047' : action.ult ? '#fb923c' : '#fca5a5',
+        ele: isHeal ? undefined : action.ele,
       }]);
       setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 900);
     }
@@ -1178,6 +1190,21 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
       style={{ zIndex: attacker ? 15 : 5 }}
       className={`relative ${hit ? 'animate-shake' : ''} ${unit.alive ? '' : 'grayscale opacity-60'}`}
     >
+      {/* Element badge — top-right corner, scannable during fast battles */}
+      {ELEMENT_ICON[unit.element] && (
+        <div
+          className="absolute top-1 right-1 z-10 w-5 h-5 rounded-full flex items-center justify-center text-[11px] leading-none pointer-events-none"
+          style={{
+            background: '#0a0a0aee',
+            border: `1px solid ${ELEMENT_ICON[unit.element].color}`,
+            boxShadow: `0 0 4px ${ELEMENT_ICON[unit.element].color}88`,
+          }}
+          title={unit.element}
+        >
+          {ELEMENT_ICON[unit.element].glyph}
+        </div>
+      )}
+
       {/* Floating HP bar + name above the unit */}
       <div className="absolute -top-9 left-1/2 -translate-x-1/2 w-24 z-10 pointer-events-none">
         <div className="text-[9px] font-pixel truncate text-center" style={{ color: unit.color, textShadow: '0 1px 0 #000' }}>{unit.name}</div>
@@ -1281,7 +1308,7 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
         );
       })()}
 
-      {/* Floating damage numbers */}
+      {/* Floating damage numbers + element-matchup badge */}
       <AnimatePresence>
         {floats.map(f => (
           <motion.div
@@ -1290,10 +1317,22 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
             animate={{ y: -40, opacity: 1, scale: 1.2 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
-            className="absolute top-0 left-1/2 -translate-x-1/2 font-pixel text-base pointer-events-none z-20"
+            className="absolute top-0 left-1/2 -translate-x-1/2 font-pixel text-base pointer-events-none z-20 flex items-center gap-1"
             style={{ color: f.color, textShadow: '0 1px 0 #000, 0 0 6px rgba(0,0,0,0.8)' }}
           >
             {f.value}
+            {f.ele === 'strong' && (
+              <span className="text-[8px] px-1 rounded font-pixel"
+                    style={{ background: '#dc2626', color: '#fff', textShadow: 'none' }}>
+                ×1.5
+              </span>
+            )}
+            {f.ele === 'weak' && (
+              <span className="text-[8px] px-1 rounded font-pixel"
+                    style={{ background: '#3b82f6', color: '#fff', textShadow: 'none' }}>
+                RESIST
+              </span>
+            )}
           </motion.div>
         ))}
       </AnimatePresence>
