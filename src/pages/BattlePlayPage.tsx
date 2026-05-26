@@ -234,7 +234,11 @@ export default function BattlePlayPage() {
         dst.hp = Math.max(0, dst.hp - action.dmg);
         if (dst.hp <= 0) dst.alive = false;
       }
+      if (action.dstEnergyAfter != null) dst.energy = action.dstEnergyAfter;
       next[action.dst] = dst;
+      if (action.srcEnergyAfter != null && next[action.src]) {
+        next[action.src] = { ...next[action.src], energy: action.srcEnergyAfter };
+      }
       return next;
     });
     setHit(action.dst);
@@ -803,8 +807,22 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
             style={{ background: hpColor, height: '100%' }}
           />
         </div>
-        <div className="h-0.5 bg-zinc-900/80 rounded overflow-hidden mt-0.5">
-          <div className="h-full bg-cyan-400" style={{ width: `${unit.energy}%` }} />
+        {/* Energy bar: cyan ramp → yellow at 50 (skill ready) → orange glow at 100 (ult ready) */}
+        <div
+          className={`relative h-1 bg-zinc-900/80 rounded border border-zinc-700/70 overflow-hidden mt-0.5 ${unit.energy >= 100 ? 'animate-pulse' : ''}`}
+          style={unit.energy >= 100 ? { boxShadow: '0 0 6px 1px #fb923c, 0 0 2px #fff inset' } : undefined}
+        >
+          <motion.div
+            initial={false}
+            animate={{ width: `${unit.energy}%` }}
+            transition={{ duration: 0.25 }}
+            style={{
+              background: unit.energy >= 100 ? '#fb923c' : unit.energy >= 50 ? '#facc15' : '#22d3ee',
+              height: '100%',
+            }}
+          />
+          {/* 50% tick mark — the skill-ready threshold */}
+          <div className="absolute top-0 bottom-0 left-1/2 w-px bg-zinc-700/80" />
         </div>
       </div>
 

@@ -163,6 +163,19 @@ export function resolveBattle(
   let tick = 0;
   let round = 0;
   const firstTurnDone = new Set<string>();
+  const unitMap = new Map<string, CombatUnit>([...p, ...e].map(u => [u.id, u]));
+  // Stamp every log entry between [startIdx, log.length) with the current
+  // energy of its src/dst. Called at the end of each unit's turn so the UI
+  // can replay per-unit energy alongside HP.
+  const snapshotEnergy = (startIdx: number) => {
+    for (let i = startIdx; i < log.length; i++) {
+      const entry = log[i];
+      const srcU = unitMap.get(entry.src);
+      const dstU = unitMap.get(entry.dst);
+      if (srcU) entry.srcEnergyAfter = srcU.energy;
+      if (dstU) entry.dstEnergyAfter = dstU.energy;
+    }
+  };
 
   // Apply first-turn passives at round 0 for everyone
   for (const unit of [...p, ...e]) {
@@ -188,6 +201,11 @@ export function resolveBattle(
       const isPlayer = unit.side === 'player';
       const allies = isPlayer ? p : e;
       const enemies = isPlayer ? e : p;
+      // Wrap the turn body so we can snapshot energy onto every log entry
+      // produced this turn — `break` exits the inner do-block, mimicking
+      // the prior `continue`-to-next-unit flow without skipping snapshotting.
+      const turnStart = log.length;
+      do {
       // Heal/revive ults are "wasted" if no ally needs them — keep energy
       // pegged at 100 and fall through to the basic-attack block.
       const rawIsUlt = unit.energy >= 100;
@@ -223,7 +241,7 @@ export function resolveBattle(
           }
         }
         unit.energy = Math.max(0, unit.energy - 50);
-        continue;
+        break;
       }
 
       if (isUlt && skill) {
@@ -240,7 +258,7 @@ export function resolveBattle(
             isFirst = false;
           }
           unit.energy = 0;
-          continue;
+          break;
         } else if (skill.targeting === 'self' && skill.effect?.type === 'revive') {
           // Revive one dead ally to value% of maxHp (NOT full health),
           // then top up living allies by a flat amount. If no one is dead,
@@ -274,7 +292,7 @@ export function resolveBattle(
             isFirst = false;
           }
           unit.energy = 0;
-          continue;
+          break;
         } else if (skill.targeting === 'all') {
           let isFirst = true;
           for (const target of enemies) {
@@ -323,11 +341,11 @@ export function resolveBattle(
             ally.hp = Math.min(ally.maxHp, ally.hp + healValue);
             log.push({ tick: ++tick, src: unit.id, dst: ally.id, dmg: 0, crit: false, ult: false, heal: ally.hp - before });
             unit.energy = Math.min(100, unit.energy + 20);
-            continue;
+            break;
           }
         }
         const target = pickEnemyTarget(enemies, rng);
-        if (!target) continue;
+        if (!target) break;
         const eAdv = elementAdvantage(unit.element, target.element);
         const mods = getDamageMods(unit);
         const isCrit = rng() < (unit.crit + mods.critBonus);
@@ -357,6 +375,8 @@ export function resolveBattle(
         unit.energy = Math.min(100, unit.energy + 20);
         target.energy = Math.min(100, target.energy + 30);
       }
+      } while (false);
+      snapshotEnergy(turnStart);
     }
     round++;
   }

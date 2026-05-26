@@ -104,6 +104,10 @@ export interface BattleAction {
   // applies the effect immediately but doesn't re-play the animation
   // or wait the full action duration.
   cont?: boolean;
+  // Energy snapshots after this action resolves — used by the UI to
+  // animate the per-unit energy bar in lockstep with the log replay.
+  srcEnergyAfter?: number;
+  dstEnergyAfter?: number;
 }
 
 export interface BattleResult {
