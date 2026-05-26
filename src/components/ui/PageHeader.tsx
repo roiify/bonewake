@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { asset } from '../../lib/assetPath';
 
 /**
  * Shared page-header used across every screen so the product feels
@@ -52,20 +53,36 @@ export default function PageHeader({ title, tagline, glow = '#dc2626', rightSlot
     );
   }
 
+  // Default (non-banner) header — layered painted Nano Banana banner
+  // (section_banner.png) behind the title so every page gets a premium
+  // boss-bar feel without a per-page image. The PNG fades to transparent
+  // at the edges so it composes nicely on any page background.
   return (
-    <div className="flex items-end justify-between gap-3">
-      <div className="min-w-0">
-        <h2
-          className="font-fantasy text-2xl tracking-widest text-amber-200"
-          style={{ textShadow: `0 2px 0 rgba(0,0,0,0.95), 0 0 14px ${glow}55` }}
-        >
-          {title}
-        </h2>
-        {tagline && (
-          <p className="text-[10px] text-zinc-400 leading-snug mt-1">{tagline}</p>
-        )}
+    <div className="relative flex flex-col items-center text-center py-1 mb-1">
+      <div
+        className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-20 pointer-events-none"
+        style={{
+          backgroundImage: `url(${asset('sprites/ui/section_banner.png')})`,
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          backgroundSize: 'contain',
+          filter: `drop-shadow(0 0 10px ${glow}44)`,
+        }}
+      />
+      <div className="relative z-10 flex items-end justify-between gap-3 w-full px-4">
+        <div className="min-w-0 flex-1">
+          <h2
+            className="font-fantasy text-xl tracking-widest text-amber-200"
+            style={{ textShadow: `0 2px 0 rgba(0,0,0,0.95), 0 0 12px ${glow}88` }}
+          >
+            {title}
+          </h2>
+          {tagline && (
+            <p className="text-[10px] text-zinc-300 leading-snug mt-1 italic">{tagline}</p>
+          )}
+        </div>
+        {rightSlot && <div className="shrink-0">{rightSlot}</div>}
       </div>
-      {rightSlot && <div className="shrink-0">{rightSlot}</div>}
     </div>
   );
 }
