@@ -39,6 +39,7 @@ import DungeonsPage from './pages/DungeonsPage';
 import WorldBossPage from './pages/WorldBossPage';
 import TalentsPage from './pages/TalentsPage';
 import ResetPage from './pages/ResetPage';
+import Splash from './components/Splash';
 
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -107,11 +108,7 @@ export default function App() {
   }, []);
 
   if (!ready) {
-    return (
-      <div className="h-full flex items-center justify-center bg-zinc-950">
-        <div className="font-pixel text-amber-400 text-xs animate-pulse">LOADING…</div>
-      </div>
-    );
+    return <Splash visible={true} />;
   }
 
   // BrowserRouter basename mirrors Vite's base so GitHub Pages subpath works.

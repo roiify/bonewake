@@ -12,6 +12,15 @@ import { canClaimMysteryBox, claimMysteryBox } from '../lib/mysteryBox';
 import ChestOpen, { type ChestReward } from '../components/ChestOpen';
 import Card from '../components/ui/Card';
 import PrimaryButton from '../components/ui/PrimaryButton';
+import { asset } from '../lib/assetPath';
+
+const UI_BANNER = asset('sprites/ui/banner_home.png');
+const MODE_ICONS = {
+  story:  asset('sprites/ui/mode_story.png'),
+  summon: asset('sprites/ui/mode_summon.png'),
+  heroes: asset('sprites/ui/mode_heroes.png'),
+  tasks:  asset('sprites/ui/mode_tasks.png'),
+};
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
@@ -58,31 +67,30 @@ export default function HomePage() {
 
   return (
     <div className="p-3 space-y-3 pb-5">
-      {/* Header banner — dark fantasy plate with title + greeting. The
-          stock sky photo is gone; replaced by a layered painted gradient
-          + ornamental skull bookends. Cinzel display font for the title. */}
-      <div className="relative rounded-xl overflow-hidden mb-3 h-32 flex items-center justify-center"
+      {/* Header banner — painted dark-fantasy backdrop (Nano Banana) with
+          title + greeting overlay. The center of the painting has empty
+          negative space reserved for the title, so the overlay reads cleanly. */}
+      <div className="relative rounded-xl overflow-hidden mb-3 h-36 flex items-center justify-center"
         style={{
-          background:
-            'radial-gradient(ellipse at top, #3a1414 0%, #1a0807 55%, #0a0303 100%)',
+          backgroundImage: `url(${UI_BANNER})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 50%',
           border: '1px solid #5a2222',
-          boxShadow: 'var(--shadow-card), inset 0 0 60px rgba(220,38,38,0.18)',
+          boxShadow: 'var(--shadow-card)',
         }}
       >
-        {/* Subtle blood-splat radial overlay */}
-        <div className="absolute inset-0 pointer-events-none opacity-40"
+        {/* Darken bottom for greeting readability */}
+        <div className="absolute inset-0 pointer-events-none"
           style={{
-            background:
-              'radial-gradient(circle at 18% 28%, rgba(220,38,38,0.18) 0%, transparent 40%),' +
-              'radial-gradient(circle at 82% 72%, rgba(220,38,38,0.14) 0%, transparent 40%)',
+            background: 'linear-gradient(180deg, transparent 30%, rgba(10,3,3,0.85) 100%)',
           }}
         />
         <div className="relative z-10 text-center px-4">
           <h1 className="font-fantasy text-3xl font-bold tracking-widest" style={{
             color: '#fde68a',
-            textShadow: '0 2px 0 rgba(0,0,0,0.9), 0 0 18px rgba(220,38,38,0.55)',
+            textShadow: '0 2px 0 rgba(0,0,0,0.95), 0 0 22px rgba(220,38,38,0.7), 0 0 8px rgba(0,0,0,0.9)',
           }}>💀 BONEWAKE 💀</h1>
-          <p className="text-[11px] text-zinc-300 mt-2 text-shadow-soft tracking-wide italic">
+          <p className="text-[11px] text-zinc-200 mt-2 text-shadow-deep tracking-wide italic">
             "Welcome back, {profile.displayName}."
           </p>
         </div>
@@ -162,10 +170,10 @@ export default function HomePage() {
 
       {/* Quick actions */}
       <div className="grid grid-cols-2 gap-2.5">
-        <ActionCard to="/battle" icon="⚔️"  label="Story"   sub={`${STAGES.length} stages`}     tint="#dc2626" />
-        <ActionCard to="/summon" icon="✨"  label="Summon"  sub={`${SUMMON_POOLS.length} banners`} tint="#a78bfa" />
-        <ActionCard to="/heroes" icon="👥"  label="Heroes"  sub={`${heroes.length} owned`}       tint="#fbbf24" />
-        <ActionCard to="/tasks"  icon="📜"  label="Tasks"   sub={`${taskCount.done}/${taskCount.total} done`} tint="#34d399" />
+        <ActionCard to="/battle" iconSrc={MODE_ICONS.story}  label="Story"   sub={`${STAGES.length} stages`}                tint="#dc2626" />
+        <ActionCard to="/summon" iconSrc={MODE_ICONS.summon} label="Summon"  sub={`${SUMMON_POOLS.length} banners`}          tint="#a78bfa" />
+        <ActionCard to="/heroes" iconSrc={MODE_ICONS.heroes} label="Heroes"  sub={`${heroes.length} owned`}                   tint="#fbbf24" />
+        <ActionCard to="/tasks"  iconSrc={MODE_ICONS.tasks}  label="Tasks"   sub={`${taskCount.done}/${taskCount.total} done`} tint="#34d399" />
       </div>
 
       {heroes.length === 0 && (
@@ -189,15 +197,30 @@ export default function HomePage() {
 }
 
 // === Quick-action card component ===
-// Each home-screen action card. Shared visual: gradient tint + icon
-// + label + small subtitle. Lifts on hover and presses on tap via
-// the shared Card component.
-function ActionCard({ to, icon, label, sub, tint }: { to: string; icon: string; label: string; sub: string; tint: string }) {
+// Each home-screen action card. Uses a custom PixelLab-painted icon
+// (or emoji fallback) + label + subtitle. Lifts on hover, scales on tap.
+function ActionCard({ to, icon, iconSrc, label, sub, tint }: {
+  to: string;
+  icon?: string;
+  iconSrc?: string;
+  label: string;
+  sub: string;
+  tint: string;
+}) {
   const navigate = useNavigate();
   return (
     <Card interactive tint={tint} onClick={() => navigate(to)}>
-      <div className="p-3 min-h-[88px] flex flex-col justify-between">
-        <div className="text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]">{icon}</div>
+      <div className="p-3 min-h-[100px] flex flex-col justify-between">
+        {iconSrc ? (
+          <img
+            src={iconSrc}
+            alt=""
+            className="w-12 h-12 object-contain drop-shadow-[0_3px_6px_rgba(0,0,0,0.7)]"
+            style={{ imageRendering: 'pixelated' }}
+          />
+        ) : (
+          <div className="text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]">{icon}</div>
+        )}
         <div>
           <div className="font-pixel text-xs text-zinc-100 text-shadow-soft">{label}</div>
           <div className="text-[10px] text-zinc-500 mt-0.5">{sub}</div>

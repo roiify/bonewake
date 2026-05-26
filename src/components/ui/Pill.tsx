@@ -8,10 +8,11 @@ type PillVariant = 'gold' | 'gem' | 'energy' | 'rose' | 'neutral';
  * inner-shadow + bevel look. Optional onClick turns it into a button.
  */
 interface PillProps {
-  icon: string;             // emoji or short text inside the badge
+  icon: string;             // emoji fallback (used if iconSrc not given)
+  iconSrc?: string;         // optional sprite PNG to render instead of emoji
   value?: number;           // numeric value (compact-formatted)
   label?: string;           // optional label override (no compact format)
-  color?: string;           // color of the icon glyph
+  color?: string;           // color of the icon glyph (emoji-mode only)
   variant?: PillVariant;
   onClick?: () => void;
   title?: string;
@@ -19,15 +20,24 @@ interface PillProps {
   plus?: boolean;
 }
 
-export default function Pill({ icon, value, label, color, variant = 'neutral', onClick, title, plus }: PillProps) {
+export default function Pill({ icon, iconSrc, value, label, color, variant = 'neutral', onClick, title, plus }: PillProps) {
   const className = `pill-embossed pill-embossed--${variant}`;
   const titleAttr = title ?? (value != null ? value.toLocaleString() : undefined);
 
   const inner = (
     <>
-      <span className="text-sm" style={{ color, textShadow: color ? `0 0 6px ${color}88` : undefined }}>
-        {icon}
-      </span>
+      {iconSrc ? (
+        <img
+          src={iconSrc}
+          alt=""
+          className="w-5 h-5 object-contain shrink-0"
+          style={{ imageRendering: 'pixelated', filter: color ? `drop-shadow(0 0 4px ${color}88)` : undefined }}
+        />
+      ) : (
+        <span className="text-sm" style={{ color, textShadow: color ? `0 0 6px ${color}88` : undefined }}>
+          {icon}
+        </span>
+      )}
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={value ?? label}

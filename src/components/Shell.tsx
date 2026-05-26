@@ -5,6 +5,14 @@ import { Home, Swords, Users, Sparkles, Settings } from 'lucide-react';
 import EnergyModal from './EnergyModal';
 import { TITLE_BY_ID } from '../data/titles';
 import Pill from './ui/Pill';
+import { asset } from '../lib/assetPath';
+
+const UI = {
+  gold:   asset('sprites/ui/currency_gold.png'),
+  gem:    asset('sprites/ui/currency_gem.png'),
+  friend: asset('sprites/ui/currency_friend.png'),
+  energy: asset('sprites/ui/currency_energy.png'),
+};
 
 export function Shell() {
   const profile = useProfile(s => s.profile);
@@ -51,10 +59,10 @@ export function Shell() {
           </div>
         </Link>
         <div className="grid grid-cols-4 gap-1.5 mt-2.5">
-          <Pill icon="🪙" value={profile.gold}         color="#fbbf24" variant="gold"   />
-          <Pill icon="💎" value={profile.gems}         color="#a78bfa" variant="gem"    />
-          <Pill icon="🤝" value={profile.friendPoints} color="#fb7185" variant="rose"   />
-          <Pill icon="⚡" value={profile.energy}       color="#22d3ee" variant="energy" onClick={() => setEnergyOpen(true)} plus />
+          <Pill icon="🪙" iconSrc={UI.gold}   value={profile.gold}         color="#fbbf24" variant="gold"   />
+          <Pill icon="💎" iconSrc={UI.gem}    value={profile.gems}         color="#a78bfa" variant="gem"    />
+          <Pill icon="🤝" iconSrc={UI.friend} value={profile.friendPoints} color="#fb7185" variant="rose"   />
+          <Pill icon="⚡" iconSrc={UI.energy} value={profile.energy}       color="#22d3ee" variant="energy" onClick={() => setEnergyOpen(true)} plus />
         </div>
       </header>
 
