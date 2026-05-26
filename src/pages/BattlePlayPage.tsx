@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { STAGE_BY_ID, STAGES } from '../data/stages';
 import { TRIAL_BY_ID } from '../data/trials';
 import type { TrialDef } from '../data/trials';
+import { DUNGEON_BY_ID, buildDungeonTeam, markDungeonCleared } from '../data/dungeons';
+import type { DungeonDef, DungeonTier } from '../data/dungeons';
 import type { Stage } from '../types';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
@@ -62,15 +64,52 @@ function makeTrialVirtualStage(trial: TrialDef): Stage {
   };
 }
 
+// Dungeon mode: BattlePlayPage receives a stageId like "dungeon-gold-2".
+// The same virtual-stage trick used for trials — but rewards (gold/exp/
+// gems/equipment) come from the DungeonTier, and on win we mark the tier
+// as first-cleared so DungeonsPage unlocks its instant-skip button.
+function parseDungeonId(raw: string): { def: DungeonDef; tier: DungeonTier } | null {
+  if (!raw.startsWith('dungeon-')) return null;
+  const rest = raw.slice('dungeon-'.length);
+  const m = rest.match(/^(.+)-(\d+)$/);
+  if (!m) return null;
+  const def = DUNGEON_BY_ID[m[1]];
+  if (!def) return null;
+  const tier = def.tiers.find(t => t.tier === Number(m[2]));
+  if (!tier) return null;
+  return { def, tier };
+}
+function makeDungeonVirtualStage(def: DungeonDef, tier: DungeonTier): Stage {
+  return {
+    id: `dungeon-${def.id}-${tier.tier}`,
+    chapter: 98,
+    num: tier.tier,
+    name: `${def.name} — ${tier.name}`,
+    energyCost: tier.energyCost,
+    // enemyTeam is unused for dungeons — we build the squad via
+    // buildDungeonTeam() directly so each enemy carries its dungeon-tuned
+    // level/star without going through STAGE_BY_ID's stat synthesis.
+    enemyTeam: [],
+    rewards: { gold: tier.rewards.gold ?? 0, exp: tier.rewards.exp ?? 0 },
+    firstClearBonus: { gems: 0 },
+  };
+}
+
 export default function BattlePlayPage() {
   const { stageId } = useParams();
   const navigate = useNavigate();
-  // Stage vs trial routing: ids prefixed "trial-" come from TrialsPage.
+  // Stage vs trial vs dungeon routing — id prefix decides which builder
+  // produces the virtual stage + reward branch downstream.
   const trialId = stageId?.startsWith('trial-') ? stageId.slice(6) : null;
   const trialSource: TrialDef | null = trialId ? (TRIAL_BY_ID[trialId] ?? null) : null;
+  const dungeonSource = stageId?.startsWith('dungeon-')
+    ? parseDungeonId(stageId)
+    : null;
   const stage: Stage | null = trialSource
     ? makeTrialVirtualStage(trialSource)
-    : (stageId ? STAGE_BY_ID[stageId] : null);
+    : dungeonSource
+      ? makeDungeonVirtualStage(dungeonSource.def, dungeonSource.tier)
+      : (stageId ? STAGE_BY_ID[stageId] : null);
 
   // Remember the last stage played so the Story page can scroll back here
   // instead of resetting to chapter 1 every time.
@@ -93,8 +132,14 @@ export default function BattlePlayPage() {
     const playerUnits = squad
       .map((h, i, arr) => toCombatUnit(h, equipForCombat, 'player', `p${i}`, arr.map(x => x.templateId)))
       .filter((u): u is NonNullable<typeof u> => !!u);
-    const enemyTpls = stage.enemyTeam.map(e => e.templateId);
-    const enemyUnits = stage.enemyTeam.map((e, i) => buildEnemyUnit(e.templateId, e.level, e.star, `e${i}`, enemyTpls));
+    // Dungeons build their team via the dungeon helper (so enemy stats
+    // come from the tier definition, not from stage.enemyTeam).
+    const enemyUnits = dungeonSource
+      ? buildDungeonTeam(dungeonSource.def, dungeonSource.tier)
+      : stage.enemyTeam.map((e, i) => {
+          const enemyTpls = stage.enemyTeam.map(x => x.templateId);
+          return buildEnemyUnit(e.templateId, e.level, e.star, `e${i}`, enemyTpls);
+        });
     return resolveBattle(playerUnits, enemyUnits);
   }, [stageId]);
 
@@ -312,6 +357,50 @@ export default function BattlePlayPage() {
         await recordEvent({ kind: 'battleLost' });
       }
       // Skip the rest of the stage-flavored reward pipeline.
+      return;
+    }
+
+    // Dungeon mode short-circuit: themed-farming rewards (gold/exp/gems/
+    // equipment) come from the tier definition, and on win we mark the
+    // (dungeon, tier) cleared so DungeonsPage unlocks its instant-skip.
+    if (dungeonSource) {
+      if (won) {
+        const { def, tier } = dungeonSource;
+        const r = tier.rewards;
+        if (r.gold) {
+          await useProfile.getState().addGold(r.gold);
+          await recordEvent({ kind: 'goldEarned', amount: r.gold });
+        }
+        if (r.exp) {
+          for (const id of loadSquad()) {
+            const h = heroes.find(x => x.id === id);
+            if (!h) continue;
+            let lvl = h.level;
+            let exp = h.exp + r.exp;
+            while (exp >= xpForLevel(lvl) && lvl < 100) {
+              exp -= xpForLevel(lvl);
+              lvl++;
+            }
+            await updateHero(h.id, { level: lvl, exp });
+          }
+          await useProfile.getState().gainExp(r.exp);
+        }
+        if (r.gems) await useProfile.getState().addGems(r.gems);
+        if (r.equipmentCount && r.equipmentMinRarity) {
+          const ilvl = Math.max(10, tier.enemyLevel * 2);
+          const drops: OwnedEquipment[] = [];
+          for (let i = 0; i < r.equipmentCount; i++) {
+            const item = genLoot({ itemLevel: ilvl, minRarity: r.equipmentMinRarity, luckBoost: 0.3 });
+            await addEquipment(item);
+            drops.push(item);
+          }
+          setLootDrops(drops);
+        }
+        markDungeonCleared(def.id, tier.tier);
+        await recordEvent({ kind: 'battleWon' });
+      } else {
+        await recordEvent({ kind: 'battleLost' });
+      }
       return;
     }
 

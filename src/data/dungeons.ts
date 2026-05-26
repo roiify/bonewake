@@ -99,3 +99,24 @@ const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export function weekdayNames(days: number[]): string {
   return days.map(d => WEEKDAY_NAMES[d]).join(', ');
 }
+
+export const DUNGEON_BY_ID: Record<string, DungeonDef> = Object.fromEntries(DUNGEONS.map(d => [d.id, d]));
+
+// First-clear tracking — once a (dungeon, tier) is cleared by playing
+// through the battle, the player unlocks the instant-skip button for it.
+const DGN_CLEAR_KEY = 'bonewake_dungeon_clears';
+type DungeonClearMap = Record<string, true>;
+function loadDungeonClears(): DungeonClearMap {
+  try { return JSON.parse(localStorage.getItem(DGN_CLEAR_KEY) ?? '{}'); } catch { return {}; }
+}
+export function dungeonClearKey(dungeonId: string, tier: number): string {
+  return `${dungeonId}-t${tier}`;
+}
+export function hasClearedDungeon(dungeonId: string, tier: number): boolean {
+  return !!loadDungeonClears()[dungeonClearKey(dungeonId, tier)];
+}
+export function markDungeonCleared(dungeonId: string, tier: number): void {
+  const map = loadDungeonClears();
+  map[dungeonClearKey(dungeonId, tier)] = true;
+  localStorage.setItem(DGN_CLEAR_KEY, JSON.stringify(map));
+}

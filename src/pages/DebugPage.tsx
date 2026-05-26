@@ -153,8 +153,9 @@ export default function DebugPage() {
   async function maxEverything() {
     if (!confirm('TESTING — Max everything?\n\nGrants all heroes at max stats, crafts every ultimate set + socket gem, auto-equips, sockets ult gems into ult weapons.')) return;
 
-    // 1. Top up currencies + materials so crafts never fail mid-flight
-    await patch({ gold: 999_999_999, gems: 9_999_999, energy: 100, friendPoints: 99_999 });
+    // 1. Top up currencies + materials so crafts never fail mid-flight,
+    //    and slam the player profile to level 999.
+    await patch({ level: 999, exp: 0, gold: 999_999_999, gems: 9_999_999, energy: 100, friendPoints: 99_999 });
     await addMaterial(MAT_SOULSHARD, 10_000);
     for (const s of ULTIMATE_SETS) await addMaterial(essenceItemId(s.heroId), 10_000);
 

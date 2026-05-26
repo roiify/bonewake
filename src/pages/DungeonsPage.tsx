@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DUNGEONS, dungeonsForToday, buildDungeonTeam, weekdayNames, type DungeonDef, type DungeonTier } from '../data/dungeons';
+import { DUNGEONS, dungeonsForToday, buildDungeonTeam, weekdayNames, hasClearedDungeon, markDungeonCleared, type DungeonDef, type DungeonTier } from '../data/dungeons';
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import { resolveBattle } from '../lib/combat';
@@ -80,6 +80,10 @@ export default function DungeonsPage() {
           await addEquipment(genLoot({ itemLevel: ilvl, minRarity: r.equipmentMinRarity, luckBoost: 0.3 }));
         }
       }
+      // Instant-skip also counts as a clear for unlock purposes (only
+      // reachable if it was already unlocked by a manual play-through —
+      // but we mark it anyway so the state is self-healing).
+      markDungeonCleared(def.id, tier.tier);
       await recordEvent({ kind: 'battleWon' });
       setResult({ won: true, rewards: r });
     } else {
@@ -134,20 +138,44 @@ export default function DungeonsPage() {
                       r.equipmentCount && `${r.equipmentCount}x gear`,
                     ].filter(Boolean).join(' · ');
                     const canAfford = profile.energy >= tier.energyCost;
+                    const cleared = hasClearedDungeon(def.id, tier.tier);
                     return (
                       <div key={tier.tier} className="rounded border border-zinc-700 bg-zinc-950 p-2 flex items-center gap-2">
                         <div className="flex-1 min-w-0">
-                          <div className="text-[11px] font-pixel">Tier {tier.tier}: {tier.name}</div>
+                          <div className="text-[11px] font-pixel flex items-center gap-1">
+                            Tier {tier.tier}: {tier.name}
+                            {cleared && <span className="text-[8px] text-emerald-400">✓</span>}
+                          </div>
                           <div className="text-[9px] text-zinc-500">LVL:{tier.enemyLevel} enemies · {'★'.repeat(tier.enemyStar)}</div>
                           <div className="text-[10px] text-emerald-400 mt-0.5">{rewardLabel}</div>
                         </div>
-                        <button
-                          className={`btn-pixel ${canAfford ? 'primary' : ''} shrink-0`}
-                          disabled={!canAfford || busy}
-                          onClick={() => runTier(def, tier)}
-                        >
-                          ⚡{tier.energyCost}
-                        </button>
+                        <div className="flex flex-col gap-1 shrink-0">
+                          <button
+                            className={`btn-pixel ${canAfford ? 'primary' : ''}`}
+                            disabled={!canAfford || busy}
+                            onClick={() => navigate(`/battle/play/dungeon-${def.id}-${tier.tier}`)}
+                            title="Play through the battle"
+                          >
+                            ▶ Play ⚡{tier.energyCost}
+                          </button>
+                          {cleared ? (
+                            <button
+                              className="btn-pixel"
+                              disabled={!canAfford || busy}
+                              onClick={() => runTier(def, tier)}
+                              title="Instant clear (auto-resolve)"
+                            >
+                              ⏩ Skip
+                            </button>
+                          ) : (
+                            <div
+                              className="text-[8px] text-zinc-600 text-center px-1"
+                              title="Clear this tier once to unlock instant-skip"
+                            >
+                              skip locked
+                            </div>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
