@@ -1237,24 +1237,19 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
         // headroom above the silhouette.
         const containerSize = isPaintedBoss ? 'w-48 h-56' : 'w-44 h-44';
         const renderSize = isPaintedBoss ? 192 : (heroSprites ? 234 : 220);
-        // Per-sprite orientation (verified by inspecting native atlases):
-        //   - All sprites in this game face WEST natively.
-        //   - Heroes are on the LEFT side facing west → wrong direction;
-        //     they should face east toward enemies. Mirror them.
-        //   - Enemies (including painted bosses) are on the RIGHT side
-        //     facing west → already correct, no flip needed.
-        //   - chino's sprite shipped reversed (faces east natively), so
-        //     he needs the opposite handling — kept as a one-off override.
+        // Per-sprite orientation (verified empirically in-game):
+        //   - Heroes face EAST natively → correct on player side (left),
+        //     no flip needed.
+        //   - Enemies (including painted bosses) face WEST natively →
+        //     correct on enemy side (right), no flip needed.
+        //   - chino is the only outlier — his sprite shipped reversed
+        //     (faces west) so he gets the one-off flip override.
         const REVERSED_HEROES = new Set<string>(['chino']);
         const flipHero = REVERSED_HEROES.has(unit.templateId);
         const baseFilter = 'brightness(0.85) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85))';
-        // Hero squad (player side) needs a flip to face east toward enemies.
-        // Painted boss + regular enemy on the enemy side: no flip (already
-        // facing west toward heroes).
-        const needsFlip = (side === 'player' && !flipHero) || (side === 'enemy' && flipHero);
         const wrapStyle: React.CSSProperties | undefined = isPaintedBoss
-          ? { filter: baseFilter, transform: needsFlip ? 'scaleX(-1)' : undefined }
-          : needsFlip
+          ? { filter: baseFilter }
+          : flipHero
             ? { transform: 'scaleX(-1)' }
             : undefined;
         return (
