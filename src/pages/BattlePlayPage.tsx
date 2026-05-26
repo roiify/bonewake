@@ -1237,7 +1237,18 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
         const flipHero = REVERSED_HEROES.has(unit.templateId);
         const baseFilter = 'brightness(0.85) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85))';
         const wrapStyle: React.CSSProperties | undefined = isPaintedBoss
-          ? { filter: baseFilter, transform: side === 'enemy' ? 'scaleX(-1)' : undefined }
+          ? {
+              filter: baseFilter,
+              transform: side === 'enemy' ? 'scaleX(-1)' : undefined,
+              // 224px container is 28px wider than the 196px enemy column.
+              // The items-end alignment pins the container's right edge to
+              // the column edge, so the extra 28px bleeds RIGHT past the
+              // 420px frame. Pull the container 32px back from the right
+              // edge so the bleed goes LEFT into the gap + player-column
+              // slack instead. (Apply only on the enemy side — player-side
+              // painted bosses, if any, would need the opposite shift.)
+              marginRight: side === 'enemy' ? 32 : undefined,
+            }
           : (flipHero || (side === 'enemy' && !heroSprites))
             ? { transform: 'scaleX(-1)' }
             : undefined;
