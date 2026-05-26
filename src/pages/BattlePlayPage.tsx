@@ -182,10 +182,19 @@ export default function BattlePlayPage() {
       setLungeOffset(null);
     }
     setAttacker(action.src);
-    // Ult/skill animations are disabled — they play as basic attacks for now.
+    // Skill (50 energy) animations still suppressed — fire as basic visually.
     setSkillCaster(null);
     setHealCaster(isHealAction ? action.src : null);
-    setUltFlash(null);
+    // Ult cue: brief radial flash + "ULT!" label, then clear before the
+    // next action so the battle keeps its 1s/tick cadence.
+    if (action.ult) {
+      const u = units[action.src];
+      setUltFlash(u);
+      const t = setTimeout(() => setUltFlash(null), 700 / speed);
+      return () => clearTimeout(t);
+    } else {
+      setUltFlash(null);
+    }
     return;
   }, [tick, battle, done]);
 
@@ -196,7 +205,9 @@ export default function BattlePlayPage() {
     // Continuation entries (extra targets of a multi-target ult) get a
     // very short wait — the animation already played on the first entry.
     const isBasic = !a.cont;
-    const baseDuration = a.cont ? 250 : 1000;
+    // Ults get an extra ~400ms so the radial flash + "ULT!" badge land
+    // visibly before the next action ticks.
+    const baseDuration = a.cont ? 250 : (a.ult ? 1400 : 1000);
     // For basic attacks, the impact lands while the attacker is still
     // at the target (after the dash, before the retreat) so the screen
     // shake / damage number / SFX hit in sync with the swing rather than
@@ -507,36 +518,41 @@ export default function BattlePlayPage() {
         );
       })()}
 
-      {/* Ult flash with aura */}
+      {/* Brief ult cue: radial color flash + hero emoji + "ULT!" badge.
+          Kept short (~600ms) so the battle keeps its cadence — the full
+          cinematic ult animation is intentionally off. */}
       <AnimatePresence>
         {ultFlash && (
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
-            style={{ background: `radial-gradient(circle, ${ultFlash.color}90, #000000d0)` }}
+            initial={{ opacity: 0 }} animate={{ opacity: 0.85 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 / speed }}
+            className="absolute inset-0 z-30 flex flex-col items-center justify-center pointer-events-none"
+            style={{ background: `radial-gradient(circle, ${ultFlash.color}cc 0%, ${ultFlash.color}55 30%, #00000000 70%)` }}
           >
-            {(HERO_SPRITES[ultFlash.templateId]?.ult || HERO_SPRITES[ultFlash.templateId]?.skill) ? (
-              <motion.div
-                initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1.6, opacity: 1 }} exit={{ scale: 2.2, opacity: 0 }}
-                transition={{ duration: 0.5 / speed }}
-                className="relative"
-              >
-                <SpriteAnimator
-                  src={HERO_SPRITES[ultFlash.templateId].ult ?? HERO_SPRITES[ultFlash.templateId].skill}
-                  cols={HERO_SPRITES[ultFlash.templateId].cols}
-                  rows={HERO_SPRITES[ultFlash.templateId].rows}
-                  fps={7} loop={false} size={200}
-                />
-              </motion.div>
-            ) : (
-              <motion.div
-                initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 1.6, opacity: 0 }}
-                transition={{ duration: 0.4 / speed }}
-                className="text-8xl relative drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]"
-              >
-                {ultFlash.emoji}
-              </motion.div>
-            )}
+            <motion.div
+              initial={{ scale: 0.3, rotate: -15, opacity: 0 }}
+              animate={{ scale: 1.2, rotate: 0, opacity: 1 }}
+              exit={{ scale: 1.6, opacity: 0 }}
+              transition={{ duration: 0.32 / speed, type: 'spring', stiffness: 260 }}
+              className="text-7xl drop-shadow-[0_4px_10px_rgba(0,0,0,0.95)]"
+            >
+              {ultFlash.emoji}
+            </motion.div>
+            <motion.div
+              initial={{ y: 18, opacity: 0, scale: 0.7 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.3 }}
+              transition={{ duration: 0.32 / speed, delay: 0.08 / speed }}
+              className="mt-1 px-4 py-1 rounded-md text-2xl font-black tracking-[0.25em] uppercase"
+              style={{
+                color: '#fff',
+                background: `${ultFlash.color}`,
+                boxShadow: `0 0 18px ${ultFlash.color}`,
+                WebkitTextStroke: '1px rgba(0,0,0,0.6)',
+              }}
+            >
+              {ultFlash.name} ULT!
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
