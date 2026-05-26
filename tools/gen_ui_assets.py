@@ -77,7 +77,7 @@ BUTTON_TEXTURE = (
     "Horizontal repeatable strip of engraved ornamental gold metal, "
     "subtle skull-and-laurel pattern repeating across the surface, "
     "dark fantasy bevel, dragon-scale-like motif edges, no border",
-    (640, 160),
+    (400, 100),
 )
 
 API_URL = "https://api.pixellab.ai/v1/generate-image-pixflux"
