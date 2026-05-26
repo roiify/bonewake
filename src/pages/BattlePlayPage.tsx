@@ -1212,13 +1212,15 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
           not a regular enemy". */}
       {(() => {
         const isPaintedBoss = PAINTED_BOSS_IDS.has(unit.templateId);
-        // Painted-boss sprites are now pixel sprites at 170px native. Keep
-        // them visibly bigger than the ~176px hero containers, but fit
-        // within the 420px mobile game frame so they don't bleed past
-        // the enemy half-column. w-56 / 224px container + 240px render
-        // gives a "this is the big boss" silhouette without overflow.
-        const containerSize = isPaintedBoss ? 'w-56 h-56' : 'w-44 h-44';
-        const renderSize = isPaintedBoss ? 240 : (heroSprites ? 234 : 220);
+        // The mobile game frame is 420px wide and the enemy column gets
+        // ~190px after padding+gap. Boss must fit that column without
+        // clipping the right edge. Keep boss container the same width
+        // as a hero (w-44 / 176px) — physical-size parity. The "boss
+        // feeling" now comes from the much bigger HP bar (full-bleed
+        // for world boss), heavy red glow filter, and the attack
+        // animation playing longer, not from raw pixel size.
+        const containerSize = 'w-44 h-44';
+        const renderSize = isPaintedBoss ? 176 : (heroSprites ? 234 : 220);
         // Per-sprite orientation: PixelLab side-view sprites face east
         // by default. Heroes are on the left and need to face east →
         // no flip. Enemies (including painted bosses, now that their
