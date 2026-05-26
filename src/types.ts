@@ -45,14 +45,28 @@ export interface Stage {
   firstClearBonus: { gems: number };
 }
 
+export type SummonKind = 'hero' | 'equipment' | 'socket' | 'material';
+
 export interface SummonPool {
-  id: 'standard' | 'premium' | 'friend';
+  id: string;
   name: string;
   description: string;
+  // Defaults to 'hero' when omitted. Non-hero pools use their own reward
+  // generators and ignore rates/pityFive.
+  kind?: SummonKind;
   cost: { currency: 'gold' | 'gems' | 'friendPoints'; amount: number };
   rates: { 3: number; 4: number; 5: number };
   pityFive: number | null;
   featuredHeroId?: string;
+  // Equipment pool — item level fed to genLoot + minimum rarity floor.
+  equipmentItemLevel?: number;
+  equipmentMinRarity?: 1 | 2 | 3 | 4 | 5;
+  // Socket pool — max gem tier this pool can roll (1-4).
+  socketMaxTier?: 1 | 2 | 3 | 4;
+  // Material pool — soulshard yield range + chance to also drop a hero essence.
+  materialSoulshardMin?: number;
+  materialSoulshardMax?: number;
+  materialEssenceChance?: number;
 }
 
 // Combat

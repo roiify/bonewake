@@ -5,18 +5,17 @@ import type { SummonPool } from '../types';
 //   4 = SS
 //   5 = SSS
 // The pulled hero is added at that star level. Promotion still works via fragments.
-
-// Three pools — Novice Wish dropped (it was just Friend Wish without
-// the SS chance; same cost, strictly worse). Pools sorted in display
-// priority: Stellar (premium gems) > Standard (gold daily) > Friend
-// (friend-point freebie).
+//
+// Five pools total — two hero pulls + three resource-summon pools that
+// replaced Friend Wish (which was strictly worse than the gold-daily
+// Standard pool once the player had any equipment).
+//
+// Order is display priority: Stellar > Standard > Equipment > Socket > Material.
 export const SUMMON_POOLS: SummonPool[] = [
   {
     id: 'premium',
     name: 'Stellar Wish',
-    // Steeper-grind: gem cost doubled (5 → 10), SSS rate halved (4% → 2%),
-    // pity pushed out (90 → 120). A guaranteed SSS now costs at most 1200
-    // gems instead of 450 — pulls feel like a real commitment.
+    kind: 'hero',
     description: 'Best odds. Featured SSS hero · pity SSS at 120.',
     cost: { currency: 'gems', amount: 10 },
     rates: { 3: 0.74, 4: 0.24, 5: 0.02 },
@@ -26,19 +25,44 @@ export const SUMMON_POOLS: SummonPool[] = [
   {
     id: 'standard',
     name: 'Standard Wish',
+    kind: 'hero',
     description: 'Cheap gold pulls. Mostly S, rare SS, almost never SSS.',
-    // Steeper-grind: SSS halved (0.5% → 0.25%), SS trimmed.
     cost: { currency: 'gold', amount: 100 },
     rates: { 3: 0.9275, 4: 0.07, 5: 0.0025 },
     pityFive: null,
   },
   {
-    id: 'friend',
-    name: 'Friend Wish',
-    description: 'Friend-point pulls. Mostly S, sometimes SS.',
-    cost: { currency: 'friendPoints', amount: 1 },
-    rates: { 3: 0.95, 4: 0.05, 5: 0 },
+    id: 'equipment',
+    name: 'Equipment Wish',
+    kind: 'equipment',
+    description: 'Random gear roll at high item level. Mostly Rare+, chance for Legendary.',
+    cost: { currency: 'gems', amount: 8 },
+    rates: { 3: 0, 4: 0, 5: 0 }, // unused for non-hero pools
     pityFive: null,
+    equipmentItemLevel: 60,
+    equipmentMinRarity: 3,
+  },
+  {
+    id: 'socket',
+    name: 'Socket Wish',
+    kind: 'socket',
+    description: 'Random socketable gem. Stat & tier are RNG up to Crystal (T4).',
+    cost: { currency: 'gold', amount: 250 },
+    rates: { 3: 0, 4: 0, 5: 0 },
+    pityFive: null,
+    socketMaxTier: 4,
+  },
+  {
+    id: 'material',
+    name: 'Material Wish',
+    kind: 'material',
+    description: 'Bundle of soulshards. Small chance to also pull a hero essence.',
+    cost: { currency: 'gold', amount: 200 },
+    rates: { 3: 0, 4: 0, 5: 0 },
+    pityFive: null,
+    materialSoulshardMin: 8,
+    materialSoulshardMax: 20,
+    materialEssenceChance: 0.12,
   },
 ];
 

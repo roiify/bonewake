@@ -86,8 +86,11 @@ def load_ref_b64(slug: str) -> str:
     if not src.exists():
         raise FileNotFoundError(f"missing {src}")
     img = Image.open(src).convert("RGBA")
-    # Downscale to 256x256 (max for 8-direction endpoint).
-    img = img.resize((256, 256), Image.LANCZOS)
+    # Downscale to 128x128. 256x256 silently never finished on T1 — jobs
+    # would queue, sit at 95% pending forever, and never progress. The
+    # text-only path completed fine at 64x64, suggesting T1 has a soft
+    # cap on reference-driven 8-dir size somewhere around 128.
+    img = img.resize((128, 128), Image.LANCZOS)
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return base64.b64encode(buf.getvalue()).decode()
