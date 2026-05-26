@@ -213,25 +213,52 @@ export default function DebugPage() {
       if (g.tier === 4) await addGemToInventory(g.id, 30);
     }
 
+    // 4.5. Wipe every existing equippedTo assignment so we start from
+    // a clean slate. Otherwise old chapter-loot gear from previous runs
+    // keeps a stale `equippedTo: <heroId>` pointer that contradicts the
+    // hero's `equipped` map — equip page shows ghost gear.
+    const allEquipment = await db.equipment.toArray();
+    for (const eq of allEquipment) {
+      if (eq.equippedTo) await db.equipment.update(eq.id, { equippedTo: null });
+    }
+    // Also clear every hero's equipped map so the re-assignment is canonical.
+    const heroesPreEquip = await db.heroes.toArray();
+    for (const h of heroesPreEquip) {
+      if (Object.keys(h.equipped ?? {}).length > 0) {
+        await db.heroes.update(h.id, { equipped: {} });
+      }
+    }
+
     // 5. For each hero: equip their five set pieces. Then for each
     // equipped piece, fill normal sockets with tier-4 gems matching the
     // piece's primary stat (or atk fallback), and put the hero's ult
     // gem into the ult socket on the ultimate weapon.
+    let heroesEquipped = 0;
+    let piecesEquipped = 0;
+    let ultGemsSocketed = 0;
+    let normalGemsSocketed = 0;
     const allHeroes = await db.heroes.toArray();
     const heroByTpl = new Map(allHeroes.map(h => [h.templateId, h]));
+    // Cache equipment-by-craftedPieceId once instead of re-reading per piece.
+    const eqByCraftedId = new Map<string, typeof allEquipment[number]>();
+    for (const eq of await db.equipment.toArray()) {
+      if (eq.craftedPieceId) eqByCraftedId.set(eq.craftedPieceId, eq);
+    }
     for (const set of ULTIMATE_SETS) {
       const hero = heroByTpl.get(set.heroId);
       if (!hero) continue;
       const newEquipped: Partial<Record<string, string>> = {};
       let ultWeaponId: string | null = null;
       for (const piece of set.pieces) {
-        const eq = (await db.equipment.toArray()).find(e => e.craftedPieceId === piece.id);
+        const eq = eqByCraftedId.get(piece.id);
         if (!eq) continue;
         await db.equipment.update(eq.id, { equippedTo: hero.id });
         newEquipped[piece.slot] = eq.id;
         if (eq.isUltimateWeapon) ultWeaponId = eq.id;
+        piecesEquipped++;
       }
       await db.heroes.update(hero.id, { equipped: newEquipped });
+      heroesEquipped++;
 
       // Socket the ult gem into the ult weapon's dedicated ult socket
       // (mythic pieces don't otherwise have it filled).
@@ -239,7 +266,10 @@ export default function DebugPage() {
         const ultGem = ULT_GEM_BY_HERO[set.heroId];
         if (ultGem) {
           const ok = await removeGemFromInventory(ultGem.id, 1);
-          if (ok) await db.equipment.update(ultWeaponId, { ultSocket: ultGem.id });
+          if (ok) {
+            await db.equipment.update(ultWeaponId, { ultSocket: ultGem.id });
+            ultGemsSocketed++;
+          }
         }
       }
       // Fill normal sockets on every equipped piece with a tier-4 gem
@@ -259,6 +289,7 @@ export default function DebugPage() {
           if (!ok) break;
           sockets[i] = fillerId;
           changed = true;
+          normalGemsSocketed++;
         }
         if (changed) await db.equipment.update(eqId, { sockets });
       }
@@ -279,7 +310,14 @@ export default function DebugPage() {
     }
 
     await reload();
-    alert('MAX EVERYTHING applied — all heroes maxed, ult gear crafted & equipped, hero gem slots filled, every stage 3-starred.');
+    alert(
+      `MAX EVERYTHING applied:\n` +
+      `  • Player: lvl 200, max currencies\n` +
+      `  • Heroes: ${heroesPreEquip.length} heroes maxed (★6, lvl 200, all talents, ult lvl ${MAX_ULT_LEVEL})\n` +
+      `  • Gear: ${piecesEquipped} ult set pieces equipped to ${heroesEquipped} heroes\n` +
+      `  • Sockets: ${ultGemsSocketed} ult gems + ${normalGemsSocketed} normal gems socketed\n` +
+      `  • Stages: every chapter 3-starred`
+    );
   }
 
   async function resetDaily() {
