@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { getUnreadCount } from '../lib/mail';
 import { useProfile } from '../store/profile';
 import { GATE_BY_PATH } from '../data/gating';
+import PageHeader from '../components/ui/PageHeader';
 
 const sections = [
   { to: '/tower', label: 'Tower of Trials', icon: '🗼', desc: 'Climb endless floors. Daily attempts; floors 1-100 reset weekly.' },
@@ -30,7 +31,7 @@ export default function MorePage() {
   useEffect(() => { getUnreadCount().then(setUnread); }, []);
   return (
     <div className="p-3 space-y-2 pb-5">
-      <h2 className="font-pixel text-sm mb-3">More</h2>
+      <PageHeader title="More" tagline="Game modes, currencies, settings" glow="#a78bfa" />
       {sections.map(s => {
         const gate = GATE_BY_PATH[s.to];
         const locked = !!gate && profile.level < gate.unlockLevel;

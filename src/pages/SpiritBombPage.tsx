@@ -18,6 +18,7 @@ import { MAT_SOULSHARD } from '../data/ultimateGear';
 import { ENEMY_SPRITES } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import SquadPicker from '../components/SquadPicker';
+import PageHeader from '../components/ui/PageHeader';
 
 const SQUAD_KEY = 'bonewake_squad';
 function loadSquad(): string[] {
@@ -107,15 +108,16 @@ export default function SpiritBombPage() {
     <div className="p-3 space-y-3 pb-5">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
 
-      <div className="text-center">
-        <h2 className="font-pixel text-base text-amber-300">💥 Shatter</h2>
-        <p className="text-[10px] text-zinc-500 mt-1">Weekly · Damage carries between attempts</p>
-        <p className="text-[10px] text-zinc-400 mt-2 px-4 leading-snug">
-          Chip away at one massive boss across the week.
-          Every hit you land <span className="text-amber-300">stacks toward the same HP pool</span> —
-          consistent damage wins over single big swings.
-        </p>
-      </div>
+      <PageHeader
+        title="💥 Shatter"
+        tagline="Weekly · damage carries between attempts"
+        glow="#fbbf24"
+      />
+      <p className="text-[10px] text-zinc-400 px-2 leading-snug">
+        Chip away at one massive boss across the week.
+        Every hit <span className="text-amber-300">stacks toward the same HP pool</span> —
+        consistent damage wins over single big swings.
+      </p>
 
       {/* Boss */}
       <div className="rounded-lg border-2 border-rose-700 bg-gradient-to-b from-rose-950/40 to-zinc-900 p-4">

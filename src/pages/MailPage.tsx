@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { db, type MailMessage } from '../lib/db';
 import { claimMail, markRead } from '../lib/mail';
 import { useItems } from '../store/items';
+import PageHeader from '../components/ui/PageHeader';
 
 function rewardsLabel(r: MailMessage['rewards']) {
   const parts: string[] = [];
@@ -72,12 +73,12 @@ export default function MailPage() {
   return (
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
-      <div className="flex items-center justify-between">
-        <h2 className="font-pixel text-sm">📬 Mailbox</h2>
-        {unclaimed > 0 && (
-          <button className="btn-pixel primary" onClick={claimAll}>Claim All</button>
-        )}
-      </div>
+      <PageHeader
+        title="📬 Mailbox"
+        tagline="Reward inbox & system messages"
+        glow="#34d399"
+        rightSlot={unclaimed > 0 ? <button className="btn-pixel primary" onClick={claimAll}>Claim All</button> : undefined}
+      />
 
       {messages.length === 0 ? (
         <div className="text-center text-xs text-zinc-500 py-12">No mail.</div>

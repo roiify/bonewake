@@ -5,6 +5,7 @@ import { useHeroes } from '../store/heroes';
 import { TRIALS, type TrialDef } from '../data/trials';
 import { HERO_BY_ID } from '../data/heroes';
 import SquadPicker from '../components/SquadPicker';
+import PageHeader from '../components/ui/PageHeader';
 import { db } from '../lib/db';
 import { resolveBattle } from '../lib/combat';
 import { toCombatUnit, buildEnemyUnit } from '../lib/stats';
@@ -134,16 +135,15 @@ export default function TrialsPage() {
   return (
     <div className="p-3 space-y-3 pb-5">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
-      <div>
-        <h2 className="font-pixel text-sm">🎯 Hero Trials</h2>
-        <p className="text-[10px] text-zinc-500 mt-1">
-          Themed runs with squad restrictions. Each trial gives bonus rewards once per day.
-        </p>
-        <p className="text-[10px] text-zinc-400 mt-2 leading-snug">
-          Tests <span className="text-amber-300">team flexibility</span> — you'll need to build
-          element- or class-specific squads to enter. Rewards lean toward gems and soulshards.
-        </p>
-      </div>
+      <PageHeader
+        title="Hero Trials"
+        tagline="Themed daily runs with squad restrictions"
+        glow="#fb7185"
+      />
+      <p className="text-[10px] text-zinc-400 px-2 leading-snug">
+        Tests <span className="text-amber-300">team flexibility</span> — you'll need to build
+        element- or class-specific squads to enter. Bonus gems + soulshards.
+      </p>
 
       <div className="space-y-2">
         {TRIALS.map(def => {

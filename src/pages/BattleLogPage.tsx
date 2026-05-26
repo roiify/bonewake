@@ -4,6 +4,7 @@ import { recentBattles } from '../lib/battleLog';
 import type { BattleLogEntry } from '../lib/db';
 import { HERO_BY_ID, HERO_PORTRAITS, ENEMY_SPRITES } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
+import PageHeader from '../components/ui/PageHeader';
 
 function timeAgo(ms: number): string {
   const diff = Date.now() - ms;
@@ -34,7 +35,7 @@ export default function BattleLogPage() {
   return (
     <div className="p-3 space-y-3 pb-5">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
-      <h2 className="font-pixel text-sm">📊 Battle Log</h2>
+      <PageHeader title="📊 Battle Log" tagline="Recent battle results across every mode" glow="#22d3ee" />
 
       {logs.length === 0 ? (
         <div className="text-center text-xs text-zinc-500 py-10">No battles logged yet.</div>

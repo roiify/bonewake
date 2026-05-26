@@ -7,6 +7,7 @@ import { MYTHIC_COLOR } from '../data/ultimateGear';
 import { equipPower, equipStats } from '../lib/loot';
 import type { OwnedEquipment } from '../lib/db';
 import { salvageEquipment, bulkSalvageBelow, upgradeCost, upgradeEquipment, MAX_UPGRADE_LEVEL, salvageValue } from '../lib/equipmentMgmt';
+import PageHeader from '../components/ui/PageHeader';
 
 function itemDisplayName(eq: OwnedEquipment): string {
   if (eq.name) return eq.name;
@@ -83,8 +84,13 @@ export default function BagPage() {
 
   return (
     <div className="p-3 space-y-3">
+      <PageHeader
+        title="Inventory"
+        tagline={`${equipment.length} items collected · tap to inspect, salvage, or upgrade`}
+        glow="#a855f7"
+      />
       <div className="flex items-center justify-between">
-        <h2 className="font-pixel text-sm">Inventory ({equipment.length})</h2>
+        <h3 className="font-pixel text-[11px] text-zinc-400 uppercase tracking-widest">Filter</h3>
         <div className="flex gap-1">
           <button
             className={`text-[10px] font-pixel px-2 py-1 rounded border ${filterRarity == null ? 'border-amber-400 bg-amber-400/20 text-amber-300' : 'border-zinc-700 text-zinc-400'}`}

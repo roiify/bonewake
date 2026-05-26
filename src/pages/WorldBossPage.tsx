@@ -10,6 +10,7 @@ import { recordEvent } from '../lib/lifetime';
 import { ENEMY_SPRITES } from '../data/heroes';
 import { addMaterial } from '../lib/crafting';
 import SquadPicker from '../components/SquadPicker';
+import PageHeader from '../components/ui/PageHeader';
 import { MAT_SOULSHARD } from '../data/ultimateGear';
 
 const SQUAD_KEY = 'bonewake_squad';
@@ -103,20 +104,14 @@ export default function WorldBossPage() {
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
 
-      {/* Header */}
-      <div
-        className="relative rounded-lg overflow-hidden h-32 flex items-end justify-center"
-        style={{ backgroundImage: `url(${import.meta.env.BASE_URL}sprites/bg/cosmic_fire.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-zinc-950/20" />
-        <div className="relative z-10 text-center pb-3">
-          <h2 className="font-pixel text-base text-rose-300">🌋 World Boss</h2>
-          <p className="text-[10px] text-zinc-300 mt-1">Weekly · Resets Monday</p>
-        </div>
-      </div>
-      <p className="text-[10px] text-zinc-400 px-2 leading-snug text-center">
-        One huge boss per week. Only your <span className="text-amber-300">best single-attempt damage</span> counts —
-        burst comps win here, not consistency.
+      <PageHeader
+        title="World Boss"
+        tagline="Weekly · only your BEST single-attempt damage counts"
+        glow="#dc2626"
+      />
+      <p className="text-[10px] text-zinc-400 px-2 leading-snug">
+        One huge boss per week. <span className="text-amber-300">Burst comps win here</span>, not consistency.
+        Multiple attempts replace your best — there's no penalty for trying again.
       </p>
 
       {/* Boss — big-sprite hero shot */}

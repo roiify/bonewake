@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { STAGES } from '../data/stages';
+import PageHeader from '../components/ui/PageHeader';
 import { db, type StageClear } from '../lib/db';
 import { CHAPTER_BG } from '../data/auraMap';
 
@@ -55,7 +56,7 @@ export default function ChapterMapPage() {
   return (
     <div className="p-3 space-y-4 pb-5">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
-      <h2 className="font-pixel text-sm">🗺️ World Map</h2>
+      <PageHeader title="World Map" tagline="29 chapters · 145 stages" glow="#a855f7" />
 
       {Object.entries(byChapter).map(([chRaw, stages]) => {
         const ch = Number(chRaw);

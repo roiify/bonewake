@@ -3,6 +3,7 @@ import { useProfile } from '../store/profile';
 import { DEFAULT_SETTINGS, normalizeSettings, type GameSettings } from '../lib/db';
 import { useEffect, useRef, useState } from 'react';
 import BackupsPanel from '../components/BackupsPanel';
+import PageHeader from '../components/ui/PageHeader';
 
 function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -45,7 +46,7 @@ export default function SettingsPage() {
   return (
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
-      <h2 className="font-pixel text-sm">⚙️ Settings</h2>
+      <PageHeader title="⚙️ Settings" tagline="Audio, battle speed, display preferences" glow="#22d3ee" />
 
       {/* Battle */}
       <div className="rounded-md border border-zinc-800 bg-zinc-900 p-3 space-y-3">

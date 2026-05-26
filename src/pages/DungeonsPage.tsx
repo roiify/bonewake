@@ -10,6 +10,7 @@ import { genLoot } from '../lib/loot';
 import { addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD, essenceItemId, ULTIMATE_SETS } from '../data/ultimateGear';
 import SquadPicker from '../components/SquadPicker';
+import PageHeader from '../components/ui/PageHeader';
 
 const SQUAD_KEY = 'bonewake_squad';
 function loadSquad(): string[] {
@@ -112,16 +113,15 @@ export default function DungeonsPage() {
   return (
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
-      <div>
-        <h2 className="font-pixel text-sm">⛏️ Material Dungeons</h2>
-        <p className="text-[10px] text-zinc-500 mt-1">
-          Themed farming. Each dungeon is open only on its weekdays. Today is <span className="text-emerald-400 font-pixel">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()]}</span>.
-        </p>
-        <p className="text-[10px] text-zinc-400 mt-2 leading-snug">
-          Pure <span className="text-amber-300">resource faucets</span> — pick the dungeon that
-          matches what you're short on (gold, XP, gear, or gems) and farm it on its open day.
-        </p>
-      </div>
+      <PageHeader
+        title="Material Dungeons"
+        tagline={`Themed farming · today is ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()]}`}
+        glow="#34d399"
+      />
+      <p className="text-[10px] text-zinc-400 px-2 leading-snug">
+        Pure <span className="text-amber-300">resource faucets</span> — pick the dungeon matching
+        what you're short on (gold, XP, gear, or gems) and farm it on its open day.
+      </p>
 
       <div className="space-y-2">
         {DUNGEONS.map(def => {

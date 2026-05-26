@@ -4,6 +4,7 @@ import { ACHIEVEMENTS, CATEGORY_LABEL, type AchievementCat, type AchievementDef 
 import { claimAchievement, getClaimedIds, isComplete, progressFor } from '../lib/achievements';
 import { useProfile } from '../store/profile';
 import { useItems } from '../store/items';
+import PageHeader from '../components/ui/PageHeader';
 
 function rewardsLabel(rewards: AchievementDef['rewards']) {
   const parts: string[] = [];
@@ -46,10 +47,12 @@ export default function AchievementsPage() {
   return (
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
-      <div className="flex items-center justify-between">
-        <h2 className="font-pixel text-sm">🏆 Achievements</h2>
-        <div className="text-[10px] text-amber-400 font-pixel">{claimedCount} / {totalCount}</div>
-      </div>
+      <PageHeader
+        title="🏆 Achievements"
+        tagline="Milestones with reward chests"
+        glow="#fbbf24"
+        rightSlot={<div className="text-[11px] text-amber-300 font-pixel">{claimedCount} / {totalCount}</div>}
+      />
 
       {/* Category filter */}
       <div className="flex gap-1 overflow-x-auto pb-1">

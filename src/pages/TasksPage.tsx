@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { TASKS } from '../data/tasks';
 import { claimTask, getTaskList } from '../lib/tasks';
 import { useProfile } from '../store/profile';
+import PageHeader from '../components/ui/PageHeader';
 
 interface TaskRow {
   def: typeof TASKS[number];
@@ -26,9 +27,8 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="p-3 space-y-2">
-      <h2 className="font-pixel text-sm mb-2">Daily Tasks</h2>
-      <p className="text-[10px] text-zinc-500 mb-3">Reset at midnight local time. Free rewards.</p>
+    <div className="p-3 space-y-3">
+      <PageHeader title="Daily Tasks" tagline="Free rewards · resets at midnight local time" glow="#34d399" />
       {rows.map(r => {
         const pct = Math.min(100, (r.progress / r.def.goal) * 100);
         const ready = r.progress >= r.def.goal && !r.claimed;

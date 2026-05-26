@@ -3,6 +3,7 @@ import { useProfile } from '../store/profile';
 import { STAGES } from '../data/stages';
 import { pickHotStages, compassHints, COMPASS_REWARD } from '../data/compass';
 import { isoWeek } from '../data/tower';
+import PageHeader from '../components/ui/PageHeader';
 
 const CHAPTER_NAME: Record<number, string> = {
   1: 'Forsaken Fields', 2: 'Ashen Wastes', 3: 'Dread Court',
@@ -21,14 +22,15 @@ export default function CompassPage() {
   return (
     <div className="p-3 space-y-3 pb-5">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
-      <div>
-        <h2 className="font-pixel text-sm">🧭 Soul Compass</h2>
-        <p className="text-[10px] text-zinc-500 mt-1">
-          Five stages are "hot" this week. 3-star clear each one to find a hidden cache.
-          The compass only hints at *which chapters* contain hot stages — figure out
-          the exact ones by scouting.
-        </p>
-      </div>
+      <PageHeader
+        title="🧭 Soul Compass"
+        tagline="5 hot stages weekly · 3-star each for a hidden cache"
+        glow="#fbbf24"
+      />
+      <p className="text-[10px] text-zinc-400 px-2 leading-snug">
+        The compass only hints at <span className="text-amber-300">which chapters</span> contain
+        hot stages — figure out the exact ones by scouting.
+      </p>
 
       <div className="rounded-lg border-2 border-amber-700 bg-amber-900/15 p-3">
         <div className="font-pixel text-xs text-amber-300 mb-2">This Week's Hints</div>

@@ -6,6 +6,7 @@ import { useProfile } from '../store/profile';
 import { useItems } from '../store/items';
 import { db } from '../lib/db';
 import { MAT_SOULSHARD } from '../data/ultimateGear';
+import PageHeader from '../components/ui/PageHeader';
 
 const CATEGORIES: { id: ShopItem['category'] | 'all'; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -64,10 +65,11 @@ export default function ShopPage() {
   return (
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
-      <div className="flex items-center justify-between">
-        <h2 className="font-pixel text-sm">🏪 Shop</h2>
-        <div className="text-[10px] text-zinc-500">Daily resets at midnight</div>
-      </div>
+      <PageHeader
+        title="🏪 Shop"
+        tagline="Spend gold/gems · daily resets at midnight"
+        glow="#fbbf24"
+      />
 
       <div className="flex gap-1 overflow-x-auto pb-1">
         {CATEGORIES.map(c => (

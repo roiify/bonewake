@@ -6,6 +6,7 @@ import { HERO_BY_ID, HERO_PORTRAITS } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import { xpForLevel, effectiveMaxLevel } from '../lib/stats';
 import { tierLabel, tierColor } from '../lib/tier';
+import PageHeader from '../components/ui/PageHeader';
 
 // Accrual rates
 const XP_PER_MINUTE = 80;       // raw exp granted per minute
@@ -81,13 +82,11 @@ export default function TrainingPage() {
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
 
-      <div>
-        <h2 className="font-pixel text-sm">💤 Training Chamber</h2>
-        <p className="text-[10px] text-zinc-500 mt-1">
-          Place one hero here. They earn XP and gold even while the game is closed.
-          Caps at {MAX_ACCRUAL_HOURS}h of accrual.
-        </p>
-      </div>
+      <PageHeader
+        title="💤 Training Chamber"
+        tagline={`Idle XP + gold while away · caps at ${MAX_ACCRUAL_HOURS}h`}
+        glow="#a78bfa"
+      />
 
       <div className="rounded-lg border-2 p-4 text-center"
         style={{ borderColor: trainingHero ? '#22d3ee' : '#3f3f46', background: trainingHero ? '#0d1e21' : '#18181b' }}

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProfile } from '../store/profile';
 import { ECHOES, unlockedEchoSlots, ECHO_SLOT_UNLOCK_LEVELS } from '../data/echoes';
 import { asset } from '../lib/assetPath';
+import PageHeader from '../components/ui/PageHeader';
 
 const BOSS_SPRITE = (bossId: string) => asset(`sprites/bosses/${bossId}_idle.png`);
 
@@ -28,16 +29,15 @@ export default function EchoesPage() {
     <div className="p-3 space-y-3 pb-5">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
 
-      <div>
-        <h2 className="font-pixel text-sm text-amber-300">💀 Boss Echoes</h2>
-        <p className="text-[10px] text-zinc-500 mt-1">
-          Memories of the bosses you've broken. Each Echo gives a passive that applies to every battle.
-        </p>
-        <p className="text-[10px] text-zinc-400 mt-2 leading-snug">
-          <span className="text-amber-300">Drop rule:</span> the first time you kill a World Boss or
-          Shatter that Echo, you keep it. After that, repeat kills only roll a {Math.round(0.15 * 100)}% drop chance.
-        </p>
-      </div>
+      <PageHeader
+        title="💀 Boss Echoes"
+        tagline="Memories of the bosses you've broken — equip for account-wide passives"
+        glow="#fbbf24"
+      />
+      <p className="text-[10px] text-zinc-400 px-2 leading-snug">
+        <span className="text-amber-300">Drop rule:</span> the first kill of a World Boss or
+        Shatter is a guaranteed Echo drop. Repeat kills only roll a {Math.round(0.15 * 100)}% chance.
+      </p>
 
       {/* Collection summary */}
       <div className="rounded-md border border-zinc-800 bg-zinc-900 p-3">

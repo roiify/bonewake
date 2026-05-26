@@ -22,6 +22,7 @@ import { MAT_SOULSHARD } from '../data/ultimateGear';
 import { ENEMY_SPRITES } from '../data/heroes';
 import { StaticSprite } from '../components/SpriteAnimator';
 import SquadPicker from '../components/SquadPicker';
+import PageHeader from '../components/ui/PageHeader';
 
 const SQUAD_KEY = 'bonewake_squad';
 function loadSquad(): string[] {
@@ -135,20 +136,14 @@ export default function TowerPage() {
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
 
-      {/* Header banner */}
-      <div
-        className="relative rounded-lg overflow-hidden h-32 flex items-end justify-center"
-        style={{ backgroundImage: `url(${import.meta.env.BASE_URL}sprites/echoes/tiles/grave_rising.png)`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-zinc-950/20" />
-        <div className="relative z-10 text-center pb-3">
-          <h2 className="font-pixel text-base text-rose-300">🗼 Tower of Trials</h2>
-          <p className="text-[10px] text-zinc-300 mt-1">Daily attempts · F1-100 reset Monday</p>
-        </div>
-      </div>
-      <p className="text-[10px] text-zinc-400 px-2 leading-snug text-center">
+      <PageHeader
+        title="Tower of Trials"
+        tagline="Daily attempts · floors 1-100 reset Monday · endless persists forever"
+        glow="#fb7185"
+      />
+      <p className="text-[10px] text-zinc-400 px-2 leading-snug">
         Climb one floor at a time for <span className="text-amber-300">escalating rewards</span>.
-        Floors 1-100 reset each week; everything past 100 is endless and persists forever.
+        Only your <span className="text-amber-300">highest floor</span> counts for the weekly leaderboard.
       </p>
 
       {/* Stats */}

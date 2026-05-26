@@ -6,6 +6,7 @@ import { StaticSprite } from '../components/SpriteAnimator';
 import { fragmentItemId, STAR_UP_COST, MAX_STAR } from '../lib/fragments';
 import { tierLabel, tierColor, nextTierLabel } from '../lib/tier';
 import { promotionLevelThreshold } from '../lib/stats';
+import PageHeader from '../components/ui/PageHeader';
 
 export default function FragmentsPage() {
   const navigate = useNavigate();
@@ -26,13 +27,15 @@ export default function FragmentsPage() {
   return (
     <div className="p-3 space-y-3">
       <button onClick={() => navigate(-1)} className="text-xs text-zinc-400">← Back</button>
-      <div>
-        <h2 className="font-pixel text-sm">Hero Fragments 🧩</h2>
-        <p className="text-[10px] text-zinc-500 mt-1">
-          Duplicate pulls turn into fragments. Collect enough to promote that hero
-          to the next tier — but the hero must first reach the max level for its current tier.
-        </p>
-      </div>
+      <PageHeader
+        title="🧩 Fragments"
+        tagline="Duplicate pulls fuel star promotions"
+        glow="#22d3ee"
+      />
+      <p className="text-[10px] text-zinc-400 px-2 leading-snug">
+        Reach a hero's <span className="text-amber-300">tier-cap level</span> first
+        (star × 10), then spend fragments to promote.
+      </p>
 
       {rows.map(({ tpl, fragCount, owned, ownedStar, cost, atMaxStar, levelGated, canPromote }) => (
         <div key={tpl.id} className="rounded-md border border-zinc-800 bg-zinc-900 p-3">
