@@ -35,8 +35,6 @@ export const SHOP_ITEMS: ShopItem[] = [
     cost: { currency: 'gems', amount: 80 }, grant: { kind: 'energy', amount: 200 }, dailyLimit: 2 },
   { id: 'gold_pile',     category: 'currency', name: 'Pile of Gold',  description: '+5000 gold.', emoji: '💰',
     cost: { currency: 'gems', amount: 50 }, grant: { kind: 'gold', amount: 5000 }, dailyLimit: 3 },
-  { id: 'friend_pack',   category: 'currency', name: 'Friend Pack',   description: '+50 friend points.', emoji: '🤝',
-    cost: { currency: 'gold', amount: 2000 }, grant: { kind: 'friendPoints', amount: 50 }, dailyLimit: 3 },
 
   // Materials — soulshards
   { id: 'shard_small',   category: 'materials', name: 'Soulshard Pouch', description: '+10 Soulshards.', emoji: '💠',
@@ -55,17 +53,9 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: 'forge_essence',     category: 'materials', name: 'Legendary Essence', description: '+1 Legendary Essence.', emoji: '🌟',
     cost: { currency: 'gems', amount: 250 },  grant: { kind: 'forgeMat', matId: 'mat_legendary_essence', amount: 1 }, weeklyLimit: 2 },
 
-  // Summon tickets
-  { id: 'ticket_std',    category: 'tickets', name: 'Standard Ticket', description: '1 free standard wish.', emoji: '🎟️',
-    cost: { currency: 'gold', amount: 500 }, grant: { kind: 'summonTicketStandard', count: 1 }, dailyLimit: 5 },
-  { id: 'ticket_stellar',category: 'tickets', name: 'Stellar Ticket',  description: '1 free Stellar wish.', emoji: '✨',
-    cost: { currency: 'gems', amount: 80 }, grant: { kind: 'summonTicketStellar', count: 1 }, dailyLimit: 2 },
-
-  // Equipment crates
-  { id: 'crate_magic',   category: 'gear', name: 'Magic Crate', description: '1 random Magic+ equipment.', emoji: '📦',
-    cost: { currency: 'gold', amount: 1500 }, grant: { kind: 'equipmentCrate', minRarity: 2, count: 1 }, dailyLimit: 3 },
-  { id: 'crate_rare',    category: 'gear', name: 'Rare Crate',  description: '1 random Rare+ equipment.', emoji: '🎁',
-    cost: { currency: 'gems', amount: 60 }, grant: { kind: 'equipmentCrate', minRarity: 3, count: 1 }, dailyLimit: 2 },
-  { id: 'crate_epic',    category: 'gear', name: 'Epic Crate',  description: '1 random Epic+ equipment.', emoji: '🪅',
-    cost: { currency: 'gems', amount: 200 }, grant: { kind: 'equipmentCrate', minRarity: 4, count: 1 }, weeklyLimit: 3 },
+  // Tickets + equipment crates removed:
+  //   - Friend Pack: friend pulls were dropped in the summon rework
+  //   - Standard/Stellar Tickets: direct gold/gem pulls make tickets redundant
+  //   - Magic/Rare/Epic Crates: the Equipment Forge supersedes random crates
+  //     (player picks slot + rarity, sees the result, controls mat spend)
 ];

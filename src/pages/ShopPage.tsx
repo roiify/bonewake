@@ -12,8 +12,6 @@ const CATEGORIES: { id: ShopItem['category'] | 'all'; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'currency', label: 'Currency' },
   { id: 'materials', label: 'Materials' },
-  { id: 'tickets', label: 'Tickets' },
-  { id: 'gear', label: 'Gear' },
 ];
 
 function costIcon(c: string) {
