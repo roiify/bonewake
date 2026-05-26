@@ -1,6 +1,9 @@
 import { db, type OwnedEquipment } from './db';
-import { GEM_BY_ID, SOCKETS_BY_RARITY, gemInventoryKey, type GemDef } from '../data/gems';
+import { GEM_BY_ID, SOCKETS_BY_RARITY, gemInventoryKey, type GemDef, type GemTier } from '../data/gems';
 import { useItems } from '../store/items';
+import { addMaterial, spendMaterial } from './crafting';
+import { MAT_GEM_DUST } from '../data/ultimateGear';
+import { useProfile } from '../store/profile';
 
 // ============ Inventory primitives ============
 
@@ -266,6 +269,60 @@ export async function migrateEquipmentSocketsToInventory(): Promise<{ moved: num
 }
 
 // ============ Drop rolls ============
+
+// ============ Gem salvage + craft ============
+//
+// Mirrors the equipment forge system. Players break unwanted gems
+// into Gem Dust and spend Dust to craft a specific gem at a chosen
+// stat + tier. Ult gems are exempt — they're crafted via essence.
+
+/** Dust yield per gem salvaged, by tier. Higher tiers = more dust. */
+export const GEM_SALVAGE_YIELD: Record<GemTier, number> = {
+  1: 1,   // Chip
+  2: 3,   // Stone
+  3: 8,   // Gem
+  4: 20,  // Crystal
+  5: 0,   // Ultimate — non-salvageable
+};
+
+/** Craft cost in dust + gold, by tier. */
+export const GEM_CRAFT_COST: Record<GemTier, { dust: number; gold: number }> = {
+  1: { dust: 2,  gold: 0 },
+  2: { dust: 8,  gold: 50 },
+  3: { dust: 25, gold: 500 },
+  4: { dust: 80, gold: 5000 },
+  5: { dust: 0,  gold: 0 },  // Ultimate gems craft from essence elsewhere
+};
+
+export async function salvageGems(gemId: string, count: number): Promise<{ ok: boolean; dust: number; error?: string }> {
+  const gem = GEM_BY_ID[gemId];
+  if (!gem) return { ok: false, dust: 0, error: 'Unknown gem' };
+  if (gem.tier >= 5) return { ok: false, dust: 0, error: 'Ultimate gems cannot be salvaged' };
+  const ok = await removeGemFromInventory(gemId, count);
+  if (!ok) return { ok: false, dust: 0, error: 'Not enough gems' };
+  const dust = GEM_SALVAGE_YIELD[gem.tier] * count;
+  await addMaterial(MAT_GEM_DUST, dust);
+  await useItems.getState().refresh();
+  return { ok: true, dust };
+}
+
+export async function craftGem(stat: 'hp' | 'atk' | 'def' | 'spd' | 'crit', tier: GemTier): Promise<{ ok: boolean; error?: string }> {
+  if (tier < 1 || tier > 4) return { ok: false, error: 'Invalid tier' };
+  const gemId = `gem_${stat}_${tier}`;
+  const gem = GEM_BY_ID[gemId];
+  if (!gem) return { ok: false, error: 'Unknown gem' };
+  const cost = GEM_CRAFT_COST[tier];
+  const dustRow = await db.items.get(MAT_GEM_DUST);
+  if ((dustRow?.count ?? 0) < cost.dust) return { ok: false, error: `Need ${cost.dust} Gem Dust (have ${dustRow?.count ?? 0})` };
+  if (cost.gold > 0 && useProfile.getState().profile.gold < cost.gold) {
+    return { ok: false, error: `Need ${cost.gold.toLocaleString()} gold` };
+  }
+  await spendMaterial(MAT_GEM_DUST, cost.dust);
+  if (cost.gold > 0) await useProfile.getState().spendGold(cost.gold);
+  await addGemToInventory(gemId, 1);
+  await useItems.getState().refresh();
+  return { ok: true };
+}
 
 export function maybeRollGem(itemLevel: number, isBoss: boolean): GemDef | null {
   const chance = isBoss ? 0.5 : 0.1 + itemLevel * 0.005;

@@ -472,6 +472,11 @@ export const MAT_ARCANE_DUST       = 'mat_arcane_dust';
 export const MAT_RELIC_SHARD       = 'mat_relic_shard';
 export const MAT_LEGENDARY_ESSENCE = 'mat_legendary_essence';
 
+// Gem dust — the salvage currency for gems. Drops only from gem
+// salvage (no direct drop sources, for now) and spends only at the
+// Gem Forge to mint a specific gem at a chosen stat + tier.
+export const MAT_GEM_DUST = 'mat_gem_dust';
+
 export const MATERIAL_META: Record<string, { name: string; emoji: string; description: string }> = {
   [MAT_SOULSHARD]: {
     name: 'Soulshard',
@@ -497,6 +502,11 @@ export const MATERIAL_META: Record<string, { name: string; emoji: string; descri
     name: 'Legendary Essence',
     emoji: '🌟',
     description: 'Salvaged only from Legendary gear. Crafts Legendary equipment.',
+  },
+  [MAT_GEM_DUST]: {
+    name: 'Gem Dust',
+    emoji: '💫',
+    description: 'Salvaged from unwanted gems. Spend at the Gem Forge to mint a specific gem.',
   },
 };
 
