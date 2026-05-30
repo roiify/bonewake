@@ -1390,7 +1390,18 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
         // anchored, so the extra 32px of column height becomes "looming"
         // headroom above the silhouette.
         const containerSize = isPaintedBoss ? 'w-52 h-96' : 'w-44 h-44';
-        const renderSize = isPaintedBoss ? 440 : (heroSprites ? 234 : 220);
+        // A few enemy sprites were exported with the figure filling 100% of a
+        // tiny canvas (no padding), so at the standard render size they appear
+        // ~2x too large next to normally-framed enemies (whose subject is ~47%
+        // of the canvas). Scale just those down to match. Measured from the
+        // opaque-pixel bbox of each sprite vs the 0.47 reference fraction.
+        const OVERSIZED_ENEMY_SCALE: Record<string, number> = {
+          gilded_revenant: 0.47,
+          crypt_wyvern: 0.47,
+          obsidian_knight: 0.47,
+        };
+        const enemySizeScale = isPaintedBoss ? 1 : (OVERSIZED_ENEMY_SCALE[unit.templateId] ?? 1);
+        const renderSize = Math.round((isPaintedBoss ? 440 : (heroSprites ? 234 : 220)) * enemySizeScale);
         // Per-sprite orientation (verified empirically in-game):
         //   - Heroes face EAST natively → correct on player side, no flip.
         //   - Regular enemies face WEST natively → correct on enemy side,
