@@ -18,9 +18,12 @@ import sys
 import time
 from pathlib import Path
 
-QUEUE_PATH = Path(__file__).parent / "pro_enemy_queue.json"
+_QUEUE_ARG = sys.argv[1] if len(sys.argv) > 1 else "pro_enemy_queue.json"
+QUEUE_PATH = Path(_QUEUE_ARG) if Path(_QUEUE_ARG).is_absolute() else Path(__file__).parent / _QUEUE_ARG
 PIXELLAB_MCP = Path(__file__).parent / "pixellab_mcp.py"
-TOTAL = 24
+# Total = submitted + pending at startup, so PROGRESS lines stay meaningful
+# even after the queue grows (e.g. variants appended to pending).
+TOTAL = (lambda d=json.loads(QUEUE_PATH.read_text()): len(d["submitted"]) + len(d["pending"]))()
 
 
 def load():
@@ -40,7 +43,14 @@ def mcp(tool: str, args: dict) -> str:
 
 
 def status_of(char_id: str) -> str:
-    out = mcp("get_character", {"character_id": char_id, "include_preview": False})
+    try:
+        out = mcp("get_character", {"character_id": char_id, "include_preview": False})
+    except subprocess.TimeoutExpired:
+        # Slow PixelLab call — treat as still in flight; next cycle will retry.
+        return "processing"
+    except Exception as e:
+        print(f"status_of({char_id}) error: {e}", flush=True)
+        return "processing"
     for line in out.splitlines():
         if line.startswith("status:"):
             return line.split(":", 1)[1].strip()

@@ -1,5 +1,4 @@
 {
-  "_note": "Pro-mode enemy creation queue. submitted = in flight + completed (real). pending = not yet started. Worker submits one from pending when active < 8.",
   "submitted": [
     {
       "slug": "skeletal_warhorse",
@@ -135,10 +134,6 @@
       "account": "PIXELLAB_API_KEY"
     },
     {
-      "slug": "plague_caster",
-      "char_id": "ea6048de-a38b-45e1-a672-772f7e78369f"
-    },
-    {
       "slug": "fallen_captain",
       "char_id": "ed13f5f3-007e-4665-91cc-69936a5d104f"
     },
@@ -248,11 +243,6 @@
     {
       "slug": "necro_sphinx",
       "char_id": "7f0ef37c-01ce-4f97-b5c0-a5fb1b343774"
-    },
-    {
-      "slug": "crimson_centaur",
-      "char_id": "d7a04c93-0a1f-4f3e-acd8-dfcf5bcb140f",
-      "char_id_backup_toned": "a6899ce6-9180-415a-940d-be12b0d8c21e"
     },
     {
       "slug": "lich_king",
