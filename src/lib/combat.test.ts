@@ -1,0 +1,180 @@
+// Combat engine tests. The auto-battler is the one part of the game that is
+// pure deterministic math, so it's the highest-value thing to lock down before
+// any balance iteration. These also guard the Tier-2 work that resurrected the
+// status-effect system (burn DoT, shields), the element triangle, and the
+// revive echo — all of which were previously dead.
+import 'fake-indexeddb/auto';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { resolveBattle } from './combat';
+import { setPlayerLevelForBoost, setEquippedEchoes } from './stats';
+import type { CombatUnit, Element, Archetype } from '../types';
+
+let idc = 0;
+function unit(over: Partial<CombatUnit> = {}): CombatUnit {
+  idc += 1;
+  return {
+    id: over.id ?? `u${idc}`,
+    templateId: over.templateId ?? 'dummy',  // no passives unless overridden
+    side: over.side ?? 'player',
+    name: over.name ?? 'Unit',
+    emoji: '🐲',
+    color: '#fff',
+    element: (over.element ?? 'dark') as Element,
+    archetype: (over.archetype ?? 'warrior') as Archetype,
+    rarity: 3,
+    level: over.level ?? 30,
+    star: over.star ?? 3,
+    hp: over.hp ?? over.maxHp ?? 5000,
+    maxHp: over.maxHp ?? 5000,
+    atk: over.atk ?? 300,
+    def: over.def ?? 50,
+    spd: over.spd ?? 100,
+    crit: over.crit ?? 0.1,
+    energy: 0,
+    ultimateId: over.ultimateId ?? 'iron_palm',
+    ultLevel: over.ultLevel ?? 0,
+    alive: true,
+    effects: [],
+    ...over,
+  };
+}
+
+beforeEach(() => {
+  // Neutral account state so tests don't depend on a loaded profile.
+  setPlayerLevelForBoost(1);
+  setEquippedEchoes([]);
+  idc = 0;
+});
+
+describe('determinism', () => {
+  it('same seed produces an identical result', () => {
+    const mk = () => ({
+      p: [unit({ side: 'player', id: 'p0' }), unit({ side: 'player', id: 'p1', atk: 250 })],
+      e: [unit({ side: 'enemy', id: 'e0' }), unit({ side: 'enemy', id: 'e1', spd: 80 })],
+    });
+    const a = mk(); const b = mk();
+    const r1 = resolveBattle(a.p, a.e, 'seed-xyz');
+    const r2 = resolveBattle(b.p, b.e, 'seed-xyz');
+    expect(r1.winner).toBe(r2.winner);
+    expect(r1.log.length).toBe(r2.log.length);
+    const dmg = (r: typeof r1) => r.log.reduce((s, x) => s + x.dmg, 0);
+    expect(dmg(r1)).toBe(dmg(r2));
+  });
+
+  it('different seeds can diverge', () => {
+    const mk = () => ({
+      p: [unit({ side: 'player', crit: 0.5 })],
+      e: [unit({ side: 'enemy', maxHp: 20000 })],
+    });
+    const a = mk(); const b = mk();
+    const r1 = resolveBattle(a.p, a.e, 'seedA');
+    const r2 = resolveBattle(b.p, b.e, 'seedB');
+    const dmg = (r: typeof r1) => r.log.reduce((s, x) => s + x.dmg, 0);
+    // Not a hard guarantee for all seed pairs, but these two differ.
+    expect(dmg(r1)).not.toBe(dmg(r2));
+  });
+});
+
+describe('winner rules', () => {
+  it('a vastly stronger player team wins by wipe', () => {
+    const p = [unit({ side: 'player', atk: 4000, maxHp: 50000, spd: 200 })];
+    const e = [unit({ side: 'enemy', atk: 10, maxHp: 500, def: 0, spd: 1 })];
+    const r = resolveBattle(p, e, 's1');
+    expect(r.winner).toBe('player');
+    expect(r.initial.enemy.length).toBe(1);
+  });
+
+  it('a vastly stronger enemy team wins', () => {
+    const p = [unit({ side: 'player', atk: 10, maxHp: 500, def: 0, spd: 1 })];
+    const e = [unit({ side: 'enemy', atk: 4000, maxHp: 50000, spd: 200 })];
+    const r = resolveBattle(p, e, 's2');
+    expect(r.winner).toBe('enemy');
+  });
+});
+
+describe('element triangle', () => {
+  it('fire vs earth is super-effective for the attacker', () => {
+    const p = [unit({ side: 'player', id: 'pf', element: 'fire', atk: 400 })];
+    const e = [unit({ side: 'enemy', element: 'earth', maxHp: 40000 })];
+    const r = resolveBattle(p, e, 'ele1');
+    // Only the fire unit's own swings should carry the matchup tag.
+    const own = r.log.filter(a => a.src === 'pf' && a.dmg > 0);
+    expect(own.some(a => a.ele === 'strong')).toBe(true);
+    expect(own.some(a => a.ele === 'weak')).toBe(false);
+  });
+
+  it('fire vs water is resisted for the attacker', () => {
+    const p = [unit({ side: 'player', id: 'pf', element: 'fire', atk: 400 })];
+    const e = [unit({ side: 'enemy', element: 'water', maxHp: 40000 })];
+    const r = resolveBattle(p, e, 'ele2');
+    const own = r.log.filter(a => a.src === 'pf' && a.dmg > 0);
+    expect(own.some(a => a.ele === 'weak')).toBe(true);
+    expect(own.some(a => a.ele === 'strong')).toBe(false);
+  });
+});
+
+describe('status effects (resurrected dead content)', () => {
+  it('burn ult applies a damage-over-time tick', () => {
+    // infernal_cataclysm = AOE, burn 200/turn for 3. High-HP both sides so the
+    // battle runs long enough for the caster to build to 100 energy and cast.
+    const p = [unit({ side: 'player', ultimateId: 'infernal_cataclysm', atk: 200, maxHp: 60000, def: 200 })];
+    const e = [unit({ side: 'enemy', atk: 150, maxHp: 60000, def: 50 })];
+    const r = resolveBattle(p, e, 'burn1');
+    const burnTicks = r.log.filter(a => a.burn === true);
+    expect(burnTicks.length).toBeGreaterThan(0);
+    // Each tick deals the configured 200 (floored).
+    expect(burnTicks.every(t => t.dmg === 200)).toBe(true);
+    // Burn ticks are self-targeted on the burning unit.
+    expect(burnTicks.every(t => t.src === t.dst)).toBe(true);
+  });
+
+  it('ally-shield ult absorbs incoming damage (shielded entries appear)', () => {
+    // aegis_judgment = single-target + 450 ally shield for 2 turns. Enemy hits
+    // are small (< 450) so a freshly-shielded ally fully absorbs them.
+    const p = [
+      unit({ side: 'player', id: 'caster', ultimateId: 'aegis_judgment', atk: 120, maxHp: 80000, def: 300, spd: 150 }),
+      unit({ side: 'player', id: 'ally', atk: 100, maxHp: 80000, def: 300, spd: 60 }),
+    ];
+    const e = [unit({ side: 'enemy', atk: 120, def: 0, maxHp: 200000, spd: 90, crit: 0 })];
+    const r = resolveBattle(p, e, 'shield1');
+    expect(r.log.some(a => a.shielded === true)).toBe(true);
+  });
+});
+
+describe('revive_first_fallen echo', () => {
+  it('revives a fallen player unit once at 30% HP when equipped', () => {
+    setEquippedEchoes(['rot_phoenix']); // revive_first_fallen 0.30
+    const maxHp = 4000;
+    const p = [unit({ side: 'player', atk: 50, maxHp, def: 0, spd: 1 })];
+    const e = [unit({ side: 'enemy', atk: 5000, maxHp: 50000, def: 0, spd: 200 })];
+    const r = resolveBattle(p, e, 'rev1');
+    const reviveHeal = Math.floor(maxHp * 0.30);
+    // The revive is logged as a self-heal equal to 30% of maxHp.
+    expect(r.log.some(a => a.heal === reviveHeal && a.src === a.dst && a.src === p[0].id)).toBe(true);
+  });
+
+  it('does NOT revive without the echo', () => {
+    setEquippedEchoes([]);
+    const maxHp = 4000;
+    const p = [unit({ side: 'player', atk: 50, maxHp, def: 0, spd: 1 })];
+    const e = [unit({ side: 'enemy', atk: 5000, maxHp: 50000, def: 0, spd: 200 })];
+    const r = resolveBattle(p, e, 'rev2');
+    const reviveHeal = Math.floor(maxHp * 0.30);
+    expect(r.log.some(a => a.heal === reviveHeal)).toBe(false);
+    expect(r.winner).toBe('enemy');
+  });
+});
+
+describe('crit cap', () => {
+  it('does not crit on 100% of hits even with huge crit stacking', () => {
+    setPlayerLevelForBoost(200); // large crit + crit-dmg scaling
+    const p = [unit({ side: 'player', crit: 0.9, atk: 300, maxHp: 80000, spd: 120 })];
+    const e = [unit({ side: 'enemy', atk: 100, maxHp: 300000, def: 50, spd: 80, crit: 0 })];
+    const r = resolveBattle(p, e, 'crit1');
+    const playerHits = r.log.filter(a => a.src === p[0].id && a.dmg > 0 && !a.heal);
+    const crits = playerHits.filter(a => a.crit).length;
+    expect(playerHits.length).toBeGreaterThan(20);
+    expect(crits).toBeGreaterThan(0);          // crits happen
+    expect(crits).toBeLessThan(playerHits.length); // but not every hit (cap < 1)
+  });
+});

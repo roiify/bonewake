@@ -71,8 +71,12 @@ export interface SummonPool {
 
 // Combat
 export interface ActiveEffect {
-  kind: 'burn' | 'shield' | 'buff_atk' | 'stun';
-  value: number;        // damage tick / shield amount / buff %
+  kind: 'burn' | 'shield' | 'buff_atk' | 'def_buff' | 'stun';
+  // burn: flat damage per tick. shield: remaining absorb pool (drained as it
+  // soaks hits). buff_atk: ATK multiplier addend — stored as a decimal
+  // (0.30 = +30%) OR a percent (>1, e.g. 90 = +90%); readers normalize.
+  // def_buff: flat DEF added while active. stun: unused magnitude.
+  value: number;
   remaining: number;    // turns remaining
 }
 
@@ -126,6 +130,12 @@ export interface BattleAction {
   // 'weak' = 0.75× resisted, undefined for neutral. UI surfaces this as
   // a small badge next to the floating damage number.
   ele?: 'strong' | 'weak';
+  // Damage-over-time tick (burn). Rendered as a small orange self-damage
+  // float rather than a normal attack swing (no attacker animation).
+  burn?: boolean;
+  // Damage fully absorbed by a shield this hit (dmg reached 0 via shield).
+  // Lets the UI show a "BLOCK" / shield-shatter cue instead of a 0 float.
+  shielded?: boolean;
 }
 
 export interface BattleResult {

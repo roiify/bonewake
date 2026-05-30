@@ -10,7 +10,7 @@ import {
   getEquippedEchoes,
 } from './stats';
 import { ECHO_BY_ID, type EchoEffect } from '../data/echoes';
-import type { CombatUnit, BattleAction, BattleResult, Element } from '../types';
+import type { CombatUnit, BattleAction, BattleResult, Element, ActiveEffect } from '../types';
 
 // === Boss Echo aggregator ===
 // Reads the equipped-echo mirror once per battle and returns a structure
@@ -55,8 +55,8 @@ let _activeEchoes: EchoBonuses = {
 };
 let _currentRound = 0;
 let _playerSide: 'player' | 'enemy' = 'player';  // for dodge/lifesteal echo gating
-// _revivedThisBattle reserved for the revive-first-fallen echo (not yet
-// wired — that one needs a death hook in the per-attack pipeline).
+// The revive-first-fallen echo is wired via the post-turn sweep in
+// resolveBattle (see `reviveUsed`), not module state.
 
 function aggregateEquippedEchoes(): EchoBonuses {
   const b = blankBonuses();
@@ -110,19 +110,102 @@ function getDamageMods(unit: CombatUnit): DamageMods {
     if (sk.trigger === 'on_attack' && sk.effect.kind === 'crit_chance') critBonus += sk.effect.value;
     if (sk.trigger === 'on_low_hp' && unit.hp / unit.maxHp < 0.3) {
       if (sk.effect.kind === 'damage_mult') damageMultiplier *= sk.effect.value;
+      // Elara's "Trail Sight" (+30% ATK when low) — previously inert because
+      // getDamageMods only honored damage_mult/crit_chance. self_atk_buff value
+      // is a decimal (0.30 = +30%).
+      if (sk.effect.kind === 'self_atk_buff') damageMultiplier *= 1 + sk.effect.value;
     }
   }
+  // Active ATK buff from ult effects (e.g. Chino's Drunken Palm, value 90 = +90%).
+  damageMultiplier *= buffAtkMult(unit);
   return { damageMultiplier, critBonus };
+}
+
+// ===== Status-effect helpers (burn / shield / buff_atk / def_buff / stun) =====
+// These read/mutate unit.effects. Previously effects were pushed onto units
+// (and rendered as UI icons) but never processed — burn dealt no damage,
+// shields absorbed nothing, buffs did nothing. Now they actually resolve.
+
+// Active ATK multiplier from buff_atk effects. value is stored as either a
+// decimal (<=1, e.g. 0.30) or a percent (>1, e.g. 90) — normalize both.
+function buffAtkMult(unit: CombatUnit): number {
+  let m = 1;
+  for (const eff of (unit.effects ?? [])) {
+    if (eff.kind === 'buff_atk' && eff.remaining > 0) {
+      m += eff.value > 1 ? eff.value / 100 : eff.value;
+    }
+  }
+  return m;
+}
+
+// Effective DEF including any active def_buff (Kaius's Battle Cry, flat +DEF).
+function effectiveDef(unit: CombatUnit): number {
+  let def = unit.def;
+  for (const eff of (unit.effects ?? [])) {
+    if (eff.kind === 'def_buff' && eff.remaining > 0) def += eff.value;
+  }
+  return def;
+}
+
+// Drain a target's shield pools to absorb incoming damage. Mutates shield
+// `value` (the remaining pool) and prunes emptied shields. Returns the damage
+// that gets through. A shield can fully negate a hit.
+function absorbWithShield(target: CombatUnit, dmg: number): number {
+  if (!target.effects || dmg <= 0) return dmg;
+  let through = dmg;
+  for (const eff of target.effects) {
+    if (eff.kind !== 'shield' || eff.value <= 0) continue;
+    const soak = Math.min(eff.value, through);
+    eff.value -= soak;
+    through -= soak;
+    if (through <= 0) break;
+  }
+  target.effects = target.effects.filter(e => !(e.kind === 'shield' && e.value <= 0));
+  return through;
+}
+
+// Route an ult's secondary effect to the correct recipients. Harmful effects
+// (burn/stun) land on the enemies that were hit; beneficial effects buff the
+// caster (buff_atk) or shield the whole living squad (shield). Previously every
+// ult effect was pushed onto the damaged ENEMY, which — once effects actually
+// resolved — would have shielded/buffed the enemy you just hit (e.g. Aegis
+// Judgment's "ally shield", Chino's self buff_atk). heal/revive are handled
+// inline in their own ult branches, so they're ignored here.
+function applySkillEffect(
+  effect: { type: string; value: number; duration?: number } | undefined,
+  caster: CombatUnit,
+  casterAllies: CombatUnit[],
+  hitEnemies: CombatUnit[],
+): void {
+  if (!effect || effect.type === 'heal' || effect.type === 'revive') return;
+  const remaining = effect.duration ?? 2;
+  const push = (u: CombatUnit, kind: ActiveEffect['kind']) => {
+    (u.effects as ActiveEffect[] | undefined) ??= [];
+    (u.effects as ActiveEffect[]).push({ kind, value: effect.value, remaining });
+  };
+  if (effect.type === 'burn' || effect.type === 'stun') {
+    for (const t of hitEnemies) if (t.alive) push(t, effect.type);
+  } else if (effect.type === 'shield') {
+    for (const a of casterAllies) if (a.alive) push(a, 'shield');
+  } else if (effect.type === 'buff_atk') {
+    push(caster, 'buff_atk');
+  }
 }
 
 // Crit-resolution helpers — centralized so every damage site applies the
 // same player-level scaling (crit chance bonus + crit damage multiplier).
 // Echo bonuses fold in here too: critDmgBonus stacks onto the base crit
 // multiplier, and a per-alive-enemy crit bonus optionally boosts roll odds.
+// Crit chance is hard-capped at 95%. Without this clamp, crit from
+// base + gems + sets + talents + bonds + echoes + per-level scaling trivially
+// exceeded 100%, so every crit source past the ceiling was dead value while
+// the UI kept selling crit gear. 95% leaves a sliver of non-crit for variance.
+const CRIT_CAP = 0.95;
 function rollCrit(unitCrit: number, rng: () => number, extraBonus = 0, aliveEnemyCount = 0): boolean {
   const playerLevel = getPlayerLevelForBoost();
   const echoCritBonus = _activeEchoes.critPerAliveEnemy * aliveEnemyCount;
-  return rng() < (unitCrit + extraBonus + playerLevelCritBonus(playerLevel) + echoCritBonus);
+  const chance = Math.min(CRIT_CAP, unitCrit + extraBonus + playerLevelCritBonus(playerLevel) + echoCritBonus);
+  return rng() < chance;
 }
 function critMult(): number {
   return playerLevelCritDamageMult(getPlayerLevelForBoost()) + _activeEchoes.critDmgBonus;
@@ -211,8 +294,10 @@ function applyFirstTurn(unit: CombatUnit, allies: CombatUnit[]): { healLogs: { d
       ranTeamHeal = true;
     }
     if (sk.effect.kind === 'self_def_buff') {
+      // Kaius's Battle Cry: +DEF for N turns. Was incorrectly pushed as a
+      // 'shield' (which did nothing); now a real def_buff read by effectiveDef.
       (unit.effects as any) ??= [];
-      (unit.effects as any).push({ kind: 'shield', value: sk.effect.value, remaining: sk.effect.duration });
+      (unit.effects as any).push({ kind: 'def_buff', value: sk.effect.value, remaining: sk.effect.duration });
     }
   }
   return { healLogs: out, ranTeamHeal };
@@ -327,6 +412,12 @@ export function resolveBattle(
     }
   };
 
+  // Echo: revive-first-fallen — one-time per battle. Tracks whether the
+  // single resurrection has been spent. Resurrects the first player unit to
+  // die at reviveFirstFallenPct of its maxHp (checked after every turn so it
+  // catches deaths from any source: attacks, reflect, or burn).
+  let reviveUsed = false;
+
   // Apply first-turn passives at round 0 for everyone
   for (const unit of [...p, ...e]) {
     if (!firstTurnDone.has(unit.id)) {
@@ -364,6 +455,31 @@ export function resolveBattle(
       // the prior `continue`-to-next-unit flow without skipping snapshotting.
       const turnStart = log.length;
       do {
+      // ===== Status-effect tick (start of this unit's turn) =====
+      // Burn deals its flat damage, stun flags the turn to be skipped, then
+      // every effect's remaining counter decrements and expired ones prune.
+      let stunned = false;
+      if (unit.effects && unit.effects.length) {
+        for (const eff of unit.effects) {
+          if (eff.remaining <= 0) continue;
+          if (eff.kind === 'burn') {
+            const burnDmg = Math.max(0, Math.floor(eff.value));
+            if (burnDmg > 0) {
+              unit.hp = Math.max(0, unit.hp - burnDmg);
+              log.push({ tick: ++tick, src: unit.id, dst: unit.id, dmg: burnDmg, crit: false, ult: false, burn: true });
+            }
+          } else if (eff.kind === 'stun') {
+            stunned = true;
+          }
+        }
+        // Decrement durations and drop expired effects.
+        unit.effects = unit.effects
+          .map(eff => ({ ...eff, remaining: eff.remaining - 1 }))
+          .filter(eff => eff.remaining > 0 && !(eff.kind === 'shield' && eff.value <= 0));
+        if (unit.hp <= 0) { unit.alive = false; break; }  // died to burn
+      }
+      if (stunned) break;  // turn skipped by stun
+
       // Heal/revive ults are "wasted" if no ally needs them — keep energy
       // pegged at 100 and fall through to the basic-attack block.
       const rawIsUlt = unit.energy >= 100;
@@ -452,20 +568,22 @@ export function resolveBattle(
           break;
         } else if (skill.targeting === 'all') {
           let isFirst = true;
+          const hitEnemies: CombatUnit[] = [];
+          const atkMult = buffAtkMult(unit);
           for (const target of enemies) {
             if (!target.alive) continue;
             const eAdv = elementAdvantage(unit.element, target.element);
             const isCrit = rollCrit(unit.crit, rng);
-            let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier, target.def);
+            let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier * atkMult, effectiveDef(target));
             dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult * echoOffensiveMult(unit, target, 'ult'));
-            target.hp = Math.max(0, target.hp - dmg);
-            log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true, cont: !isFirst, ele: eleTag(eAdv) });
+            const through = absorbWithShield(target, dmg);
+            target.hp = Math.max(0, target.hp - through);
+            log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg: through, crit: isCrit, ult: true, cont: !isFirst, ele: eleTag(eAdv), shielded: through === 0 && dmg > 0 });
             isFirst = false;
-            if (skill.effect && (target.effects as any)) {
-              (target.effects as any).push({ kind: skill.effect.type, value: skill.effect.value, remaining: skill.effect.duration ?? 2 });
-            }
+            hitEnemies.push(target);
             if (target.hp <= 0) target.alive = false;
           }
+          applySkillEffect(skill.effect, unit, allies, hitEnemies);
         } else {
           const target = skill.targeting === 'lowest'
             ? [...enemies].filter(x => x.alive).sort((a, b) => a.hp - b.hp)[0]
@@ -473,19 +591,14 @@ export function resolveBattle(
           if (target) {
             const eAdv = elementAdvantage(unit.element, target.element);
             const isCrit = rollCrit(unit.crit, rng);
-            let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier, target.def);
+            let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier * buffAtkMult(unit), effectiveDef(target));
             dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult * echoOffensiveMult(unit, target, 'ult'));
-            target.hp = Math.max(0, target.hp - dmg);
-            log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: true, ele: eleTag(eAdv) });
-            if (skill.effect && (target.effects as any)) {
-              (target.effects as any).push({ kind: skill.effect.type, value: skill.effect.value, remaining: skill.effect.duration ?? 2 });
-            }
+            const through = absorbWithShield(target, dmg);
+            target.hp = Math.max(0, target.hp - through);
+            log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg: through, crit: isCrit, ult: true, ele: eleTag(eAdv), shielded: through === 0 && dmg > 0 });
             if (target.hp <= 0) target.alive = false;
+            applySkillEffect(skill.effect, unit, allies, [target]);
           }
-        }
-        // Self-target effects also attach to the caster (e.g., buff_atk)
-        if (skill.effect && (skill.targeting === 'self' && skill.effect.type !== 'heal') && (unit.effects as any)) {
-          (unit.effects as any).push({ kind: skill.effect.type, value: skill.effect.value, remaining: skill.effect.duration ?? 2 });
         }
         unit.energy = 0;
       } else {
@@ -507,14 +620,17 @@ export function resolveBattle(
         const mods = getDamageMods(unit);
         const aliveEnemies = enemies.filter(en => en.alive).length;
         const isCrit = rollCrit(unit.crit, rng, mods.critBonus, aliveEnemies);
-        let dmg = mitigatedDamage(unit.atk, target.def);
+        let dmg = mitigatedDamage(unit.atk, effectiveDef(target));
         dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * mods.damageMultiplier * echoOffensiveMult(unit, target, 'basic'));
         // on_hit dodge/reflect (passes attacker so mage-damage-reduction echo can fire)
         const hit = applyOnHit(target, dmg, rng, unit);
-        dmg = hit.dmg;
+        // Shield soaks what's left after dodge. dmg becomes the damage actually
+        // dealt so downstream lifesteal scales off the real figure.
+        const preShield = hit.dmg;
+        dmg = absorbWithShield(target, preShield);
         target.hp = Math.max(0, target.hp - dmg);
         if (target.hp <= 0) target.alive = false;
-        log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: false, ele: eleTag(eAdv) });
+        log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg, crit: isCrit, ult: false, ele: eleTag(eAdv), shielded: dmg === 0 && preShield > 0 });
         // Echo: basic-attack lifesteal — player units only, applied after the swing.
         if (unit.side === _playerSide && unit.alive && _activeEchoes.basicLifesteal > 0 && dmg > 0) {
           const heal = Math.floor(dmg * _activeEchoes.basicLifesteal);
@@ -544,6 +660,20 @@ export function resolveBattle(
         target.energy = Math.min(100, target.energy + 30);
       }
       } while (false);
+
+      // Echo: revive the first fallen player unit, once per battle.
+      if (!reviveUsed && _activeEchoes.reviveFirstFallenPct > 0) {
+        const fallen = p.find(u => !u.alive);
+        if (fallen) {
+          reviveUsed = true;
+          fallen.alive = true;
+          fallen.hp = Math.max(1, Math.floor(fallen.maxHp * _activeEchoes.reviveFirstFallenPct));
+          fallen.energy = 0;
+          fallen.effects = [];
+          log.push({ tick: ++tick, src: fallen.id, dst: fallen.id, dmg: 0, crit: false, ult: false, heal: fallen.hp });
+        }
+      }
+
       snapshotEnergy(turnStart);
     }
     round++;
