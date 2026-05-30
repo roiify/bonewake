@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { sfx, haptic } from '../lib/sfx';
 
 export interface ChestReward {
   icon: string;       // emoji
@@ -28,7 +29,7 @@ export default function ChestOpen({ open, rarity = 'rare', rewards, onClose }: P
   useEffect(() => {
     if (!open) return;
     setPhase('shake');
-    const t1 = setTimeout(() => setPhase('burst'), 900);
+    const t1 = setTimeout(() => { setPhase('burst'); sfx('chest'); haptic([15, 30, 40]); }, 900);
     const t2 = setTimeout(() => setPhase('reveal'), 1300);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [open]);

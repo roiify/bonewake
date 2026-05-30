@@ -12,6 +12,7 @@ import { incrementTask } from '../lib/tasks';
 import type { HeroTemplate, Rarity, SummonPool } from '../types';
 import { uid } from '../lib/id';
 import { addFragments, DUP_FRAGMENT_VALUE } from '../lib/fragments';
+import { sfx, haptic } from '../lib/sfx';
 import { recordEvent } from '../lib/lifetime';
 import { tierLabel, tierColor } from '../lib/tier';
 import { HeroBadges } from '../components/ui/HeroBadges';
@@ -244,7 +245,12 @@ export default function SummonPage() {
 
     setStage('capsule');
     setReveal(enriched);
-    setTimeout(() => setStage('reveal'), 900);
+    // Reveal sting — bigger arpeggio when the pull contains a 5★ / high-rarity.
+    const gotRare = enriched.some(r =>
+      (r.kind === 'hero' && r.star >= 5) ||
+      (r.kind === 'equipment' && r.rarity >= 5) ||
+      (r.kind === 'socket' && r.tier >= 4));
+    setTimeout(() => { setStage('reveal'); sfx(gotRare ? 'reveal_rare' : 'reveal'); haptic(gotRare ? [30, 50, 30] : 15); }, 900);
   }
 
   return (
@@ -456,7 +462,18 @@ export default function SummonPage() {
                           </div>
                         )}
                         <div className="relative">
-                          <div className={`relative ${reveal.length === 1 ? 'text-6xl' : 'text-2xl'} drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]`}>{itemEmoji}</div>
+                          {r.kind === 'hero' && HERO_PORTRAITS[r.hero.id] ? (
+                            // Painted portrait for the gacha money-moment instead of
+                            // an OS emoji. Falls back to the emoji if no portrait exists.
+                            <img
+                              src={HERO_PORTRAITS[r.hero.id]}
+                              alt={r.hero.name}
+                              className={`mx-auto object-contain drop-shadow-[0_3px_6px_rgba(0,0,0,0.8)] ${reveal.length === 1 ? 'w-40 h-40' : 'w-full aspect-square'}`}
+                              style={{ imageRendering: 'pixelated' }}
+                            />
+                          ) : (
+                            <div className={`relative ${reveal.length === 1 ? 'text-6xl' : 'text-2xl'} drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]`}>{itemEmoji}</div>
+                          )}
                         </div>
                         <div className="text-[9px] mt-1 truncate" style={{ color: itemColor }}>{itemName}</div>
                         {r.kind === 'hero' && (

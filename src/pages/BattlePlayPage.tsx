@@ -16,6 +16,7 @@ import { heroGlowTier, glowFilter, glowClass, glowOrbColor, getWeaponAnchor, typ
 import { useProfile } from '../store/profile';
 import { buildEnemyUnit, toCombatUnit, xpForLevel, effectiveMaxLevel } from '../lib/stats';
 import { resolveBattle } from '../lib/combat';
+import { sfx, haptic } from '../lib/sfx';
 import { db } from '../lib/db';
 import { incrementTask } from '../lib/tasks';
 import type { CombatUnit, BattleResult } from '../types';
@@ -451,6 +452,16 @@ export default function BattlePlayPage() {
       return next;
     });
     setHit(action.dst);
+    // Audio + haptic feedback keyed to the action (gated by settings inside sfx/haptic).
+    if (action.heal && action.heal > 0) {
+      sfx('heal');
+    } else if (action.burn) {
+      sfx('burn');
+    } else if (action.dmg > 0) {
+      if (action.ult) { sfx('ult'); haptic([18, 30, 18]); }
+      else if (action.crit) { sfx('crit'); haptic(28); }
+      else { sfx('hit'); haptic(8); }
+    }
     if (action.dmg > 0) {
       const hard = action.crit || action.ult;
       setShake(hard ? 'hard' : 'soft');
@@ -516,6 +527,8 @@ export default function BattlePlayPage() {
     if (done || !battle || !stage) return;
     setDone(true);
     const won = battle.winner === 'player';
+    sfx(won ? 'win' : 'lose');
+    if (won) haptic([20, 40, 20, 40, 30]); else haptic(120);
 
     // Trial mode short-circuit: trials don't drop chapter loot, don't track
     // stage clears, and have a daily-limit ledger keyed in IndexedDB.
