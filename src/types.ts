@@ -101,6 +101,8 @@ export interface CombatUnit {
   energy: number;
   ultimateId: string;
   ultLevel?: number;
+  // "+N% ult damage" granted by the hero's active 5-piece set bonus (decimal).
+  ultDmgBonus?: number;
   alive: boolean;
   effects?: ActiveEffect[];
 }

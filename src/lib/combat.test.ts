@@ -165,6 +165,23 @@ describe('revive_first_fallen echo', () => {
   });
 });
 
+describe('set-bonus ult damage', () => {
+  it('a unit with ultDmgBonus deals more ult damage than one without', () => {
+    const e = () => [unit({ side: 'enemy', maxHp: 500000, def: 100, atk: 50, spd: 1 })];
+    const base = unit({ side: 'player', id: 'pb', ultimateId: 'iron_palm', atk: 600, maxHp: 60000, spd: 120, crit: 0 });
+    const buffed = unit({ side: 'player', id: 'pu', ultimateId: 'iron_palm', atk: 600, maxHp: 60000, spd: 120, crit: 0, ultDmgBonus: 0.5 });
+    const rBase = resolveBattle([base], e(), 'set1');
+    const rBuff = resolveBattle([buffed], e(), 'set1');
+    const ultDmg = (r: typeof rBase, id: string) =>
+      r.log.filter(a => a.src === id && a.ult && a.dmg > 0).reduce((s, a) => s + a.dmg, 0);
+    const dBase = ultDmg(rBase, 'pb');
+    const dBuff = ultDmg(rBuff, 'pu');
+    expect(dBase).toBeGreaterThan(0);
+    // +50% set bonus → ~1.5x ult damage (allow rounding/crit-cap slack).
+    expect(dBuff).toBeGreaterThan(dBase * 1.4);
+  });
+});
+
 describe('crit cap', () => {
   it('does not crit on 100% of hits even with huge crit stacking', () => {
     setPlayerLevelForBoost(200); // large crit + crit-dmg scaling

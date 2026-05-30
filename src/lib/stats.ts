@@ -90,6 +90,8 @@ export function getEquippedEchoes(): string[] {
 export interface HeroStats {
   hp: number; atk: number; def: number; spd: number; crit: number;
   power: number;
+  // Promised "+N% ult damage" from the active 5-piece set bonus (decimal).
+  ultDmgBonus?: number;
 }
 
 // Look up a template — first heroes, then enemies. Returns null if unknown
@@ -192,6 +194,10 @@ export function calcHeroStats(
   // Set bonuses: count how many of THIS hero's signature set pieces are equipped
   const heroId = hero.templateId;
   const set = SET_BY_HERO[heroId];
+  // The full-set (5-piece) bonus descriptions promise "+N% ult damage" but only
+  // the stats block was ever applied. Parse that promised % out of the active
+  // bonus so combat can honor it (the engine already has an ult-dmg hook).
+  let ultDmgBonus = 0;
   if (set && setPieceIdsEquipped.length > 0) {
     const ownSetPieceIds = new Set(set.pieces.map(p => p.id));
     const matching = setPieceIdsEquipped.filter(id => ownSetPieceIds.has(id)).length;
@@ -202,6 +208,8 @@ export function calcHeroStats(
         if (bonus.stats.def) def += bonus.stats.def;
         if (bonus.stats.spd) spd += bonus.stats.spd;
         if (bonus.stats.crit) crit += bonus.stats.crit;
+        const m = bonus.description.match(/\+(\d+)%\s*ult/i);
+        if (m) ultDmgBonus += Number(m[1]) / 100;
       }
     }
   }
@@ -234,7 +242,7 @@ export function calcHeroStats(
   hp = Math.round(hp); atk = Math.round(atk); def = Math.round(def);
   spd = Math.round(spd);
   const power = Math.round(hp / 4 + atk * 3 + def * 2 + spd * 5 + crit * 800);
-  return { hp, atk, def, spd, crit, power };
+  return { hp, atk, def, spd, crit, power, ultDmgBonus };
 }
 
 export function toCombatUnit(
@@ -268,6 +276,7 @@ export function toCombatUnit(
     energy: 0,
     ultimateId: tpl.ultimateId,
     ultLevel: hero.ultLevel ?? 0,
+    ultDmgBonus: s.ultDmgBonus ?? 0,
     alive: true,
   };
 }

@@ -575,7 +575,7 @@ export function resolveBattle(
             const eAdv = elementAdvantage(unit.element, target.element);
             const isCrit = rollCrit(unit.crit, rng);
             let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier * atkMult, effectiveDef(target));
-            dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult * echoOffensiveMult(unit, target, 'ult'));
+            dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult * echoOffensiveMult(unit, target, 'ult') * (1 + (unit.ultDmgBonus ?? 0)));
             const through = absorbWithShield(target, dmg);
             target.hp = Math.max(0, target.hp - through);
             log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg: through, crit: isCrit, ult: true, cont: !isFirst, ele: eleTag(eAdv), shielded: through === 0 && dmg > 0 });
@@ -592,7 +592,7 @@ export function resolveBattle(
             const eAdv = elementAdvantage(unit.element, target.element);
             const isCrit = rollCrit(unit.crit, rng);
             let dmg = mitigatedDamage(unit.atk * skill.damageMultiplier * buffAtkMult(unit), effectiveDef(target));
-            dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult * echoOffensiveMult(unit, target, 'ult'));
+            dmg = Math.floor(dmg * (isCrit ? critMult() : 1) * eAdv * ultMult * echoOffensiveMult(unit, target, 'ult') * (1 + (unit.ultDmgBonus ?? 0)));
             const through = absorbWithShield(target, dmg);
             target.hp = Math.max(0, target.hp - through);
             log.push({ tick: ++tick, src: unit.id, dst: target.id, dmg: through, crit: isCrit, ult: true, ele: eleTag(eAdv), shielded: through === 0 && dmg > 0 });
