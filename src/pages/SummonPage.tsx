@@ -121,10 +121,12 @@ export default function SummonPage() {
         const fragCount = DUP_FRAGMENT_VALUE[Math.min(5, Math.max(3, r.star)) as Rarity];
 
         if (alreadyOwned) {
+          // Duplicates pay out fragments ONLY. The owned hero's star is NOT
+          // bumped for free here — promotion happens by spending fragments via
+          // the legit STAR_UP_COST path (HeroDetailPage). The old free auto-
+          // promote let a 5★ dup jump a 3★ hero to 5★ instantly, skipping
+          // ~760 fragments and trivializing the entire star-up economy.
           await addFragments(r.hero.id, fragCount);
-          if (existing && r.star > existing.star) {
-            await useHeroes.getState().updateHero(existing.id, { star: r.star });
-          }
         } else {
           const newHero = {
             id: uid(),

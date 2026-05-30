@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { MotionConfig } from 'framer-motion';
 import { initSave } from './lib/db';
 import { useProfile } from './store/profile';
 import { sendMail } from './lib/mail';
@@ -71,7 +72,7 @@ export default function App() {
       if (!p.welcomeMailSent) {
         await sendMail({
           subject: 'Welcome, Hero!',
-          body: 'Your journey begins.\n\nPull from the Novice banner for a guaranteed S-tier hero, then clear stages to grow your power. Features unlock as you level up:\n\n• L5: Material Dungeons\n• L8: Tower of Trials\n• L10: Ultimate Crafting\n• L15: World Boss\n\nHere\'s a starter pack to get you going.',
+          body: 'Your journey begins.\n\nHead to Summon and pull on Stellar Wish — a guaranteed SSS hero is granted at least once every 150 pulls (your pity carries between sessions). Standard Wish costs gold and is a great way to grow your roster early. Then clear stages to grow your power.\n\nFeatures unlock as you level up:\n\n• L5: Material Dungeons\n• L8: Tower of Trials\n• L10: Ultimate Crafting\n• L15: World Boss\n\nHere\'s a starter pack to get you going.',
           rewards: { gold: 2000, gems: 200, friendPoints: 50, energy: 100 },
         });
         await useProfile.getState().patch({ welcomeMailSent: true });
@@ -118,9 +119,26 @@ export default function App() {
   // BrowserRouter basename mirrors Vite's base so GitHub Pages subpath works.
   const basename = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
 
+  return <AppRouter basename={basename || undefined} />;
+}
+
+// Split out so it can subscribe to the display settings reactively and apply
+// them globally (reduce-motion class on <html>, scanline overlay, framer-motion
+// MotionConfig) — these must cover the battle route which lives outside Shell.
+function AppRouter({ basename }: { basename?: string }) {
+  const reduceMotion = useProfile(s => s.profile.settings?.reduceMotion ?? false);
+  const showScanlines = useProfile(s => s.profile.settings?.showScanlines ?? false);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('reduce-motion', reduceMotion);
+    return () => document.documentElement.classList.remove('reduce-motion');
+  }, [reduceMotion]);
+
   return (
-    <BrowserRouter basename={basename || undefined}>
-      <Routes>
+    <MotionConfig reducedMotion={reduceMotion ? 'always' : 'never'}>
+      {showScanlines && <div className="scanlines-overlay" aria-hidden="true" />}
+      <BrowserRouter basename={basename}>
+        <Routes>
         <Route element={<Shell />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/modes" element={<ModesPage />} />
@@ -143,7 +161,9 @@ export default function App() {
           <Route path="/dungeons" element={<DungeonsPage />} />
           <Route path="/worldboss" element={<WorldBossPage />} />
           <Route path="/heroes/:heroId/talents" element={<TalentsPage />} />
-          <Route path="/debug" element={<DebugPage />} />
+          {/* Debug menu grants Legendaries + free reward mail — dev-only so it
+              can't be reached in the production build by URL. */}
+          {import.meta.env.DEV && <Route path="/debug" element={<DebugPage />} />}
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/pass" element={<MissionPassPage />} />
           <Route path="/spirit" element={<SpiritBombPage />} />
@@ -163,6 +183,7 @@ export default function App() {
         } />
         <Route path="/reset" element={<ResetPage />} />
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </MotionConfig>
   );
 }

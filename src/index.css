@@ -106,6 +106,39 @@ a, button { -webkit-tap-highlight-color: transparent; }
   .ash-overlay { animation: none; }
 }
 
+/* In-app "Reduced motion" setting (separate from the OS-level media query
+   above). App toggles `.reduce-motion` on <html> from the game setting; this
+   neutralizes CSS keyframe + transition animation across the whole app,
+   including the battle route which lives outside the Shell. framer-motion
+   animations are disabled in parallel via <MotionConfig reducedMotion>. */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+html.reduce-motion .ash-overlay { animation: none !important; }
+
+/* CRT scanline overlay (Display setting). Fixed, non-interactive, sits above
+   everything. Subtle horizontal lines + faint vignette for a retro feel. */
+.scanlines-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.16) 0px,
+      rgba(0, 0, 0, 0.16) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  mix-blend-mode: multiply;
+}
+
 /* ============================================================
    PIXEL / DISPLAY FONTS
    ============================================================ */

@@ -896,35 +896,6 @@ export default function BattlePlayPage() {
         </div>
       )}
 
-      {/* Manual ultimate trigger — appears when a player unit has 100 energy and the setting is on */}
-      {useProfile.getState().profile.settings?.manualUltTrigger && (() => {
-        const ready = playerSlots.filter(u => u.alive && u.energy >= 100);
-        if (ready.length === 0 || done) return null;
-        return (
-          <div className="absolute top-12 right-2 z-20 flex flex-col gap-1 items-end">
-            {ready.map(u => (
-              <button
-                key={u.id}
-                onClick={() => {
-                  // Pause the battle one tick — visual cue only; the resolver already
-                  // committed all actions deterministically when battle.log was generated.
-                  setPaused(p => !p);
-                }}
-                className="rounded border-2 px-2 py-1 text-[10px] font-pixel flex items-center gap-1.5"
-                style={{ borderColor: u.color, background: u.color + '20', color: u.color }}
-                title="Manual ult queued — tap to pause/resume"
-              >
-                ⚡ {u.name}
-              </button>
-            ))}
-            <button
-              onClick={() => setPaused(p => !p)}
-              className="text-[9px] text-zinc-400 px-2 py-0.5 rounded bg-zinc-900/80"
-            >{paused ? '▶ Resume' : '⏸ Pause'}</button>
-          </div>
-        );
-      })()}
-
       {/* Brief ult cue: radial color flash + hero emoji + "ULT!" badge.
           Kept short (~600ms) so the battle keeps its cadence — the full
           cinematic ult animation is intentionally off. */}

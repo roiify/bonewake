@@ -65,7 +65,8 @@ export interface GameSettings {
   defaultBattleSpeed: 1 | 2 | 4 | 8;
   showScanlines: boolean;
   reduceMotion: boolean;
-  manualUltTrigger?: boolean;
+  soundEnabled: boolean;
+  hapticsEnabled: boolean;
   // Auto-salvage: which rarities get salvaged when the player taps
   // "Salvage" on the bag page. Persists across sessions so the player
   // doesn't have to re-check boxes every visit. Default: only Common +
@@ -77,7 +78,8 @@ export const DEFAULT_SETTINGS: GameSettings = {
   defaultBattleSpeed: 2,
   showScanlines: false,
   reduceMotion: false,
-  manualUltTrigger: false,
+  soundEnabled: true,
+  hapticsEnabled: true,
   autoSalvage: { 1: true, 2: true, 3: false, 4: false, 5: false },
 };
 
@@ -89,7 +91,12 @@ export function normalizeSettings(settings?: Partial<GameSettings> | null): Game
       : DEFAULT_SETTINGS.defaultBattleSpeed,
     showScanlines: settings?.showScanlines ?? DEFAULT_SETTINGS.showScanlines,
     reduceMotion: settings?.reduceMotion ?? DEFAULT_SETTINGS.reduceMotion,
-    manualUltTrigger: settings?.manualUltTrigger ?? DEFAULT_SETTINGS.manualUltTrigger,
+    soundEnabled: settings?.soundEnabled ?? DEFAULT_SETTINGS.soundEnabled,
+    hapticsEnabled: settings?.hapticsEnabled ?? DEFAULT_SETTINGS.hapticsEnabled,
+    // Was previously dropped here — normalizeSettings rebuilt a fresh object
+    // without autoSalvage, and profile.load() wrote that back to disk, wiping
+    // the player's saved rarity checkboxes on the first load after setting them.
+    autoSalvage: settings?.autoSalvage ?? DEFAULT_SETTINGS.autoSalvage,
   };
 }
 

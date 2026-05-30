@@ -89,9 +89,14 @@ export const DUNGEONS: DungeonDef[] = [
   },
 ];
 
+// All dungeons are available every day. This is a single-player, offline
+// game — there is no live economy to protect by weekday-gating the primary
+// material faucets, and the old rotation (gold only Mon/Thu, gems Sunday-only)
+// just created dead days that compounded with the energy crunch. Energy cost
+// is the real throttle. The `availableWeekdays` field is retained on the data
+// for potential future event use but no longer gates access.
 export function dungeonsForToday(): DungeonDef[] {
-  const day = new Date().getDay();
-  return DUNGEONS.filter(d => d.availableWeekdays.includes(day));
+  return DUNGEONS;
 }
 
 export function buildDungeonTeam(def: DungeonDef, tier: DungeonTier): CombatUnit[] {

@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
-import { currentBoss, buildBossTeam, WORLD_BOSS_ATTEMPTS_PER_WEEK, REWARD_TIERS, tierFor } from '../data/worldBoss';
-import { isoWeek } from '../data/tower';
+import { currentBoss, buildBossTeam, WORLD_BOSS_ATTEMPTS_PER_DAY, REWARD_TIERS, tierFor } from '../data/worldBoss';
+import { todayKey } from '../data/tower';
 import { resolveBattle } from '../lib/combat';
 import { toCombatUnit } from '../lib/stats';
 import { recordEvent } from '../lib/lifetime';
@@ -27,30 +27,35 @@ export default function WorldBossPage() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ damage: number; pct: number; tier: typeof REWARD_TIERS[number]; newBest: boolean } | null>(null);
 
-  const week = isoWeek();
-  const boss = currentBoss(week);
-  const weekChanged = profile.worldBossWeek !== week;
+  // The boss rotates daily, so attempts/best-damage/claimed-tier must reset
+  // daily too — keying these off the ISO week (the old bug) let a player burn
+  // their whole budget on one day's boss and locked them out of the other six,
+  // while best-damage/claim state nonsensically carried across different bosses
+  // with different HP. `worldBossWeek` now stores the local day key.
+  const day = todayKey();
+  const boss = currentBoss(day);
+  const dayChanged = profile.worldBossWeek !== day;
   useEffect(() => {
-    if (weekChanged) {
+    if (dayChanged) {
       patch({
-        worldBossWeek: week,
+        worldBossWeek: day,
         worldBossAttemptsUsed: 0,
         worldBossBestDamage: 0,
         worldBossClaimedTier: -1,
       });
     }
-    // Dev reset: ?reset=1 in the URL zeroes out attempts for this week
-    // without waiting for the week roll-over. Strips the param after.
+    // Dev reset: ?reset=1 in the URL zeroes out attempts for today
+    // without waiting for the day roll-over. Strips the param after.
     if (new URLSearchParams(window.location.search).get('reset') === '1') {
       patch({ worldBossAttemptsUsed: 0 });
       window.history.replaceState({}, '', '/worldboss');
     }
-  }, [weekChanged, week]);
+  }, [dayChanged, day]);
 
-  const attemptsUsed = weekChanged ? 0 : (profile.worldBossAttemptsUsed ?? 0);
-  const attemptsLeft = WORLD_BOSS_ATTEMPTS_PER_WEEK - attemptsUsed;
-  const bestDamage = weekChanged ? 0 : (profile.worldBossBestDamage ?? 0);
-  const claimedTierIdx = weekChanged ? -1 : (profile.worldBossClaimedTier ?? -1);
+  const attemptsUsed = dayChanged ? 0 : (profile.worldBossAttemptsUsed ?? 0);
+  const attemptsLeft = WORLD_BOSS_ATTEMPTS_PER_DAY - attemptsUsed;
+  const bestDamage = dayChanged ? 0 : (profile.worldBossBestDamage ?? 0);
+  const claimedTierIdx = dayChanged ? -1 : (profile.worldBossClaimedTier ?? -1);
   const bossHp = Math.floor(boss.hpMillions * 1_000_000);
   const bestPct = bestDamage / bossHp;
   const bestTier = bestPct > 0 ? tierFor(bestPct) : null;
@@ -84,7 +89,7 @@ export default function WorldBossPage() {
     await patch({
       worldBossAttemptsUsed: attemptsUsed + 1,
       worldBossBestDamage: Math.max(damage, bestDamage),
-      worldBossWeek: week,
+      worldBossWeek: day,
     });
     await recordEvent({ kind: 'battleWon' });
     setResult({ damage, pct, tier: tierFor(pct), newBest: isNewBest });
@@ -112,11 +117,11 @@ export default function WorldBossPage() {
 
       <PageHeader
         title="World Boss"
-        tagline="Weekly · only your BEST single-attempt damage counts"
+        tagline="Daily · only your BEST single-attempt damage counts"
         glow="#dc2626"
       />
       <p className="text-[10px] text-zinc-400 px-2 leading-snug">
-        One huge boss per week. <span className="text-amber-300">Burst comps win here</span>, not consistency.
+        A new boss rotates in every day. <span className="text-amber-300">Burst comps win here</span>, not consistency.
         Multiple attempts replace your best — there's no penalty for trying again.
       </p>
 
@@ -141,7 +146,7 @@ export default function WorldBossPage() {
         {/* Best damage progress bar */}
         <div className="mt-3">
           <div className="text-[10px] text-zinc-400 mb-1">
-            Best this week: <span className="font-pixel text-amber-300">{bestDamage.toLocaleString()}</span> ({(bestPct * 100).toFixed(1)}%)
+            Best today: <span className="font-pixel text-amber-300">{bestDamage.toLocaleString()}</span> ({(bestPct * 100).toFixed(1)}%)
           </div>
           <div className="h-2 bg-zinc-800 rounded overflow-hidden">
             <div className="h-full bg-rose-500" style={{ width: `${Math.min(100, bestPct * 100)}%` }} />
@@ -187,7 +192,7 @@ export default function WorldBossPage() {
           onClick={() => navigate(`/battle/play/worldboss`)}
           title="Play through the attack"
         >
-          {busy ? '…' : attemptsLeft > 0 ? `▶ Play (${attemptsLeft}/${WORLD_BOSS_ATTEMPTS_PER_WEEK})` : 'No attempts'}
+          {busy ? '…' : attemptsLeft > 0 ? `▶ Play (${attemptsLeft}/${WORLD_BOSS_ATTEMPTS_PER_DAY})` : 'No attempts'}
         </button>
         <button
           className="btn-pixel text-base"

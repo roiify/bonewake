@@ -25,7 +25,11 @@ const sectionGroups: { items: { to: string; label: string; icon: string; desc: s
   ]},
   { items: [
     { to: '/settings', label: 'Settings', icon: '⚙️', desc: 'Audio, battle speed, display' },
-    { to: '/debug', label: 'Debug Menu', icon: '🛠️', desc: 'Cheats, save export/import' },
+    // Debug Menu (cheats: guaranteed Legendaries + free reward mail) is dev-only
+    // so it never ships in the production nav.
+    ...(import.meta.env.DEV
+      ? [{ to: '/debug', label: 'Debug Menu', icon: '🛠️', desc: 'Cheats, save export/import' }]
+      : []),
   ]},
 ];
 

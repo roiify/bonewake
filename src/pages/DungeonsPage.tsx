@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DUNGEONS, dungeonsForToday, buildDungeonTeam, weekdayNames, hasClearedDungeon, markDungeonCleared, type DungeonDef, type DungeonTier } from '../data/dungeons';
+import { DUNGEONS, dungeonsForToday, buildDungeonTeam, hasClearedDungeon, markDungeonCleared, type DungeonDef, type DungeonTier } from '../data/dungeons';
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import { resolveBattle } from '../lib/combat';
@@ -115,12 +115,12 @@ export default function DungeonsPage() {
       <button onClick={() => navigate('/modes')} className="text-xs text-zinc-400">← Back</button>
       <PageHeader
         title="Material Dungeons"
-        tagline={`Themed farming · today is ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()]}`}
+        tagline="Themed farming · all dungeons open daily"
         glow="#34d399"
       />
       <p className="text-[10px] text-zinc-400 px-2 leading-snug">
         Pure <span className="text-amber-300">resource faucets</span> — pick the dungeon matching
-        what you're short on (gold, XP, gear, or gems) and farm it on its open day.
+        what you're short on (gold, XP, gear, or gems) and farm it. Energy is the only limit.
       </p>
 
       <div className="space-y-2">
@@ -142,7 +142,7 @@ export default function DungeonsPage() {
                   <div className="text-xs font-pixel">{def.name}</div>
                   <div className="text-[10px] text-zinc-400">{def.description}</div>
                   <div className="text-[9px] text-zinc-500 mt-0.5">
-                    Open: <span className={open ? 'text-emerald-400' : 'text-rose-400'}>{weekdayNames(def.availableWeekdays)}</span>
+                    Open: <span className="text-emerald-400">daily</span>
                   </div>
                 </div>
               </button>

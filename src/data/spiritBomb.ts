@@ -7,7 +7,9 @@ import { ENEMY_TEMPLATES } from './stages';
 import { SHATTER_BOSS_BY_DAY } from './heroes';
 import type { CombatUnit } from '../types';
 
-export const SPIRIT_BOMB_ATTEMPTS_PER_WEEK = 5;
+// Attempts reset DAILY (the boss rotates daily and the damage pool is
+// per-boss). Renamed from _PER_WEEK to match the actual reset cadence.
+export const SPIRIT_BOMB_ATTEMPTS_PER_DAY = 5;
 
 export interface SpiritBossDef {
   id: string;

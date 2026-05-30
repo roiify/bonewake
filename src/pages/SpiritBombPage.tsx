@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import {
-  SPIRIT_BOMB_ATTEMPTS_PER_WEEK,
+  SPIRIT_BOMB_ATTEMPTS_PER_DAY,
   SPIRIT_TIERS,
   currentSpiritBoss,
   buildSpiritBossUnit,
   spiritTierFor,
 } from '../data/spiritBomb';
-import { isoWeek } from '../data/tower';
+import { todayKey } from '../data/tower';
 import { resolveBattle } from '../lib/combat';
 import { toCombatUnit } from '../lib/stats';
 import { recordEvent } from '../lib/lifetime';
@@ -33,28 +33,32 @@ export default function SpiritBombPage() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ damage: number; killed: boolean; pct: number } | null>(null);
 
-  const week = isoWeek();
-  const boss = currentSpiritBoss(week);
-  const weekChanged = profile.spiritBossWeek !== week;
+  // Daily reset to match the daily boss rotation (was keyed off ISO week,
+  // which locked the player onto one of the seven bosses per week and let the
+  // cumulative-damage pool span different bosses). `spiritBossWeek` now holds
+  // the local day key.
+  const day = todayKey();
+  const boss = currentSpiritBoss(day);
+  const dayChanged = profile.spiritBossWeek !== day;
   useEffect(() => {
-    if (weekChanged) {
+    if (dayChanged) {
       patch({
-        spiritBossWeek: week,
+        spiritBossWeek: day,
         spiritBossDamage: 0,
         spiritBossAttemptsUsed: 0,
         spiritBossClaimedTier: -1,
       });
     }
-  }, [weekChanged, week]);
+  }, [dayChanged, day]);
 
-  const damage = weekChanged ? 0 : (profile.spiritBossDamage ?? 0);
+  const damage = dayChanged ? 0 : (profile.spiritBossDamage ?? 0);
   const remainingHp = Math.max(0, boss.hp - damage);
-  const attemptsUsed = weekChanged ? 0 : (profile.spiritBossAttemptsUsed ?? 0);
-  const attemptsLeft = SPIRIT_BOMB_ATTEMPTS_PER_WEEK - attemptsUsed;
+  const attemptsUsed = dayChanged ? 0 : (profile.spiritBossAttemptsUsed ?? 0);
+  const attemptsLeft = SPIRIT_BOMB_ATTEMPTS_PER_DAY - attemptsUsed;
   const pct = damage / boss.hp;
   const bestTier = spiritTierFor(pct);
   const bestTierIdx = bestTier ? SPIRIT_TIERS.indexOf(bestTier) : -1;
-  const claimedTierIdx = weekChanged ? -1 : (profile.spiritBossClaimedTier ?? -1);
+  const claimedTierIdx = dayChanged ? -1 : (profile.spiritBossClaimedTier ?? -1);
   const killed = remainingHp <= 0;
 
   async function attack() {
@@ -82,7 +86,7 @@ export default function SpiritBombPage() {
     await patch({
       spiritBossDamage: newDamage,
       spiritBossAttemptsUsed: attemptsUsed + 1,
-      spiritBossWeek: week,
+      spiritBossWeek: day,
     });
     await recordEvent({ kind: 'battleWon' });
     setResult({ damage: dealt, killed: newDamage >= boss.hp, pct: newDamage / boss.hp });
@@ -109,11 +113,11 @@ export default function SpiritBombPage() {
 
       <PageHeader
         title="💥 Shatter"
-        tagline="Weekly · damage carries between attempts"
+        tagline="Daily · damage carries between attempts"
         glow="#fbbf24"
       />
       <p className="text-[10px] text-zinc-400 px-2 leading-snug">
-        Chip away at one massive boss across the week.
+        Chip away at one massive boss across the day.
         Every hit <span className="text-amber-300">stacks toward the same HP pool</span> —
         consistent damage wins over single big swings.
       </p>
@@ -183,7 +187,7 @@ export default function SpiritBombPage() {
       {killed ? (
         <button className="btn-pixel w-full" disabled>Boss already shattered</button>
       ) : attemptsLeft <= 0 ? (
-        <button className="btn-pixel w-full" disabled>Out of strikes — back Monday</button>
+        <button className="btn-pixel w-full" disabled>Out of strikes — back tomorrow</button>
       ) : (
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -192,7 +196,7 @@ export default function SpiritBombPage() {
             onClick={() => navigate(`/battle/play/spiritbomb`)}
             title="Play through the strike"
           >
-            {busy ? '…' : `▶ Play (${attemptsLeft}/${SPIRIT_BOMB_ATTEMPTS_PER_WEEK})`}
+            {busy ? '…' : `▶ Play (${attemptsLeft}/${SPIRIT_BOMB_ATTEMPTS_PER_DAY})`}
           </button>
           <button
             className="btn-pixel"

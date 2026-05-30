@@ -3,11 +3,12 @@
 // day of week. Best-single-attempt damage decides reward tier.
 
 import { buildEnemyUnit } from '../lib/stats';
-import { ENEMY_TEMPLATES } from './stages';
 import { WORLD_BOSS_BY_DAY } from './heroes';
 import type { CombatUnit } from '../types';
 
-export const WORLD_BOSS_ATTEMPTS_PER_WEEK = 3;
+// Attempts reset DAILY (the boss rotates daily), so this is a per-day
+// budget. Renamed from _PER_WEEK to match the actual reset cadence.
+export const WORLD_BOSS_ATTEMPTS_PER_DAY = 3;
 
 export interface WorldBossDef {
   id: string;
@@ -91,6 +92,3 @@ export function tierFor(damagePct: number): RewardTier {
   }
   return best;
 }
-
-// Suppress unused-import warning on ENEMY_TEMPLATES (kept for type completeness).
-void ENEMY_TEMPLATES;

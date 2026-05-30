@@ -87,3 +87,13 @@ export function isoWeek(date: Date = new Date()): string {
   const weekNum = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
   return `${d.getUTCFullYear()}-W${String(weekNum).padStart(2, '0')}`;
 }
+
+// Local-date key "YYYY-MM-DD". Used by daily-reset modes (World Boss,
+// Shatter) so the reset boundary matches the local-midnight day-of-week
+// boss rotation rather than the ISO-week boundary.
+export function todayKey(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}

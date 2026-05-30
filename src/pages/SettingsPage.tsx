@@ -64,7 +64,13 @@ export default function SettingsPage() {
           </div>
         </div>
         <Toggle label="Reduced motion (less animation)" value={s.reduceMotion} onChange={v => update('reduceMotion', v)} />
-        <Toggle label="Manual ultimate trigger (tap to fire)" value={!!s.manualUltTrigger} onChange={v => update('manualUltTrigger', v)} />
+      </div>
+
+      {/* Audio */}
+      <div className="rounded-md border border-zinc-800 bg-zinc-900 p-3 space-y-3">
+        <div className="font-pixel text-xs text-amber-300">Audio &amp; Feedback</div>
+        <Toggle label="Sound effects" value={s.soundEnabled} onChange={v => update('soundEnabled', v)} />
+        <Toggle label="Haptics (vibration)" value={s.hapticsEnabled} onChange={v => update('hapticsEnabled', v)} />
       </div>
 
       {/* Display */}

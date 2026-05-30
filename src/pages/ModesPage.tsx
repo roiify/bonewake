@@ -20,13 +20,13 @@ const MODES = [
   { to: '/tower',    label: 'Tower of Trials',  icon: ICON.tower,     tint: '#fb7185',
     desc: 'Climb endless floors. Daily attempts; floors 1-100 reset weekly.' },
   { to: '/worldboss', label: 'World Boss',      icon: ICON.worldboss, tint: '#dc2626',
-    desc: 'Weekly boss · BEST single-attempt damage sets the tier.' },
+    desc: 'Daily boss · BEST single-attempt damage sets the tier.' },
   { to: '/spirit',   label: 'Shatter',          icon: ICON.shatter,   tint: '#fbbf24',
-    desc: 'Weekly · cumulative damage stacks across attempts toward one HP pool.' },
+    desc: 'Daily · cumulative damage stacks across attempts toward one HP pool.' },
   { to: '/trials',   label: 'Hero Trials',      icon: ICON.trials,    tint: '#fb7185',
-    desc: 'Themed daily runs with squad restrictions. Bonus gems + soulshards.' },
+    desc: 'Themed runs with squad restrictions. Bonus gems + soulshards.' },
   { to: '/dungeons', label: 'Material Dungeons', icon: ICON.dungeons, tint: '#34d399',
-    desc: 'Themed farming. Weekday rotation; guaranteed gold / XP / gear / gems.' },
+    desc: 'Themed farming, open daily; guaranteed gold / XP / gear / gems.' },
   { to: '/echoes',   label: 'Boss Echoes',      icon: ICON.echoes,    tint: '#a78bfa',
     desc: 'Collect Echoes from defeated bosses. Equip up to 5 for account-wide passives.' },
   { to: '/training', label: 'Training Chamber', icon: ICON.training,  tint: '#22d3ee',
@@ -39,7 +39,7 @@ export default function ModesPage() {
     <div className="p-3 space-y-3 pb-5">
       <PageHeader
         title="Modes"
-        tagline="Every battle mode beyond Story · weekly, daily, and idle"
+        tagline="Every battle mode beyond Story · daily, endless, and idle"
         glow="#dc2626"
       />
       {MODES.map(m => {
