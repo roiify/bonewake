@@ -20,7 +20,6 @@ import { recordEvent } from '../lib/lifetime';
 import { addMaterial } from '../lib/crafting';
 import { MAT_SOULSHARD } from '../data/ultimateGear';
 import { ENEMY_SPRITES } from '../data/heroes';
-import { StaticSprite } from '../components/SpriteAnimator';
 import SquadPicker from '../components/SquadPicker';
 import PageHeader from '../components/ui/PageHeader';
 

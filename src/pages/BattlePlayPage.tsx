@@ -1250,11 +1250,9 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
   // templateId so we can match against equipment.equippedTo.
   const equipment = useHeroes(s => s.equipment);
   const heroes = useHeroes(s => s.heroes);
-  // Enemy aura: only the 14 painted bosses (world + shatter daily rotation)
-  // keep the orange pulse so they still read as menacing. Chapter bosses and
-  // regular enemies stay clean.
-  const _isPaintedBossForGlow = PAINTED_BOSS_IDS.has(unit.templateId);
-  void BOSS_AURA_IDS;
+  // No enemies glow — auras are a hero-only signal for weapon upgrade tier.
+  const _isPaintedBossForGlow = false;
+  void BOSS_AURA_IDS; void PAINTED_BOSS_IDS;
   // Manny's summons (Bone King, Lich Sovereign) inherit Manny's
   // weapon-upgrade aura — they're his minions, so they share his glow tier.
   const SUMMON_TEMPLATE_IDS = new Set(['bone_king', 'lich_sovereign']);
@@ -1485,30 +1483,11 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
             ) : (
               <div className="text-5xl">{unit.emoji}</div>
             )}
-            {/* Weapon-glow: a soft radial orb pinned at the hero's weapon
-                anchor. The element is a perfect circle (border-radius:50%)
-                with a radial-gradient that fades to transparent before the
-                edges so there's no rectangular cutoff. mix-blend-mode:screen
-                makes the underlying weapon pixels brighten through the orb. */}
-            {showWeaponGlow && weaponAnchor && (
-              <div
-                className={`absolute pointer-events-none ${glowClass(glow)}`}
-                style={{
-                  left: `${weaponAnchor.cx * 100}%`,
-                  // bottom-anchored: cy is fraction up from the floor, which
-                  // is the container bottom (where hero feet sit).
-                  bottom: `${weaponAnchor.cy * 100}%`,
-                  width: `${weaponAnchor.size * 100}%`,
-                  height: `${weaponAnchor.size * 100}%`,
-                  transform: 'translate(-50%, 50%)',
-                  borderRadius: '50%',
-                  background: `radial-gradient(circle, ${glowOrbColor(glow)} 0%, ${glowOrbColor(glow)}66 25%, transparent 60%)`,
-                  mixBlendMode: 'screen',
-                  filter: glow === 1 ? glowFilter(1) : undefined,
-                  zIndex: 2,
-                }}
-              />
-            )}
+            {/* Weapon-localized orb is parked until the weapon-overlay
+                system lands — see TODO(weapon-glow) above. */}
+            {void showWeaponGlow}
+            {void weaponAnchor}
+            {void glowOrbColor}
           </div>
           </div>
         );
