@@ -39,6 +39,12 @@ export default function WorldBossPage() {
         worldBossClaimedTier: -1,
       });
     }
+    // Dev reset: ?reset=1 in the URL zeroes out attempts for this week
+    // without waiting for the week roll-over. Strips the param after.
+    if (new URLSearchParams(window.location.search).get('reset') === '1') {
+      patch({ worldBossAttemptsUsed: 0 });
+      window.history.replaceState({}, '', '/worldboss');
+    }
   }, [weekChanged, week]);
 
   const attemptsUsed = weekChanged ? 0 : (profile.worldBossAttemptsUsed ?? 0);

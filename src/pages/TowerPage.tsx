@@ -193,7 +193,9 @@ export default function TowerPage() {
               return (
                 <div key={e.id} className="rounded border bg-zinc-950 p-1.5 text-center" style={{ borderColor: e.color }}>
                   <div className="aspect-square flex items-center justify-center overflow-hidden">
-                    {sprite ? <StaticSprite src={sprite.portrait ?? sprite.idle} size={50} /> : <div className="text-2xl">{e.emoji}</div>}
+                    {sprite
+                      ? <img src={sprite.portrait ?? sprite.idle} alt={e.name} className="w-[90%] h-[90%] object-contain" style={{ imageRendering: 'pixelated' }} />
+                      : <div className="text-2xl">{e.emoji}</div>}
                   </div>
                   <div className="text-[9px] truncate" style={{ color: e.color }}>{e.name}</div>
                   <div className="text-[8px] text-zinc-500">LVL:{e.level}</div>

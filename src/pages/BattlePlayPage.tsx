@@ -12,6 +12,7 @@ import { currentSpiritBoss, buildSpiritBossUnit, SPIRIT_BOSSES } from '../data/s
 import { ECHO_BY_BOSS, FIRST_KILL_DROP_RATE, REPEAT_DROP_RATE } from '../data/echoes';
 import type { Stage } from '../types';
 import { useHeroes } from '../store/heroes';
+import { heroGlowTier, glowFilter, glowClass, glowOrbColor, getWeaponAnchor, type GlowTier } from '../lib/glow';
 import { useProfile } from '../store/profile';
 import { buildEnemyUnit, toCombatUnit, xpForLevel, effectiveMaxLevel } from '../lib/stats';
 import { resolveBattle } from '../lib/combat';
@@ -20,8 +21,9 @@ import { incrementTask } from '../lib/tasks';
 import type { CombatUnit, BattleResult } from '../types';
 import type { OwnedEquipment } from '../lib/db';
 import { CHAPTER_BG } from '../data/auraMap';
-import { HERO_SPRITES, ENEMY_SPRITES, PAINTED_BOSS_IDS } from '../data/heroes';
+import { HERO_SPRITES, ENEMY_SPRITES, PAINTED_BOSS_IDS, BOSS_AURA_IDS } from '../data/heroes';
 import SpriteAnimator from '../components/SpriteAnimator';
+import { ArchetypeBadge } from '../components/ui/HeroBadges';
 import { genLoot } from '../lib/loot';
 import { LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/loot';
 import { rollClearDrops, addMaterial } from '../lib/crafting';
@@ -37,6 +39,24 @@ import { GEM_TIER_COLOR, GEM_TIER_NAME } from '../data/gems';
 import type { GemDef } from '../data/gems';
 
 const SQUAD_KEY = 'bonewake_squad';
+
+// Per-template projectile config. If a unit has an entry here, its basic
+// attack spawns a flying VFX sprite from caster→target instead of lunging.
+// Damage timing in applyImpact() is unchanged — we shift the projectile
+// spawn earlier so it visually arrives exactly when damage lands.
+const PROJECTILES: Record<string, { sprite: string; travelMs: number; impact: string; impactMs: number; size: number; spin: boolean; suppressLunge: boolean }> = {
+  pyra: {
+    sprite: '/sprites/vfx/fireball.png',
+    travelMs: 350,
+    impact: '/sprites/vfx/fire_burst.png',
+    impactMs: 380,
+    size: 56,
+    spin: true,
+    suppressLunge: true,
+  },
+};
+const BASE_URL_PROJECTILE_PREFIX = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
+function projectileSrc(rel: string): string { return BASE_URL_PROJECTILE_PREFIX + rel; }
 
 function loadSquad(): string[] {
   try { return JSON.parse(localStorage.getItem(SQUAD_KEY) ?? '[]'); } catch { return []; }
@@ -261,6 +281,14 @@ export default function BattlePlayPage() {
   const [attacker, setAttacker] = useState<string | null>(null);
   const [hit, setHit] = useState<string | null>(null);
   const [skillCaster, setSkillCaster] = useState<string | null>(null);
+  // Projectile system: in-flight VFX layered above the battlefield. Each entry
+  // tweens via framer-motion from caster center → target center over travelMs,
+  // then despawns. Impacts are a short burst at the target. Ranged casters
+  // (PROJECTILES map below) suppress their default lunge so they cast in place.
+  const battleRootRef = useRef<HTMLDivElement | null>(null);
+  const [projectiles, setProjectiles] = useState<Array<{ id: number; from: { x: number; y: number }; to: { x: number; y: number }; sprite: string; travelMs: number; spin: boolean }>>([]);
+  const [impacts, setImpacts] = useState<Array<{ id: number; at: { x: number; y: number }; sprite: string; durMs: number }>>([]);
+  const projId = useRef(0);
   // True when the currently-attacking unit is performing a heal action.
   // Heals never lunge (the caster stays planted) and use the hero's
   // dedicated heal sprite when one is defined.
@@ -315,7 +343,9 @@ export default function BattlePlayPage() {
     // actual enemy position. Heals stay rooted (healers don't run up to
     // their target). Ults/skills currently animate as basic attacks.
     const isHealAction = (action.heal ?? 0) > 0 && (action.dmg ?? 0) === 0;
-    if (!isHealAction) {
+    const casterTemplate = units[action.src]?.templateId;
+    const proj = casterTemplate ? PROJECTILES[casterTemplate] : undefined;
+    if (!isHealAction && !proj?.suppressLunge) {
       const a = unitRefs.current[action.src];
       const t = unitRefs.current[action.dst];
       if (a && t) {
@@ -363,9 +393,38 @@ export default function BattlePlayPage() {
     // shake / damage number / SFX hit in sync with the swing rather than
     // 0.5s after the visual. The remaining time covers the retreat back.
     const impactDelay = isBasic ? 600 : baseDuration;
+    // Projectile: spawn so it arrives exactly at impactDelay. The travel
+    // tween animates a flying VFX from caster center → target center; damage
+    // still lands at applyImpact() — projectile is pure visual.
+    const casterTemplate = units[a.src]?.templateId;
+    const proj = casterTemplate ? PROJECTILES[casterTemplate] : undefined;
+    let tProj: ReturnType<typeof setTimeout> | null = null;
+    if (proj && !a.cont) {
+      const spawnDelay = Math.max(0, impactDelay - proj.travelMs);
+      tProj = setTimeout(() => {
+        const aEl = unitRefs.current[a.src];
+        const tEl = unitRefs.current[a.dst];
+        const rootEl = battleRootRef.current;
+        if (!aEl || !tEl || !rootEl) return;
+        const rootR = rootEl.getBoundingClientRect();
+        const aR = aEl.getBoundingClientRect();
+        const tR = tEl.getBoundingClientRect();
+        const from = { x: aR.left + aR.width / 2 - rootR.left, y: aR.top + aR.height / 2 - rootR.top };
+        const to   = { x: tR.left + tR.width / 2 - rootR.left, y: tR.top + tR.height / 2 - rootR.top };
+        const pid = ++projId.current;
+        setProjectiles(p => [...p, { id: pid, from, to, sprite: projectileSrc(proj.sprite), travelMs: proj.travelMs, spin: proj.spin }]);
+        // Schedule despawn + impact burst at arrival
+        setTimeout(() => {
+          setProjectiles(p => p.filter(x => x.id !== pid));
+          const iid = ++projId.current;
+          setImpacts(im => [...im, { id: iid, at: to, sprite: projectileSrc(proj.impact), durMs: proj.impactMs }]);
+          setTimeout(() => setImpacts(im => im.filter(x => x.id !== iid)), proj.impactMs);
+        }, proj.travelMs);
+      }, spawnDelay / speed);
+    }
     const tImpact = setTimeout(() => applyImpact(), impactDelay / speed);
     const tEnd = setTimeout(() => endAction(), baseDuration / speed);
-    return () => { clearTimeout(tImpact); clearTimeout(tEnd); };
+    return () => { clearTimeout(tImpact); clearTimeout(tEnd); if (tProj) clearTimeout(tProj); };
   }, [tick, battle, done, speed, paused]);
 
   // Phase 1: damage/heal lands. Shake + float number + SFX fire here.
@@ -793,6 +852,7 @@ export default function BattlePlayPage() {
 
   return (
     <div
+      ref={battleRootRef}
       className="relative h-full overflow-hidden"
       style={{
         backgroundImage: `linear-gradient(rgba(9,9,11,0.55), rgba(9,9,11,0.85)), url(${bgUrl})`,
@@ -925,6 +985,34 @@ export default function BattlePlayPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Projectile + impact VFX overlay (battlefield-relative absolute layer) */}
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 50 }}>
+        <AnimatePresence>
+          {projectiles.map(p => (
+            <motion.img
+              key={p.id}
+              src={p.sprite}
+              alt=""
+              initial={{ x: p.from.x - 28, y: p.from.y - 28, rotate: 0 }}
+              animate={{ x: p.to.x - 28, y: p.to.y - 28, rotate: p.spin ? 540 : 0 }}
+              transition={{ duration: (p.travelMs / 1000) / speed, ease: 'easeIn' }}
+              style={{ position: 'absolute', width: 56, height: 56, imageRendering: 'pixelated', filter: 'drop-shadow(0 0 8px rgba(255,140,0,0.7))' }}
+            />
+          ))}
+          {impacts.map(im => (
+            <motion.img
+              key={im.id}
+              src={im.sprite}
+              alt=""
+              initial={{ x: im.at.x - 48, y: im.at.y - 48, scale: 0.4, opacity: 0.9 }}
+              animate={{ scale: 1.4, opacity: 0 }}
+              transition={{ duration: (im.durMs / 1000) / speed, ease: 'easeOut' }}
+              style={{ position: 'absolute', width: 96, height: 96, imageRendering: 'pixelated' }}
+            />
+          ))}
+        </AnimatePresence>
       </div>
 
       {/* End screen */}
@@ -1155,6 +1243,39 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
   const heroSprites = HERO_SPRITES[unit.templateId];
   const enemySprites = ENEMY_SPRITES[unit.templateId as keyof typeof ENEMY_SPRITES];
   const sprites = heroSprites ?? enemySprites;
+  // Lineage 2-style weapon-upgrade aura — hero tier derived from highest
+  // equipped upgradeLevel; painted bosses get a fixed tier 2 (orange pulse);
+  // regular enemies stay clean. NOTE: unit.id is a synthetic instance id
+  // ('p0'/'p1'/'p2'), NOT the owned-hero db id — look up the owned hero by
+  // templateId so we can match against equipment.equippedTo.
+  const equipment = useHeroes(s => s.equipment);
+  const heroes = useHeroes(s => s.heroes);
+  // Enemy aura: only the 14 painted bosses (world + shatter daily rotation)
+  // keep the orange pulse so they still read as menacing. Chapter bosses and
+  // regular enemies stay clean.
+  const _isPaintedBossForGlow = PAINTED_BOSS_IDS.has(unit.templateId);
+  void BOSS_AURA_IDS;
+  // Manny's summons (Bone King, Lich Sovereign) inherit Manny's
+  // weapon-upgrade aura — they're his minions, so they share his glow tier.
+  const SUMMON_TEMPLATE_IDS = new Set(['bone_king', 'lich_sovereign']);
+  const _glowSourceTemplate = SUMMON_TEMPLATE_IDS.has(unit.templateId) ? 'manny' : unit.templateId;
+  const _ownedHero = side === 'player'
+    ? heroes.find(h => h.templateId === _glowSourceTemplate)
+    : undefined;
+  // Dev override: ?glow=1|2|3|4 forces every player hero to a glow tier so
+  // we can preview without rolling high-upgrade gear. Gated to dev builds.
+  const _glowOverride = (() => {
+    if (!import.meta.env.DEV) return null;
+    if (typeof window === 'undefined') return null;
+    const v = new URLSearchParams(window.location.search).get('glow');
+    if (v === '1' || v === '2' || v === '3' || v === '4') return Number(v) as GlowTier;
+    return null;
+  })();
+  const glow: GlowTier = _glowOverride !== null && side === 'player'
+    ? _glowOverride
+    : side === 'player'
+      ? heroGlowTier(_ownedHero?.id ?? '', equipment)
+      : (_isPaintedBossForGlow ? 2 : 0);
 
   // Pick the right animation for current state — falls through to idle so
   // SpriteAnimator handles multi-frame strips correctly even when the unit is
@@ -1225,6 +1346,12 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
 
       {/* Floating HP bar + name above the unit */}
       <div className="absolute -top-9 left-1/2 -translate-x-1/2 w-24 z-10 pointer-events-none">
+        {/* Archetype seal sitting behind/next to the HP bar */}
+        {unit.archetype && (
+          <div className="absolute -left-5 top-0 opacity-90" style={{ filter: 'drop-shadow(0 1px 0 #000)' }}>
+            <ArchetypeBadge archetype={unit.archetype} size={16} />
+          </div>
+        )}
         <div className="text-[9px] font-pixel truncate text-center" style={{ color: unit.color, textShadow: '0 1px 0 #000' }}>{unit.name}</div>
         <div className="h-1.5 bg-zinc-900/80 rounded border border-zinc-700 overflow-hidden mt-0.5">
           <motion.div
@@ -1280,8 +1407,8 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
         // than heroes — the sprite renders at 192px square and is bottom-
         // anchored, so the extra 32px of column height becomes "looming"
         // headroom above the silhouette.
-        const containerSize = isPaintedBoss ? 'w-48 h-56' : 'w-44 h-44';
-        const renderSize = isPaintedBoss ? 192 : (heroSprites ? 234 : 220);
+        const containerSize = isPaintedBoss ? 'w-52 h-96' : 'w-44 h-44';
+        const renderSize = isPaintedBoss ? 440 : (heroSprites ? 234 : 220);
         // Per-sprite orientation (verified empirically in-game):
         //   - Heroes face EAST natively → correct on player side, no flip.
         //   - Regular enemies face WEST natively → correct on enemy side,
@@ -1296,32 +1423,93 @@ function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing
         //     flip override on the player side.
         const REVERSED_HEROES = new Set<string>(['chino']);
         const flipHero = REVERSED_HEROES.has(unit.templateId);
-        const EAST_FACING_BOSSES = new Set<string>(['plague_doctor', 'soul_reaper']);
+        const EAST_FACING_BOSSES = new Set<string>();
+        const EAST_FACING_ENEMIES = new Set<string>(['corpse_hound']);
         const flipPaintedBoss = isPaintedBoss && side === 'enemy' && EAST_FACING_BOSSES.has(unit.templateId);
+        const flipEnemy = !isPaintedBoss && side === 'enemy' && EAST_FACING_ENEMIES.has(unit.templateId);
         const baseFilter = 'brightness(0.85) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85))';
         const wrapStyle: React.CSSProperties | undefined = isPaintedBoss
           ? { filter: baseFilter, transform: flipPaintedBoss ? 'scaleX(-1)' : undefined }
-          : flipHero
+          : flipHero || flipEnemy
             ? { transform: 'scaleX(-1)' }
             : undefined;
+        // TODO(weapon-glow): we previously experimented with a localized
+        // orb at each hero's weapon anchor (see HERO_WEAPON_ANCHORS in
+        // src/lib/glow.ts). Parked until the weapon-overlay system is built
+        // — at that point the glow filter will go on the weapon overlay
+        // sprite directly, no coordinate math needed. For now: full-body
+        // glow on both heroes and painted bosses.
+        const wantsOuterGlow = glow > 0;
+        const glowStyle: React.CSSProperties | undefined = wantsOuterGlow && glow === 1
+          ? { filter: glowFilter(1) }
+          : undefined;
+        const outerGlowClass = wantsOuterGlow ? glowClass(glow) : '';
+        const weaponAnchor: { cx: number; cy: number; size: number } | null = null;
+        const showWeaponGlow = false;
+        void getWeaponAnchor; // referenced for future use, suppress unused warning
         return (
+          <div className={outerGlowClass} style={glowStyle}>
           <div
-            className={`relative ${containerSize} flex items-end justify-center`}
+            className={`relative ${containerSize} flex items-end justify-center ${isPaintedBoss ? '' : 'overflow-hidden'}`}
             style={wrapStyle}
           >
             {animSrc ? (
-              <SpriteAnimator
-                src={animSrc}
-                cols={effectiveCols}
-                rows={sprites!.rows}
-                fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 14 : 14)))}
-                loop={unit.alive && !hit}
-                paused={unit.alive && !attacker && !hit}
-                size={renderSize}
-              />
+              isPaintedBoss && effectiveCols === 1 && sprites!.rows === 1 ? (
+                // Static painted-boss sprite — use <img object-fit:contain> so the
+                // figure scales up to fill the container while preserving aspect
+                // ratio (SpriteAnimator's backgroundSize stretches and distorts).
+                <img
+                  src={animSrc}
+                  alt={unit.name}
+                  style={{
+                    width: renderSize,
+                    height: renderSize,
+                    minWidth: renderSize,
+                    minHeight: renderSize,
+                    flexShrink: 0,
+                    objectFit: 'contain',
+                    imageRendering: 'pixelated',
+                  }}
+                />
+              ) : (
+                <SpriteAnimator
+                  src={animSrc}
+                  cols={effectiveCols}
+                  rows={sprites!.rows}
+                  fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 14 : 14)))}
+                  loop={unit.alive && !hit}
+                  paused={unit.alive && !attacker && !hit}
+                  size={renderSize}
+                />
+              )
             ) : (
               <div className="text-5xl">{unit.emoji}</div>
             )}
+            {/* Weapon-glow: a soft radial orb pinned at the hero's weapon
+                anchor. The element is a perfect circle (border-radius:50%)
+                with a radial-gradient that fades to transparent before the
+                edges so there's no rectangular cutoff. mix-blend-mode:screen
+                makes the underlying weapon pixels brighten through the orb. */}
+            {showWeaponGlow && weaponAnchor && (
+              <div
+                className={`absolute pointer-events-none ${glowClass(glow)}`}
+                style={{
+                  left: `${weaponAnchor.cx * 100}%`,
+                  // bottom-anchored: cy is fraction up from the floor, which
+                  // is the container bottom (where hero feet sit).
+                  bottom: `${weaponAnchor.cy * 100}%`,
+                  width: `${weaponAnchor.size * 100}%`,
+                  height: `${weaponAnchor.size * 100}%`,
+                  transform: 'translate(-50%, 50%)',
+                  borderRadius: '50%',
+                  background: `radial-gradient(circle, ${glowOrbColor(glow)} 0%, ${glowOrbColor(glow)}66 25%, transparent 60%)`,
+                  mixBlendMode: 'screen',
+                  filter: glow === 1 ? glowFilter(1) : undefined,
+                  zIndex: 2,
+                }}
+              />
+            )}
+          </div>
           </div>
         );
       })()}

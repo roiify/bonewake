@@ -18,7 +18,25 @@ export function upgradeCost(eq: OwnedEquipment): { gold: number; gems: number } 
   };
 }
 
-export const MAX_UPGRADE_LEVEL = 10;
+export const MAX_UPGRADE_LEVEL = 20;
+
+// Lineage 2-style enhancement: success chance drops as the current level
+// climbs. +1..+4 are guaranteed, then odds fall off a cliff toward +20.
+// On fail the item stays at its current level — resources are still
+// consumed, but no downgrade. Tuned so a typical run to +20 is a real
+// money sink and +20 feels rare.
+export function upgradeSuccessChance(currentLevel: number): number {
+  // Table-driven for predictability; index = currentLevel (rolling for +N+1).
+  // currentLevel 0..3 = 1.0 (guaranteed +1..+4), then taper.
+  const table = [
+    1.00, 1.00, 1.00, 1.00, 1.00,  // 0->1..4->5
+    0.90, 0.80, 0.70, 0.60, 0.50,  // 5->6..9->10
+    0.40, 0.32, 0.25, 0.20, 0.15,  // 10->11..14->15
+    0.12, 0.09, 0.07, 0.05, 0.01,  // 15->16..19->20
+  ];
+  const i = Math.max(0, Math.min(table.length - 1, currentLevel));
+  return table[i];
+}
 
 // === Ult Gear Enchantment ===
 // Crafted Mythic ult pieces use a separate soulshard-driven enchant curve
@@ -62,10 +80,11 @@ export async function enchantUltGear(eqId: string): Promise<{ ok: boolean; error
   return { ok: true };
 }
 
-export async function upgradeEquipment(eqId: string): Promise<{ ok: boolean; error?: string }> {
+export async function upgradeEquipment(eqId: string): Promise<{ ok: boolean; error?: string; failed?: boolean; newLevel?: number }> {
   const eq = await db.equipment.get(eqId);
   if (!eq) return { ok: false, error: 'Not found' };
-  if ((eq.upgradeLevel ?? 0) >= MAX_UPGRADE_LEVEL) return { ok: false, error: 'Already maxed' };
+  const lvl = eq.upgradeLevel ?? 0;
+  if (lvl >= MAX_UPGRADE_LEVEL) return { ok: false, error: 'Already maxed' };
   // Crafted Mythic items have fixed stats — disable upgrade for them
   if (eq.craftedPieceId) return { ok: false, error: 'Mythic items are already perfect' };
 
@@ -79,9 +98,17 @@ export async function upgradeEquipment(eqId: string): Promise<{ ok: boolean; err
     const ok = await profile.spendGems(cost.gems);
     if (!ok) return { ok: false, error: 'Not enough gems' };
   }
-  await db.equipment.update(eqId, { upgradeLevel: (eq.upgradeLevel ?? 0) + 1 });
-  await useHeroes.getState().load();
-  return { ok: true };
+  // Roll for success. Resources are consumed either way (Lineage 2 style).
+  // On fail the level is unchanged.
+  const chance = upgradeSuccessChance(lvl);
+  const succeeded = Math.random() < chance;
+  if (succeeded) {
+    const newLevel = lvl + 1;
+    await db.equipment.update(eqId, { upgradeLevel: newLevel });
+    await useHeroes.getState().load();
+    return { ok: true, newLevel };
+  }
+  return { ok: true, failed: true, newLevel: lvl };
 }
 
 // Salvage yield — gold/gems plus crafting materials. Materials scale with

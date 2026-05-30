@@ -392,3 +392,29 @@ a, button { -webkit-tap-highlight-color: transparent; }
   100% { transform: scale(1)    rotate(0deg);  filter: brightness(0.78) contrast(1.05) saturate(1.05) drop-shadow(0 6px 8px rgba(0,0,0,0.85)); }
 }
 .boss-attacking { animation: boss-attack-roar 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.1); }
+
+/* Weapon-upgrade aura (Lineage 2 style). Tier 1 is static (applied via inline
+   filter); tiers 2 and 3 pulse via CSS keyframes here. The keyframes set
+   `filter` on the outer wrapper only — base brightness/contrast filters live
+   on the inner sprite wrapper, so they compound without clobbering. */
+@keyframes glow-pulse-orange-kf {
+  0%, 100% { filter: drop-shadow(0 0 8px #dc2626) drop-shadow(0 0 4px #fb923c); }
+  50%      { filter: drop-shadow(0 0 18px #ef4444) drop-shadow(0 0 9px #fdba74); }
+}
+.glow-pulse-orange { animation: glow-pulse-orange-kf 1.4s ease-in-out infinite; }
+
+@keyframes glow-pulse-rainbow-kf {
+  0%   { filter: drop-shadow(0 0 10px #ec4899) drop-shadow(0 0 5px #06b6d4); }
+  33%  { filter: drop-shadow(0 0 10px #8b5cf6) drop-shadow(0 0 5px #ec4899); }
+  66%  { filter: drop-shadow(0 0 10px #06b6d4) drop-shadow(0 0 5px #8b5cf6); }
+  100% { filter: drop-shadow(0 0 10px #ec4899) drop-shadow(0 0 5px #06b6d4); }
+}
+.glow-pulse-rainbow { animation: glow-pulse-rainbow-kf 2.4s linear infinite; }
+
+/* Tier 4: divine — bright gold core with white outer halo + soft pulse. The
+   maximum aura, reserved for future +12 upgrades (above the current +10 cap). */
+@keyframes glow-pulse-divine-kf {
+  0%, 100% { filter: drop-shadow(0 0 12px #fde047) drop-shadow(0 0 6px #fff7ed) drop-shadow(0 0 3px #ffffff); }
+  50%      { filter: drop-shadow(0 0 24px #fde047) drop-shadow(0 0 12px #fffbeb) drop-shadow(0 0 6px #ffffff); }
+}
+.glow-pulse-divine { animation: glow-pulse-divine-kf 1.2s ease-in-out infinite; }

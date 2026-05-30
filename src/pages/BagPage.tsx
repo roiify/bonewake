@@ -8,7 +8,8 @@ import { BASE_BY_ID, LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from
 import { MYTHIC_COLOR, MATERIAL_META, MAT_SCRAP, MAT_ARCANE_DUST, MAT_RELIC_SHARD, MAT_LEGENDARY_ESSENCE } from '../data/ultimateGear';
 import { equipPower, equipQuality, affixTier, tierColor } from '../lib/loot';
 import type { OwnedEquipment } from '../lib/db';
-import { salvageEquipment, bulkSalvageRarities, upgradeCost, upgradeEquipment, MAX_UPGRADE_LEVEL, salvageValue } from '../lib/equipmentMgmt';
+import { salvageEquipment, bulkSalvageRarities, upgradeCost, upgradeEquipment, upgradeSuccessChance, MAX_UPGRADE_LEVEL, salvageValue } from '../lib/equipmentMgmt';
+import { itemGlowTier, glowFilter, glowClass } from '../lib/glow';
 import { DEFAULT_SETTINGS, normalizeSettings } from '../lib/db';
 import PageHeader from '../components/ui/PageHeader';
 import MaterialIcon from '../components/ui/MaterialIcon';
@@ -78,7 +79,8 @@ export default function BagPage() {
   }
   async function doUpgrade(id: string) {
     const r = await upgradeEquipment(id);
-    if (r.ok) showToast('+1 upgrade');
+    if (r.ok && r.failed) showToast(`💥 Enhance failed — stayed at +${r.newLevel}`);
+    else if (r.ok) showToast(`✨ +${r.newLevel} upgrade!`);
     else showToast(r.error ?? 'Failed');
   }
   async function toggleLock(id: string, locked: boolean) {
@@ -193,15 +195,25 @@ export default function BagPage() {
                   </div>
                 )}
                 <div className="flex gap-3">
-                <div className="w-14 h-14 rounded bg-zinc-950 flex items-center justify-center text-3xl shrink-0 relative">
-                  {itemEmojiFor(eq)}
-                  {equippedHero && (
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-zinc-950 border-2 flex items-center justify-center text-[9px] font-pixel"
-                      style={{ borderColor: eqTpl?.color, color: eqTpl?.color }}>
-                      ✓
+                {(() => {
+                  // Weapon-only upgrade aura on the icon — same tier scale as
+                  // in-battle hero glow (5/10/15/20). Non-weapons return 0.
+                  const itier = itemGlowTier(eq);
+                  return (
+                    <div
+                      className={`w-14 h-14 rounded bg-zinc-950 flex items-center justify-center text-3xl shrink-0 relative ${glowClass(itier)}`}
+                      style={itier === 1 ? { filter: glowFilter(1) } : undefined}
+                    >
+                      {itemEmojiFor(eq)}
+                      {equippedHero && (
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-zinc-950 border-2 flex items-center justify-center text-[9px] font-pixel"
+                          style={{ borderColor: eqTpl?.color, color: eqTpl?.color }}>
+                          ✓
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  );
+                })()}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-xs font-pixel truncate" style={{ color }}>{itemDisplayName(eq)}</div>
@@ -270,7 +282,11 @@ export default function BagPage() {
                       disabled={(eq.upgradeLevel ?? 0) >= MAX_UPGRADE_LEVEL}
                       onClick={() => doUpgrade(eq.id)}
                     >
-                      {(eq.upgradeLevel ?? 0) >= MAX_UPGRADE_LEVEL ? 'Maxed' : (() => { const c = upgradeCost(eq); return `Upgrade ${c.gold}🪙${c.gems ? ` ${c.gems}💎` : ''}`; })()}
+                      {(eq.upgradeLevel ?? 0) >= MAX_UPGRADE_LEVEL ? 'Maxed' : (() => {
+                        const c = upgradeCost(eq);
+                        const pct = Math.round(upgradeSuccessChance(eq.upgradeLevel ?? 0) * 100);
+                        return `Upgrade ${pct}% · ${c.gold}🪙${c.gems ? ` ${c.gems}💎` : ''}`;
+                      })()}
                     </button>
                   )}
                   {!eq.equippedTo && !eq.craftedPieceId && (

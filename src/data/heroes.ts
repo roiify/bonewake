@@ -421,6 +421,19 @@ export const PAINTED_BOSS_IDS = new Set<string>([
   'lich_king', 'bone_titan', 'plague_doctor', 'ash_empress',
   'soul_reaper', 'voidlord', 'worm_god',
 ]);
+
+// Enemies that get the boss-aura glow in battle but render at NORMAL size
+// (vs. painted-boss-tier which also bumps the sprite container). All chapter
+// `bossEnemy` values from src/data/stages.ts. Keep PAINTED_BOSS_IDS for the
+// huge-sprite layout; this superset just controls the orange aura.
+export const BOSS_AURA_IDS = new Set<string>([
+  ...PAINTED_BOSS_IDS,
+  'abyssal_warden', 'apocalypse_horror', 'ash_lord', 'astral_archer',
+  'blood_titan', 'bone_executioner', 'corpse_hound', 'crypt_assassin',
+  'dread_knight', 'final_revenant', 'gilded_revenant', 'orb_caster',
+  'plague_priest', 'royal_lich', 'shade_caller', 'soul_devourer',
+  'starfall_lich', 'void_juggernaut', 'void_zombie', 'world_eater_husk',
+]);
 export const WORLD_BOSS_BY_DAY = [
   'bonewake_dragon',  // Sun
   'plague_hydra',     // Mon
