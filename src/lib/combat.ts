@@ -366,23 +366,50 @@ function pickAllyHealTarget(allies: CombatUnit[]): CombatUnit | undefined {
   return [...alive].sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
 }
 
+// Per-unit ultimate policy for interactive (manual-ult) battles. 'hold' = the
+// unit banks energy at 100 and keeps basic-attacking until the player releases
+// it; 'auto' (default / omitted) = fires the ult automatically at 100.
+export type UltPolicy = Record<string, 'auto' | 'hold'>;
+
+export interface ResolveOpts {
+  // Resume from the units AS GIVEN (current hp/energy/effects/alive) instead of
+  // resetting to full + running first-turn passives. Used to re-resolve the
+  // remainder of a battle from a mid-fight snapshot after a manual ult release.
+  resume?: boolean;
+  // Player units to hold (won't auto-fire their ult).
+  ultPolicy?: UltPolicy;
+  // A single unit id that should fire its ult on its next turn regardless of
+  // policy — the "unleash now" action.
+  forceUltNow?: string;
+}
+
 export function resolveBattle(
   player: CombatUnit[],
   enemy: CombatUnit[],
-  seed?: string
+  seed?: string,
+  opts?: ResolveOpts
 ): BattleResult {
   const s = seed ?? Date.now().toString();
   const rng = seedrandom(s);
+  const resume = opts?.resume ?? false;
+  const ultPolicy = opts?.ultPolicy ?? {};
+  const forceUltNow = opts?.forceUltNow;
   // Snapshot active echoes for this battle. Reset per-battle state.
   _activeEchoes = aggregateEquippedEchoes();
   _currentRound = 0;
   _playerSide = 'player';
-  // deep clone
-  const p = player.map(u => ({ ...u, hp: u.maxHp, energy: 0, alive: true, effects: [] as ActiveEffect[] }));
-  const e = enemy.map(u => ({ ...u, hp: u.maxHp, energy: 0, alive: true, effects: [] as ActiveEffect[] }));
-  // Echo: squad HP boost — applied at init so the bonus carries through
-  // damage calcs as if it were base HP.
-  if (_activeEchoes.squadHpMult > 0) {
+  // Deep clone. On a fresh battle, reset hp/energy/alive/effects to start
+  // state; on resume, preserve the live state passed in (clone effects so we
+  // don't mutate the caller's snapshot).
+  const p = resume
+    ? player.map(u => ({ ...u, effects: (u.effects ?? []).map(ef => ({ ...ef })) }))
+    : player.map(u => ({ ...u, hp: u.maxHp, energy: 0, alive: true, effects: [] as ActiveEffect[] }));
+  const e = resume
+    ? enemy.map(u => ({ ...u, effects: (u.effects ?? []).map(ef => ({ ...ef })) }))
+    : enemy.map(u => ({ ...u, hp: u.maxHp, energy: 0, alive: true, effects: [] as ActiveEffect[] }));
+  // Echo: squad HP boost — applied ONCE at battle init so the bonus carries
+  // through damage calcs as if it were base HP (skip on resume — already in).
+  if (!resume && _activeEchoes.squadHpMult > 0) {
     const mult = 1 + _activeEchoes.squadHpMult;
     for (const u of p) {
       u.maxHp = Math.floor(u.maxHp * mult);
@@ -417,14 +444,17 @@ export function resolveBattle(
   // catches deaths from any source: attacks, reflect, or burn).
   let reviveUsed = false;
 
-  // Apply first-turn passives at round 0 for everyone
-  for (const unit of [...p, ...e]) {
-    if (!firstTurnDone.has(unit.id)) {
-      firstTurnDone.add(unit.id);
-      const allies = unit.side === 'player' ? p : e;
-      const ft = applyFirstTurn(unit, allies);
-      for (const h of ft.healLogs) {
-        log.push({ tick: ++tick, src: unit.id, dst: h.dst, dmg: 0, crit: false, ult: false, heal: h.heal });
+  // Apply first-turn passives at round 0 for everyone (skip on resume — they
+  // already fired in the original resolve before the snapshot was taken).
+  if (!resume) {
+    for (const unit of [...p, ...e]) {
+      if (!firstTurnDone.has(unit.id)) {
+        firstTurnDone.add(unit.id);
+        const allies = unit.side === 'player' ? p : e;
+        const ft = applyFirstTurn(unit, allies);
+        for (const h of ft.healLogs) {
+          log.push({ tick: ++tick, src: unit.id, dst: h.dst, dmg: 0, crit: false, ult: false, heal: h.heal });
+        }
       }
     }
   }
@@ -479,9 +509,16 @@ export function resolveBattle(
       }
       if (stunned) break;  // turn skipped by stun
 
+      // Manual-ult policy: a player unit set to 'hold' banks energy at 100 and
+      // keeps basic-attacking until the player releases it (forceUltNow). With
+      // no policy (the default / every existing caller) `held` is always false,
+      // so behavior is unchanged.
+      const held = unit.side === 'player'
+        && ultPolicy[unit.id] === 'hold'
+        && unit.id !== forceUltNow;
       // Heal/revive ults are "wasted" if no ally needs them — keep energy
       // pegged at 100 and fall through to the basic-attack block.
-      const rawIsUlt = unit.energy >= 100;
+      const rawIsUlt = unit.energy >= 100 && !held;
       const rawSkill = rawIsUlt ? SKILL_BY_ID[unit.ultimateId] : undefined;
       const isHealUlt = rawSkill?.targeting === 'self' && rawSkill.effect?.type === 'heal';
       const isReviveUlt = rawSkill?.targeting === 'self' && rawSkill.effect?.type === 'revive';

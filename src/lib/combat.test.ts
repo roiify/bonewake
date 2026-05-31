@@ -182,6 +182,32 @@ describe('set-bonus ult damage', () => {
   });
 });
 
+describe('manual-ult policy (interactive combat)', () => {
+  const mkP = () => [unit({ side: 'player', id: 'pa', ultimateId: 'infernal_cataclysm', atk: 200, maxHp: 60000, def: 200 })];
+  const mkE = () => [unit({ side: 'enemy', id: 'ea', atk: 150, maxHp: 60000, def: 50 })];
+
+  it("a 'hold' unit never auto-fires its ult", () => {
+    const auto = resolveBattle(mkP(), mkE(), 'hold1');
+    const held = resolveBattle(mkP(), mkE(), 'hold1', { ultPolicy: { pa: 'hold' } });
+    expect(auto.log.some(a => a.src === 'pa' && a.ult)).toBe(true);   // normally ults
+    expect(held.log.some(a => a.src === 'pa' && a.ult)).toBe(false);  // held — never ults
+  });
+
+  it('forceUltNow releases a held unit at 100 energy (resume)', () => {
+    const p = [unit({ side: 'player', id: 'pf', ultimateId: 'iron_palm', atk: 600, maxHp: 60000, energy: 100, spd: 120 })];
+    const e = [unit({ side: 'enemy', id: 'ef', maxHp: 500000, def: 50, atk: 50, spd: 1 })];
+    const r = resolveBattle(p, e, 'force1', { resume: true, ultPolicy: { pf: 'hold' }, forceUltNow: 'pf' });
+    expect(r.log.some(a => a.src === 'pf' && a.ult && a.dmg > 0)).toBe(true);
+  });
+
+  it('resume preserves live HP/energy instead of resetting', () => {
+    const p = [unit({ side: 'player', id: 'pr', atk: 50, maxHp: 5000, hp: 1000, spd: 200 })];
+    const e = [unit({ side: 'enemy', id: 'er', maxHp: 5000, atk: 10, def: 0, spd: 1 })];
+    const r = resolveBattle(p, e, 'resume1', { resume: true });
+    expect(r.initial.player[0].hp).toBe(1000); // not reset to maxHp 5000
+  });
+});
+
 describe('crit cap', () => {
   it('does not crit on 100% of hits even with huge crit stacking', () => {
     setPlayerLevelForBoost(200); // large crit + crit-dmg scaling
