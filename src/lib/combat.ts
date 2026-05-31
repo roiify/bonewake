@@ -220,7 +220,7 @@ function echoOffensiveMult(attacker: CombatUnit, target: CombatUnit, mode: 'basi
     if (mode === 'ult'   && _activeEchoes.ultDmgMult   > 0) m *= 1 + _activeEchoes.ultDmgMult;
     if (_activeEchoes.fullHpAtkMult > 0 && attacker.hp >= attacker.maxHp) m *= 1 + _activeEchoes.fullHpAtkMult;
     if (_activeEchoes.lowHpDmgMult  > 0 && attacker.hp < attacker.maxHp * 0.3) m *= 1 + _activeEchoes.lowHpDmgMult;
-    if (_activeEchoes.bossDmgMult   > 0 && (target as any).star >= 5)        m *= 1 + _activeEchoes.bossDmgMult;
+    if (_activeEchoes.bossDmgMult   > 0 && target.star >= 5)                 m *= 1 + _activeEchoes.bossDmgMult;
     if (_activeEchoes.stackPerTurnDmg > 0) {
       const stack = Math.min(_activeEchoes.stackPerTurnDmgCap, _activeEchoes.stackPerTurnDmg * _currentRound);
       m *= 1 + stack;
@@ -296,8 +296,7 @@ function applyFirstTurn(unit: CombatUnit, allies: CombatUnit[]): { healLogs: { d
     if (sk.effect.kind === 'self_def_buff') {
       // Kaius's Battle Cry: +DEF for N turns. Was incorrectly pushed as a
       // 'shield' (which did nothing); now a real def_buff read by effectiveDef.
-      (unit.effects as any) ??= [];
-      (unit.effects as any).push({ kind: 'def_buff', value: sk.effect.value, remaining: sk.effect.duration });
+      (unit.effects ??= []).push({ kind: 'def_buff', value: sk.effect.value, remaining: sk.effect.duration });
     }
   }
   return { healLogs: out, ranTeamHeal };
@@ -379,8 +378,8 @@ export function resolveBattle(
   _currentRound = 0;
   _playerSide = 'player';
   // deep clone
-  const p = player.map(u => ({ ...u, hp: u.maxHp, energy: 0, alive: true, effects: [] as any[] }));
-  const e = enemy.map(u => ({ ...u, hp: u.maxHp, energy: 0, alive: true, effects: [] as any[] }));
+  const p = player.map(u => ({ ...u, hp: u.maxHp, energy: 0, alive: true, effects: [] as ActiveEffect[] }));
+  const e = enemy.map(u => ({ ...u, hp: u.maxHp, energy: 0, alive: true, effects: [] as ActiveEffect[] }));
   // Echo: squad HP boost — applied at init so the bonus carries through
   // damage calcs as if it were base HP.
   if (_activeEchoes.squadHpMult > 0) {
@@ -499,7 +498,7 @@ export function resolveBattle(
       // the lost mid-cycle skill damage.
       const canSkill = false;
       if (canSkill) {
-        (unit as any).skillUsed = true;
+        unit.skillUsed = true;
         const target = pickEnemyTarget(enemies, rng);
         if (target) {
           const eAdv = elementAdvantage(unit.element, target.element);
@@ -550,7 +549,7 @@ export function resolveBattle(
             deadAlly.alive = true;
             deadAlly.hp = Math.min(deadAlly.maxHp, reviveHp);
             // skillUsed reset so the revived ally can use their skill again
-            (deadAlly as any).skillUsed = false;
+            deadAlly.skillUsed = false;
             // log as a "heal" event so the UI shows the green floater + revive sparkle
             log.push({ tick: ++tick, src: unit.id, dst: deadAlly.id, dmg: 0, crit: false, ult: true, heal: deadAlly.hp });
             isFirst = false;

@@ -122,7 +122,7 @@ export default function App() {
   // latter raced with /reset and rewrote the wiped profile from memory.
   useEffect(() => {
     const onHide = () => {
-      if (document.visibilityState === 'hidden' && !(window as any).__resetting) {
+      if (document.visibilityState === 'hidden' && !window.__resetting) {
         useProfile.getState().patch({ lastClosedAt: Date.now() }).catch(() => {});
       }
     };

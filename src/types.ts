@@ -107,6 +107,9 @@ export interface CombatUnit {
   // "+N% ult damage" granted by the hero's active 5-piece set bonus (decimal).
   ultDmgBonus?: number;
   alive: boolean;
+  // Transient per-battle flag for the (currently disabled) mid-energy skill
+  // and revive bookkeeping. Not persisted.
+  skillUsed?: boolean;
   effects?: ActiveEffect[];
 }
 

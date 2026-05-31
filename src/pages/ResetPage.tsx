@@ -12,7 +12,7 @@ export default function ResetPage() {
       try {
         // Signal to any in-flight handlers that we're resetting — they should
         // not write the stale in-memory state back to the freshly wiped DB.
-        (window as any).__resetting = true;
+        window.__resetting = true;
 
         // Clear browser-side state
         localStorage.clear();
