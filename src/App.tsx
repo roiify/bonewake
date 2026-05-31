@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { initSave } from './lib/db';
+import { uid } from './lib/id';
 import { useProfile } from './store/profile';
 import { sendMail } from './lib/mail';
 import { maybeAutoBackup, maybeNagToExportBackup, maybeOfferGhostWipeRescue, restoreFromMirror } from './lib/backup';
@@ -67,12 +68,29 @@ export default function App() {
       } catch (e) {
         console.warn('gem migration failed', e);
       }
-      // First-launch welcome mail with starter rewards
+      // First-launch: grant a starter hero so a brand-new account isn't
+      // stranded with an unplayable game (zero heroes = can't start stage 1-1).
+      // Auto-seed the squad with them too, so the very first battle works.
       const p = useProfile.getState().profile;
+      if (!p.welcomeMailSent && useHeroes.getState().heroes.length === 0) {
+        const STARTER_TEMPLATE = 'kengo';
+        const starter = {
+          id: uid(),
+          templateId: STARTER_TEMPLATE,
+          level: 1,
+          exp: 0,
+          star: 3 as const,
+          equipped: {},
+          obtainedAt: 0,
+        };
+        await useHeroes.getState().addHero(starter);
+        try { localStorage.setItem('bonewake_squad', JSON.stringify([starter.id])); } catch { /* ignore */ }
+      }
+      // First-launch welcome mail with starter rewards
       if (!p.welcomeMailSent) {
         await sendMail({
           subject: 'Welcome, Hero!',
-          body: 'Your journey begins.\n\nHead to Summon and pull on Stellar Wish — a guaranteed SSS hero is granted at least once every 150 pulls (your pity carries between sessions). Standard Wish costs gold and is a great way to grow your roster early. Then clear stages to grow your power.\n\nFeatures unlock as you level up:\n\n• L5: Material Dungeons\n• L8: Tower of Trials\n• L10: Ultimate Crafting\n• L15: World Boss\n\nHere\'s a starter pack to get you going.',
+          body: 'Your journey begins.\n\nKengo has joined you and is already in your squad — head to Story and clear stage 1-1 to begin.\n\nWhen you have gems, pull on Stellar Wish — a guaranteed SSS hero is granted at least once every 150 pulls (your pity carries between sessions). Standard Wish costs gold and is a great way to grow your roster early.\n\nFeatures unlock as you level up:\n\n• L5: Material Dungeons\n• L8: Tower of Trials\n• L10: Ultimate Crafting\n• L15: World Boss\n\nHere\'s a starter pack to get you going.',
           rewards: { gold: 2000, gems: 200, friendPoints: 50, energy: 100 },
         });
         await useProfile.getState().patch({ welcomeMailSent: true });
