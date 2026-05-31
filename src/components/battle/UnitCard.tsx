@@ -138,26 +138,26 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
         </div>
       )}
 
-      {/* Element badge — top-right corner, scannable during fast battles */}
-      {ELEMENT_ICON[unit.element] && (
-        <div
-          className="absolute top-1 right-1 z-10 w-5 h-5 rounded-full flex items-center justify-center text-[11px] leading-none pointer-events-none"
-          style={{
-            background: '#0a0a0aee',
-            border: `1px solid ${ELEMENT_ICON[unit.element].color}`,
-            boxShadow: `0 0 4px ${ELEMENT_ICON[unit.element].color}88`,
-          }}
-          title={unit.element}
-        >
-          {ELEMENT_ICON[unit.element].glyph}
-        </div>
-      )}
-
       {/* Floating HP bar + name above the unit */}
       <div className="absolute -top-9 left-1/2 -translate-x-1/2 w-24 z-10 pointer-events-none">
         {/* Archetype seal tucked at the HP bar. Anchored to the side facing the
             battlefield center (right edge of the bar for left-column heroes,
             left edge for right-column enemies) so both teams read the same. */}
+        {/* Element icon tucked at the HP bar, on the OUTER side (opposite the
+            archetype seal) so it reads the same for heroes and enemies. */}
+        {ELEMENT_ICON[unit.element] && (
+          <div
+            className={`absolute -top-0.5 z-10 w-4 h-4 rounded-full flex items-center justify-center text-[9px] leading-none pointer-events-none ${side === 'player' ? '-left-5' : '-right-5'}`}
+            style={{
+              background: '#0a0a0aee',
+              border: `1px solid ${ELEMENT_ICON[unit.element].color}`,
+              boxShadow: `0 0 4px ${ELEMENT_ICON[unit.element].color}88`,
+            }}
+            title={unit.element}
+          >
+            {ELEMENT_ICON[unit.element].glyph}
+          </div>
+        )}
         {unit.archetype && (
           <div
             className={`absolute top-0 opacity-90 ${side === 'player' ? '-right-5' : '-left-5'}`}
