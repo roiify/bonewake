@@ -90,6 +90,21 @@ describe('winner rules', () => {
     const r = resolveBattle(p, e, 's2');
     expect(r.winner).toBe('enemy');
   });
+
+  it('a timeout with a healthy enemy alive is a DEFEAT, not a body-count victory', () => {
+    // 3 chip-damage players vs 1 super-tanky enemy: the fight times out at the
+    // round cap with everyone near full HP. The old rule handed the player a
+    // win for having more bodies standing; now a healthy living enemy = defeat.
+    const p = [
+      unit({ side: 'player', id: 'a', atk: 3, maxHp: 200000, def: 800, spd: 100 }),
+      unit({ side: 'player', id: 'b', atk: 3, maxHp: 200000, def: 800, spd: 90 }),
+      unit({ side: 'player', id: 'c', atk: 3, maxHp: 200000, def: 800, spd: 80 }),
+    ];
+    const e = [unit({ side: 'enemy', id: 'z', atk: 3, maxHp: 5_000_000, def: 800, spd: 50 })];
+    const r = resolveBattle(p, e, 'timeout1');
+    expect(r.winner).toBe('enemy');               // not a hollow victory
+    expect(r.log.some(a => a.dst === 'z' && a.dmg > 0)).toBe(true); // fight happened
+  });
 });
 
 describe('element triangle', () => {

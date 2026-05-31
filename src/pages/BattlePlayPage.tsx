@@ -20,7 +20,7 @@ import { distributeSquadExp } from '../lib/rewards';
 import { todayKey } from '../data/tower';
 import { db } from '../lib/db';
 import { incrementTask } from '../lib/tasks';
-import type { CombatUnit, BattleResult } from '../types';
+import type { CombatUnit, BattleResult, BattleAction } from '../types';
 import type { OwnedEquipment } from '../lib/db';
 import { CHAPTER_BG } from '../data/auraMap';
 import { UnitCard, type FloatingNumber } from '../components/battle/UnitCard';
@@ -275,6 +275,11 @@ export default function BattlePlayPage() {
   // tick effect re-runs and re-schedules timers; without this guard
   // applyImpact would mutate unit state a second time.
   const impactedTick = useRef(-1);
+  // Every action actually applied during playback, accumulated ACROSS re-resolved
+  // branches (manual ult releases swap battle.log to just the remaining branch,
+  // so battle.log alone undercounts). Used for the post-battle damage breakdown
+  // and lifetime damage stat so each hero's full contribution is credited.
+  const playedActions = useRef<BattleAction[]>([]);
   const [units, setUnits] = useState<Record<string, CombatUnit>>(() => {
     if (!battle) return {};
     return Object.fromEntries([...battle.initial.player, ...battle.initial.enemy].map(u => [u.id, { ...u }]));
@@ -295,6 +300,7 @@ export default function BattlePlayPage() {
     setDone(false);
     setLootDrops([]); setMatDrops([]); setGemDrops([]);
     impactedTick.current = -1;
+    playedActions.current = [];
     setEnergyDeducted(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stageId]);
@@ -495,6 +501,7 @@ export default function BattlePlayPage() {
     if (impactedTick.current === tick) return; // already applied — guard pause/unpause race
     impactedTick.current = tick;
     const action = battle.log[tick];
+    playedActions.current.push(action); // cumulative across branches (see ref decl)
     setUnits(prev => {
       const next = { ...prev };
       const dst = { ...next[action.dst] };
@@ -883,10 +890,10 @@ export default function BattlePlayPage() {
         sourceId: stage.id,
         won: true,
         stars: newStars,
-        damageDealt: battle.log.filter(a => playerSlots.some(u => u.id === a.src)).reduce((s, a) => s + a.dmg, 0),
+        damageDealt: playedActions.current.filter(a => playerSlots.some(u => u.id === a.src)).reduce((s, a) => s + a.dmg, 0),
         squadIds: playerSlots.map(u => u.templateId),
         enemyTemplates: stage.enemyTeam.map(e => e.templateId),
-        durationTicks: battle.log.length,
+        durationTicks: playedActions.current.length,
       });
     } else {
       await recordEvent({ kind: 'battleLost' });
@@ -948,25 +955,6 @@ export default function BattlePlayPage() {
         ))}
       </div>
 
-      {/* Manual ult: "Unleash" buttons for each charged (100-energy) player
-          hero. Real agency — tapping re-resolves the fight from here with that
-          hero firing now (see onUnleash). Only rendered in manual mode. */}
-      {manualActive && !done && (
-        <div className="absolute top-12 right-2 z-30 flex flex-col gap-1 items-end">
-          {playerSlots.filter(u => u && u.alive && u.energy >= 100).map(u => (
-            <button
-              key={u.id}
-              onClick={() => onUnleash(u.id)}
-              className="rounded border-2 px-2 py-1 text-[10px] font-pixel flex items-center gap-1.5 animate-pulse"
-              style={{ borderColor: u.color, background: u.color + '22', color: u.color, boxShadow: `0 0 8px ${u.color}66` }}
-              title={`Unleash ${u.name}'s ultimate`}
-            >
-              ⚡ {u.name}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* Paused overlay */}
       {paused && !done && (
         <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
@@ -1022,7 +1010,7 @@ export default function BattlePlayPage() {
         <div className="w-1/2 min-w-0 flex flex-col justify-around items-start">
           {playerSlots.map((u, i) => (
             <div key={u.id} style={{ marginLeft: `${i % 2 === 0 ? 0 : 18}px` }}>
-              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} isHealing={healCaster === u.id} side="player" floats={floats.filter(f => f.dstId === u.id)} lungeTo={attacker === u.id ? lungeOffset : null} setRef={el => { unitRefs.current[u.id] = el; }} />
+              <UnitCard unit={u} attacker={attacker === u.id} hit={hit === u.id} isUlt={attacker === u.id && !!ultFlash} isSkill={skillCaster === u.id} isHealing={healCaster === u.id} side="player" floats={floats.filter(f => f.dstId === u.id)} lungeTo={attacker === u.id ? lungeOffset : null} setRef={el => { unitRefs.current[u.id] = el; }} unleashReady={manualActive && !done && u.alive && u.energy >= 100} onUnleash={() => onUnleash(u.id)} />
             </div>
           ))}
         </div>
@@ -1086,7 +1074,7 @@ export default function BattlePlayPage() {
                 {/* MVP / damage breakdown */}
                 {(() => {
                   const damageBySrc = new Map<string, number>();
-                  for (const a of battle.log) {
+                  for (const a of playedActions.current) {
                     if (a.dmg > 0 && playerSlots.some(u => u.id === a.src)) {
                       damageBySrc.set(a.src, (damageBySrc.get(a.src) ?? 0) + a.dmg);
                     }

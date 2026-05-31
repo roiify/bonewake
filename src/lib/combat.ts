@@ -463,11 +463,11 @@ export function resolveBattle(
     }
   }
 
-  // Round cap bumped from 30 → 60. With ults disabled, basic attacks need
-  // more turns to grind through high-HP bosses; 30 rounds was timing out
-  // mid-fight, which used to silently mark a player "win" even though
-  // enemies were alive.
-  while (p.some(u => u.alive) && e.some(u => u.alive) && round < 60) {
+  // Round cap raised to 120 so an appropriately-strong squad actually finishes
+  // high-HP bosses (a real kill-win) within the limit instead of timing out
+  // into a judged result. Manual mode (holding ults) can still reach the cap —
+  // that's the player's choice not to fire.
+  while (p.some(u => u.alive) && e.some(u => u.alive) && round < 120) {
     _currentRound = round;
     // Echo: round-0 SPD boost to player side only (e.g. Crimson Centaur echo).
     const firstRoundBoost = round === 0 && _activeEchoes.firstRoundSpdMult > 0
@@ -726,28 +726,27 @@ export function resolveBattle(
   // Winner rule:
   //   1. All enemies dead → player wins (kill-all victory).
   //   2. All players dead → enemy wins (wipe loss).
-  //   3. Round cap hit with both sides standing → judged victory:
-  //        whichever side has more alive units wins;
-  //        ties break on higher total remaining-HP fraction;
-  //        if still tied, enemy wins (defender's advantage).
-  //      This replaces the old "round cap = always lose" rule, which
-  //      gave bogus DEFEATs when the player had wiped most enemies
-  //      but couldn't finish the last one in 60 rounds.
+  //   3. Round-cap TIMEOUT (both sides standing) → the player wins ONLY if they
+  //      actually beat the enemy team down: the enemy team must be below half
+  //      its total HP AND the player must be ahead on attrition (healthier team).
+  //      Otherwise it's a defeat — you ran out of time without winning. This
+  //      stops "VICTORY" from showing while the enemies are clearly still alive
+  //      and healthy (the old rule awarded the win to whoever had more bodies,
+  //      so 3 heroes vs 1 full-HP boss counted as a win).
   const enemyAlive = e.some(u => u.alive);
   const playerAlive = p.some(u => u.alive);
   let winner: 'player' | 'enemy';
   if (!enemyAlive) winner = 'player';
   else if (!playerAlive) winner = 'enemy';
   else {
-    const aliveP = p.filter(u => u.alive).length;
-    const aliveE = e.filter(u => u.alive).length;
-    if (aliveP > aliveE) winner = 'player';
-    else if (aliveE > aliveP) winner = 'enemy';
-    else {
-      // Same alive count — compare remaining HP fractions
-      const hpFrac = (arr: typeof p) => arr.reduce((s, u) => s + (u.alive ? u.hp / Math.max(1, u.maxHp) : 0), 0);
-      winner = hpFrac(p) > hpFrac(e) ? 'player' : 'enemy';
-    }
+    const teamHpFrac = (arr: typeof p) => {
+      const cur = arr.reduce((s, u) => s + (u.alive ? u.hp : 0), 0);
+      const max = arr.reduce((s, u) => s + Math.max(1, u.maxHp), 0);
+      return cur / max;
+    };
+    const eFrac = teamHpFrac(e);
+    const pFrac = teamHpFrac(p);
+    winner = (eFrac < 0.5 && pFrac >= eFrac) ? 'player' : 'enemy';
   }
   return { seed: s, winner, log, initial };
 }

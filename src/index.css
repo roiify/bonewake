@@ -138,6 +138,15 @@ html.reduce-motion .glow-pulse-divine {
 
 /* CRT scanline overlay (Display setting). Fixed, non-interactive, sits above
    everything. Subtle horizontal lines + faint vignette for a retro feel. */
+/* Manual-ult "ready to fire" glow on a charged hero (tap to fire). The solid
+   red "⚡ FIRE" badge carries the signal too, so this is pure flourish — fine
+   if reduced-motion neutralizes it. */
+@keyframes ult-ready-kf {
+  0%, 100% { filter: drop-shadow(0 0 6px #fbbf24); }
+  50%      { filter: drop-shadow(0 0 16px #f59e0b) drop-shadow(0 0 6px #fde68a); }
+}
+.ult-ready-ring { animation: ult-ready-kf 0.9s ease-in-out infinite; }
+
 .scanlines-overlay {
   position: fixed;
   inset: 0;

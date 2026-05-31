@@ -26,11 +26,15 @@ export interface FloatingNumber {
   ele?: 'strong' | 'weak';
 }
 
-export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing, lungeTo, setRef }: {
+export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, isHealing, lungeTo, setRef, unleashReady, onUnleash }: {
   unit: CombatUnit; attacker: boolean; hit: boolean; side: 'player' | 'enemy'; floats: FloatingNumber[]; isUlt: boolean; isSkill: boolean;
   isHealing: boolean;
   lungeTo: { dx: number; dy: number } | null;
   setRef: (el: HTMLDivElement | null) => void;
+  // Manual-ult (low-speed) only: when true this hero's ult is charged and the
+  // player can tap the hero to fire it now.
+  unleashReady?: boolean;
+  onUnleash?: () => void;
 }) {
   // Resolve sprite set
   const heroSprites = HERO_SPRITES[unit.templateId];
@@ -117,9 +121,23 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
           ? { duration: 1.0, times: [0, 0.10, 0.35, 0.65, 1] }
           : { duration: 0.18 }
       }
-      style={{ zIndex: attacker ? 15 : 5 }}
-      className={`relative ${hit ? 'animate-shake' : ''} ${unit.alive ? '' : 'grayscale opacity-60'}`}
+      style={{ zIndex: unleashReady ? 25 : attacker ? 15 : 5, cursor: unleashReady ? 'pointer' : undefined }}
+      className={`relative ${hit ? 'animate-shake' : ''} ${unit.alive ? '' : 'grayscale opacity-60'} ${unleashReady ? 'ult-ready-ring' : ''}`}
+      onClick={unleashReady ? onUnleash : undefined}
+      role={unleashReady ? 'button' : undefined}
+      title={unleashReady ? `Tap to fire ${unit.name}'s ultimate` : undefined}
     >
+      {/* Tap-to-fire badge — shown on the hero when their ult is charged and
+          manual control is active. Tapping anywhere on the hero fires it. */}
+      {unleashReady && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+          <div className="font-pixel text-[8px] px-1.5 py-0.5 rounded-full animate-pulse whitespace-nowrap"
+               style={{ background: '#dc2626', color: '#fff', border: '1px solid #fecaca', boxShadow: '0 0 8px #ef4444' }}>
+            ⚡ FIRE
+          </div>
+        </div>
+      )}
+
       {/* Element badge — top-right corner, scannable during fast battles */}
       {ELEMENT_ICON[unit.element] && (
         <div
@@ -137,9 +155,14 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
 
       {/* Floating HP bar + name above the unit */}
       <div className="absolute -top-9 left-1/2 -translate-x-1/2 w-24 z-10 pointer-events-none">
-        {/* Archetype seal sitting behind/next to the HP bar */}
+        {/* Archetype seal tucked at the HP bar. Anchored to the side facing the
+            battlefield center (right edge of the bar for left-column heroes,
+            left edge for right-column enemies) so both teams read the same. */}
         {unit.archetype && (
-          <div className="absolute -left-5 top-0 opacity-90" style={{ filter: 'drop-shadow(0 1px 0 #000)' }}>
+          <div
+            className={`absolute top-0 opacity-90 ${side === 'player' ? '-right-5' : '-left-5'}`}
+            style={{ filter: 'drop-shadow(0 1px 0 #000)' }}
+          >
             <ArchetypeBadge archetype={unit.archetype} size={16} />
           </div>
         )}
