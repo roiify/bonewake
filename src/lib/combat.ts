@@ -394,6 +394,10 @@ export function resolveBattle(
   const resume = opts?.resume ?? false;
   const ultPolicy = opts?.ultPolicy ?? {};
   const forceUltNow = opts?.forceUltNow;
+  // forceUltNow releases the held unit's ult exactly ONCE; after it fires the
+  // unit reverts to its hold policy (otherwise it would auto-fire every time it
+  // recharged for the rest of the branch — the ult appeared to "keep replaying").
+  let forceConsumed = false;
   // Snapshot active echoes for this battle. Reset per-battle state.
   _activeEchoes = aggregateEquippedEchoes();
   _currentRound = 0;
@@ -513,9 +517,10 @@ export function resolveBattle(
       // keeps basic-attacking until the player releases it (forceUltNow). With
       // no policy (the default / every existing caller) `held` is always false,
       // so behavior is unchanged.
+      const isForcedRelease = unit.id === forceUltNow && !forceConsumed;
       const held = unit.side === 'player'
         && ultPolicy[unit.id] === 'hold'
-        && unit.id !== forceUltNow;
+        && !isForcedRelease;
       // Heal/revive ults are "wasted" if no ally needs them — keep energy
       // pegged at 100 and fall through to the basic-attack block.
       const rawIsUlt = unit.energy >= 100 && !held;
@@ -696,6 +701,9 @@ export function resolveBattle(
         target.energy = Math.min(100, target.energy + 30);
       }
       } while (false);
+      // Once the force-released unit has taken its turn, the release is spent —
+      // it reverts to its hold policy for the rest of this branch.
+      if (unit.id === forceUltNow) forceConsumed = true;
 
       // Echo: revive the first fallen player unit, once per battle.
       if (!reviveUsed && _activeEchoes.reviveFirstFallenPct > 0) {

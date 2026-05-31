@@ -193,11 +193,15 @@ describe('manual-ult policy (interactive combat)', () => {
     expect(held.log.some(a => a.src === 'pa' && a.ult)).toBe(false);  // held — never ults
   });
 
-  it('forceUltNow releases a held unit at 100 energy (resume)', () => {
-    const p = [unit({ side: 'player', id: 'pf', ultimateId: 'iron_palm', atk: 600, maxHp: 60000, energy: 100, spd: 120 })];
-    const e = [unit({ side: 'enemy', id: 'ef', maxHp: 500000, def: 50, atk: 50, spd: 1 })];
+  it('forceUltNow releases a held unit EXACTLY once, then it holds again', () => {
+    // Long fight (huge enemy HP) so the unit recharges to 100 many times. The
+    // forced unit must fire its ult once and then revert to holding — not
+    // auto-fire on every recharge (the "ult kept replaying" bug).
+    const p = [unit({ side: 'player', id: 'pf', ultimateId: 'iron_palm', atk: 600, maxHp: 200000, energy: 100, spd: 120, def: 300 })];
+    const e = [unit({ side: 'enemy', id: 'ef', maxHp: 5_000_000, def: 50, atk: 80, spd: 1 })];
     const r = resolveBattle(p, e, 'force1', { resume: true, ultPolicy: { pf: 'hold' }, forceUltNow: 'pf' });
-    expect(r.log.some(a => a.src === 'pf' && a.ult && a.dmg > 0)).toBe(true);
+    const ults = r.log.filter(a => a.src === 'pf' && a.ult && a.dmg > 0).length;
+    expect(ults).toBe(1);
   });
 
   it('resume preserves live HP/energy instead of resetting', () => {
