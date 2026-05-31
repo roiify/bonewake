@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProfile } from '../store/profile';
-import { ENERGY_CAP, ENERGY_REGEN_INTERVAL_MS } from '../lib/db';
+import { ENERGY_REGEN_INTERVAL_MS, energyCapForLevel } from '../lib/db';
 
 const BUY_AMOUNT = 60;
 const BUY_COST_GEMS = 30;
@@ -34,16 +34,18 @@ export default function EnergyModal({ open, onClose }: Props) {
 
   if (!open) return null;
 
+  // Effective cap scales with player level.
+  const cap = energyCapForLevel(profile.level);
   // How many full regen ticks would be credited if we recomputed now
   const elapsed = now - profile.lastEnergyTick;
   const buffered = Math.floor(elapsed / ENERGY_REGEN_INTERVAL_MS);
-  const projectedEnergy = Math.min(ENERGY_CAP, profile.energy + buffered);
-  const msUntilNext = profile.energy >= ENERGY_CAP
+  const projectedEnergy = Math.min(cap, profile.energy + buffered);
+  const msUntilNext = profile.energy >= cap
     ? 0
     : ENERGY_REGEN_INTERVAL_MS - (elapsed % ENERGY_REGEN_INTERVAL_MS);
-  const msUntilFull = profile.energy >= ENERGY_CAP
+  const msUntilFull = profile.energy >= cap
     ? 0
-    : (ENERGY_CAP - projectedEnergy) * ENERGY_REGEN_INTERVAL_MS + msUntilNext;
+    : (cap - projectedEnergy) * ENERGY_REGEN_INTERVAL_MS + msUntilNext;
 
   const today = todayStr();
   const buysToday = profile.energyBuysDate === today ? (profile.energyBuysToday ?? 0) : 0;
@@ -87,10 +89,10 @@ export default function EnergyModal({ open, onClose }: Props) {
             <div className="flex items-end justify-between mb-2">
               <div>
                 <div className="text-3xl font-pixel text-cyan-300">{profile.energy}</div>
-                <div className="text-[10px] text-zinc-500">/ {ENERGY_CAP} cap</div>
+                <div className="text-[10px] text-zinc-500">/ {cap} cap</div>
               </div>
               <div className="text-right">
-                {profile.energy < ENERGY_CAP ? (
+                {profile.energy < cap ? (
                   <>
                     <div className="text-[10px] text-zinc-400">Next +1 in</div>
                     <div className="text-sm font-pixel text-amber-300">{formatCountdown(msUntilNext)}</div>
@@ -102,7 +104,7 @@ export default function EnergyModal({ open, onClose }: Props) {
               </div>
             </div>
             <div className="h-1.5 bg-zinc-800 rounded overflow-hidden">
-              <div className="h-full bg-cyan-400" style={{ width: `${(profile.energy / ENERGY_CAP) * 100}%` }} />
+              <div className="h-full bg-cyan-400" style={{ width: `${Math.min(100, (profile.energy / cap) * 100)}%` }} />
             </div>
           </div>
 

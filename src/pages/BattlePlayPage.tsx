@@ -516,10 +516,18 @@ export default function BattlePlayPage() {
     const profile0 = useProfile.getState().profile;
     const owned = profile0.ownedEchoes ?? [];
     if (owned.includes(echo.id)) return;            // never dupe
-    const isFirstKill = !owned.length || true;       // first time owning this specific echo
-    const roll = Math.random();
+    // First time THIS boss is killed → guaranteed echo; later kills roll the
+    // repeat rate. Tracked in localStorage (was `!owned.length || true`, which
+    // forced first-kill always and made the repeat branch dead code).
+    const KILLS_KEY = 'bonewake_boss_kills';
+    let killed: string[] = [];
+    try { killed = JSON.parse(localStorage.getItem(KILLS_KEY) ?? '[]'); } catch { killed = []; }
+    const isFirstKill = !killed.includes(bossTemplateId);
+    if (isFirstKill) {
+      try { localStorage.setItem(KILLS_KEY, JSON.stringify([...killed, bossTemplateId])); } catch { /* ignore */ }
+    }
     const dropRate = isFirstKill ? FIRST_KILL_DROP_RATE : REPEAT_DROP_RATE;
-    if (roll > dropRate) return;
+    if (Math.random() > dropRate) return;
     await useProfile.getState().patch({ ownedEchoes: [...owned, echo.id] });
   }
 

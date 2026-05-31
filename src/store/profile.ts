@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { db, type Profile, DEFAULT_PROFILE, normalizeSettings } from '../lib/db';
+import { db, type Profile, DEFAULT_PROFILE, normalizeSettings, energyCapForLevel } from '../lib/db';
 import { xpForLevel, setPlayerLevelForBoost, setEquippedEchoes, PLAYER_MAX_LEVEL } from '../lib/stats';
 
 interface ProfileState {
@@ -89,12 +89,13 @@ export const useProfile = create<ProfileState>((set, get) => ({
       level++;
     }
     if (level >= PLAYER_MAX_LEVEL) exp = 0;
-    // On level-up, refill energy to cap (common gacha pattern, keeps players playing)
+    // On level-up, refill energy to the (level-scaled) cap — common gacha
+    // pattern that keeps players playing.
     const leveledUp = level > startLevel;
     await get().patch({
       level,
       exp,
-      ...(leveledUp ? { energy: 100, lastEnergyTick: Date.now() } : {}),
+      ...(leveledUp ? { energy: energyCapForLevel(level), lastEnergyTick: Date.now() } : {}),
     });
   },
 }));

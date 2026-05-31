@@ -382,7 +382,13 @@ export const DEFAULT_PROFILE: Profile = {
 
 // Energy regenerates 1 unit every 3 minutes, capped at 100.
 export const ENERGY_REGEN_INTERVAL_MS = 3 * 60 * 1000;
+// Base cap at level 1. The effective cap scales with player level so a full
+// bank funds a real session at endgame (late stages cost ~76-80 energy each) —
+// a flat 100 only bought ~one endgame stage. At L200 the cap is 300.
 export const ENERGY_CAP = 100;
+export function energyCapForLevel(level: number): number {
+  return ENERGY_CAP + Math.max(0, Math.floor(level) - 1);
+}
 
 let initPromise: Promise<void> | null = null;
 export async function initSave() {
@@ -395,8 +401,9 @@ export async function initSave() {
     const p = (await db.profile.get({ id: 'me' }))!;
     const elapsed = Date.now() - p.lastEnergyTick;
     const regen = Math.floor(elapsed / ENERGY_REGEN_INTERVAL_MS);
-    if (regen > 0 && p.energy < ENERGY_CAP) {
-      const newEnergy = Math.min(ENERGY_CAP, p.energy + regen);
+    const cap = energyCapForLevel(p.level);
+    if (regen > 0 && p.energy < cap) {
+      const newEnergy = Math.min(cap, p.energy + regen);
       // Advance lastEnergyTick by the energy we actually credited (not by full elapsed)
       // so leftover fractional time carries over to the next tick.
       const consumed = regen * ENERGY_REGEN_INTERVAL_MS;
