@@ -64,6 +64,7 @@ export default function SettingsPage() {
           </div>
         </div>
         <Toggle label="Reduced motion (less animation)" value={s.reduceMotion} onChange={v => update('reduceMotion', v)} />
+        <Toggle label="Manual ultimates (tap to unleash)" value={s.manualUlt} onChange={v => update('manualUlt', v)} />
       </div>
 
       {/* Audio */}

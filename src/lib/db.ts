@@ -67,6 +67,10 @@ export interface GameSettings {
   reduceMotion: boolean;
   soundEnabled: boolean;
   hapticsEnabled: boolean;
+  // Manual ultimates: heroes hold their ult at 100 energy and the player taps
+  // to unleash, instead of auto-firing. Real interactive combat (re-resolves
+  // the fight from the release point). Excludes World Boss / Shatter.
+  manualUlt: boolean;
   // Auto-salvage: which rarities get salvaged when the player taps
   // "Salvage" on the bag page. Persists across sessions so the player
   // doesn't have to re-check boxes every visit. Default: only Common +
@@ -80,6 +84,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   reduceMotion: false,
   soundEnabled: true,
   hapticsEnabled: true,
+  manualUlt: false,
   autoSalvage: { 1: true, 2: true, 3: false, 4: false, 5: false },
 };
 
@@ -93,6 +98,7 @@ export function normalizeSettings(settings?: Partial<GameSettings> | null): Game
     reduceMotion: settings?.reduceMotion ?? DEFAULT_SETTINGS.reduceMotion,
     soundEnabled: settings?.soundEnabled ?? DEFAULT_SETTINGS.soundEnabled,
     hapticsEnabled: settings?.hapticsEnabled ?? DEFAULT_SETTINGS.hapticsEnabled,
+    manualUlt: settings?.manualUlt ?? DEFAULT_SETTINGS.manualUlt,
     // Was previously dropped here — normalizeSettings rebuilt a fresh object
     // without autoSalvage, and profile.load() wrote that back to disk, wiping
     // the player's saved rarity checkboxes on the first load after setting them.

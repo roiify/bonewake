@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { STAGE_BY_ID, STAGES } from '../data/stages';
 import { TRIAL_BY_ID } from '../data/trials';
@@ -14,7 +14,7 @@ import type { Stage } from '../types';
 import { useHeroes } from '../store/heroes';
 import { useProfile } from '../store/profile';
 import { buildEnemyUnit, toCombatUnit } from '../lib/stats';
-import { resolveBattle } from '../lib/combat';
+import { resolveBattle, type UltPolicy } from '../lib/combat';
 import { sfx, haptic } from '../lib/sfx';
 import { distributeSquadExp } from '../lib/rewards';
 import { todayKey } from '../data/tower';
@@ -199,7 +199,15 @@ export default function BattlePlayPage() {
   const equipment = useHeroes(s => s.equipment);
   const addEquipment = useHeroes(s => s.addEquipment);
 
-  const battle: BattleResult | null = useMemo(() => {
+  const manualUltSetting = useProfile(s => s.profile.settings?.manualUlt ?? false);
+  // Manual-ult (interactive) mode. Excluded for World Boss / Shatter because
+  // their rewards sum damage across the whole battle log, which a re-resolved
+  // branch would miscount.
+  const manualMode = manualUltSetting && !isWorldBoss && !isSpiritBomb;
+
+  // Build the initial battle for the current stage. In manual mode all player
+  // ults start 'held', so the player drives when they fire (see onUnleash).
+  function buildBattle(): BattleResult | null {
     if (!stage) return null;
     const squad = loadSquad()
       .map(id => heroes.find(h => h.id === id))
@@ -245,8 +253,15 @@ export default function BattlePlayPage() {
         return buildEnemyUnit(e.templateId, e.level, e.star, `e${i}`, enemyTpls);
       });
     }
-    return resolveBattle(playerUnits, enemyUnits);
-  }, [stageId]);
+    const ultPolicy: UltPolicy | undefined = manualMode
+      ? Object.fromEntries(playerUnits.map(u => [u.id, 'hold' as const]))
+      : undefined;
+    return resolveBattle(playerUnits, enemyUnits, undefined, ultPolicy ? { ultPolicy } : undefined);
+  }
+
+  const [battle, setBattle] = useState<BattleResult | null>(buildBattle);
+  // Re-resolution branch seed counter (manual ult releases).
+  const branchSeed = useRef(0);
 
   const [tick, setTick] = useState(0);
   // Idempotency guard: tracks the last tick whose impact already fired.
@@ -258,6 +273,46 @@ export default function BattlePlayPage() {
     if (!battle) return {};
     return Object.fromEntries([...battle.initial.player, ...battle.initial.enemy].map(u => [u.id, { ...u }]));
   });
+
+  // Rebuild a fresh battle + reset all per-battle state when the stage changes
+  // WITHOUT a remount (e.g. Tower "Next Floor", Dungeon "Run Again", which
+  // navigate /battle/play → /battle/play). Skips the initial mount (the useState
+  // initializers already produced the first battle). This also fixed a latent
+  // bug where those re-run paths kept the previous battle's units/done state.
+  const didMountRef = useRef(false);
+  useEffect(() => {
+    if (!didMountRef.current) { didMountRef.current = true; return; }
+    const b = buildBattle();
+    setBattle(b);
+    setUnits(b ? Object.fromEntries([...b.initial.player, ...b.initial.enemy].map(u => [u.id, { ...u }])) : {});
+    setTick(0);
+    setDone(false);
+    setLootDrops([]); setMatDrops([]); setGemDrops([]);
+    impactedTick.current = -1;
+    setEnergyDeducted(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stageId]);
+
+  // Manual ult: re-resolve the rest of the fight from the current LIVE state,
+  // forcing the chosen hero to unleash on its next turn. The other player ults
+  // stay held. Swaps in the new branch log and restarts playback from it; the
+  // live `units` already match the branch's initial snapshot.
+  function onUnleash(unitId: string) {
+    if (!battle || done || !manualMode) return;
+    const u = units[unitId];
+    if (!u || !u.alive || u.energy < 100) return;
+    const playerUnits = battle.initial.player.map(pu => ({ ...units[pu.id] })).filter(Boolean);
+    const enemyUnits = battle.initial.enemy.map(eu => ({ ...units[eu.id] })).filter(Boolean);
+    const ultPolicy: UltPolicy = Object.fromEntries(playerUnits.map(pu => [pu.id, 'hold' as const]));
+    branchSeed.current += 1;
+    const next = resolveBattle(playerUnits, enemyUnits, `branch-${branchSeed.current}-${battle.seed}`, {
+      resume: true, ultPolicy, forceUltNow: unitId,
+    });
+    impactedTick.current = -1;
+    setBattle(next);
+    setTick(0);
+  }
+
   const [attacker, setAttacker] = useState<string | null>(null);
   const [hit, setHit] = useState<string | null>(null);
   const [skillCaster, setSkillCaster] = useState<string | null>(null);
@@ -867,6 +922,25 @@ export default function BattlePlayPage() {
           >×{s}</button>
         ))}
       </div>
+
+      {/* Manual ult: "Unleash" buttons for each charged (100-energy) player
+          hero. Real agency — tapping re-resolves the fight from here with that
+          hero firing now (see onUnleash). Only rendered in manual mode. */}
+      {manualMode && !done && (
+        <div className="absolute top-12 right-2 z-30 flex flex-col gap-1 items-end">
+          {playerSlots.filter(u => u && u.alive && u.energy >= 100).map(u => (
+            <button
+              key={u.id}
+              onClick={() => onUnleash(u.id)}
+              className="rounded border-2 px-2 py-1 text-[10px] font-pixel flex items-center gap-1.5 animate-pulse"
+              style={{ borderColor: u.color, background: u.color + '22', color: u.color, boxShadow: `0 0 8px ${u.color}66` }}
+              title={`Unleash ${u.name}'s ultimate`}
+            >
+              ⚡ {u.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Paused overlay */}
       {paused && !done && (
