@@ -6,13 +6,19 @@ import type { HeroTemplate, Rarity } from '../types';
 // enter the squad through Manny.
 const POOL = HERO_TEMPLATES.filter(h => !HIDDEN_HERO_IDS.has(h.id));
 
-// Weighted pick: favors heroes with higher pullWeight (more common-feeling).
-// Used by Novice banner and as the default picker for any tier.
-function pickWeighted(rng: () => number): HeroTemplate {
-  const total = POOL.reduce((s, h) => s + (h.pullWeight ?? 10), 0);
+// Weighted pick over the hero pool. `rareFavored` INVERTS the weighting so the
+// rarest heroes (low pullWeight) come up most — used for the SSS jackpot so a
+// 5★ pull lands on a desirable hero instead of, statistically, the most common
+// unit (the old bug: star tier and hero desirability were decoupled, so an
+// "SSS" was most likely your most generic hero).
+function pickWeighted(rng: () => number, rareFavored = false): HeroTemplate {
+  const w = (h: HeroTemplate) => rareFavored
+    ? 1 / Math.max(1, h.pullWeight ?? 10)
+    : (h.pullWeight ?? 10);
+  const total = POOL.reduce((s, h) => s + w(h), 0);
   let r = rng() * total;
   for (const h of POOL) {
-    r -= (h.pullWeight ?? 10);
+    r -= w(h);
     if (r <= 0) return h;
   }
   return POOL[0];
@@ -43,13 +49,14 @@ export function pullOnce(
     star = rollStarTier(poolId, rng);
   }
 
-  // Pick which hero — featured wins 30% of SSS pulls (was 50%; Luna was
-  // popping too often as the SSS result on Stellar Wish).
+  // Pick which hero. SSS (5★): featured wins 30%, otherwise draw from the
+  // rare-favored distribution so the jackpot lands on a desirable hero. SS/A
+  // tiers use the normal (common-favored) distribution.
   let hero: HeroTemplate;
   if (star === 5 && pool.featuredHeroId && rng() < 0.30) {
-    hero = HERO_TEMPLATES.find(h => h.id === pool.featuredHeroId) ?? pickWeighted(rng);
+    hero = HERO_TEMPLATES.find(h => h.id === pool.featuredHeroId) ?? pickWeighted(rng, true);
   } else {
-    hero = pickWeighted(rng);
+    hero = pickWeighted(rng, star === 5);
   }
 
   const pityCounterAfter = star === 5
@@ -75,8 +82,8 @@ export function pullTen(
       const r = rng();
       const star = r < pool.rates[5] ? 5 : 4;
       const hero = star === 5 && pool.featuredHeroId && rng() < 0.5
-        ? HERO_TEMPLATES.find(h => h.id === pool.featuredHeroId) ?? pickWeighted(rng)
-        : pickWeighted(rng);
+        ? HERO_TEMPLATES.find(h => h.id === pool.featuredHeroId) ?? pickWeighted(rng, true)
+        : pickWeighted(rng, star === 5);
       results.push({ hero, rarity: hero.rarity, star });
       pity = star === 5 ? 0 : (pool.pityFive ? pity + 1 : pity);
     } else {

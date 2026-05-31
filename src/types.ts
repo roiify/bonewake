@@ -14,6 +14,9 @@ export interface HeroTemplate {
   emoji: string; // placeholder sprite (single emoji)
   color: string; // hex
   flavor: string;
+  // Gacha draw weight — lower = rarer/harder to pull. Used by the summon
+  // picker (and inverted for the SSS jackpot so 5★ favors rare heroes).
+  pullWeight?: number;
 }
 
 export interface Skill {
