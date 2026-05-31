@@ -4,7 +4,8 @@ import { DUNGEONS, dungeonsForToday, buildDungeonTeam, hasClearedDungeon, markDu
 import { useProfile } from '../store/profile';
 import { useHeroes } from '../store/heroes';
 import { resolveBattle } from '../lib/combat';
-import { toCombatUnit, xpForLevel, effectiveMaxLevel } from '../lib/stats';
+import { toCombatUnit } from '../lib/stats';
+import { distributeSquadExp } from '../lib/rewards';
 import { recordEvent } from '../lib/lifetime';
 import { genLoot } from '../lib/loot';
 import { addMaterial } from '../lib/crafting';
@@ -22,7 +23,6 @@ export default function DungeonsPage() {
   const profile = useProfile(s => s.profile);
   const heroes = useHeroes(s => s.heroes);
   const equipment = useHeroes(s => s.equipment);
-  const updateHero = useHeroes(s => s.updateHero);
   const addEquipment = useHeroes(s => s.addEquipment);
   const [activeDungeon, setActiveDungeon] = useState<DungeonDef | null>(null);
   const [busy, setBusy] = useState(false);
@@ -61,20 +61,8 @@ export default function DungeonsPage() {
         await recordEvent({ kind: 'goldEarned', amount: r.gold });
       }
       if (r.exp) {
-        // distribute exp to squad
-        const playerLevel = useProfile.getState().profile.level;
-        for (const id of loadSquad()) {
-          const h = heroes.find(x => x.id === id);
-          if (!h) continue;
-          let lvl = h.level;
-          let exp = h.exp + r.exp;
-          const cap = effectiveMaxLevel(h.star, playerLevel);
-          while (exp >= xpForLevel(lvl) && lvl < cap) {
-            exp -= xpForLevel(lvl);
-            lvl++;
-          }
-          await updateHero(h.id, { level: lvl, exp });
-        }
+        // Shared with the play-through path so Play and Skip grant identical XP.
+        await distributeSquadExp(loadSquad(), r.exp);
         await useProfile.getState().gainExp(r.exp);
       }
       if (r.gems) await useProfile.getState().addGems(r.gems);

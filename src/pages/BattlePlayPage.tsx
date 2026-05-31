@@ -14,9 +14,11 @@ import type { Stage } from '../types';
 import { useHeroes } from '../store/heroes';
 import { heroGlowTier, glowFilter, glowClass, glowOrbColor, getWeaponAnchor, type GlowTier } from '../lib/glow';
 import { useProfile } from '../store/profile';
-import { buildEnemyUnit, toCombatUnit, xpForLevel, effectiveMaxLevel } from '../lib/stats';
+import { buildEnemyUnit, toCombatUnit } from '../lib/stats';
 import { resolveBattle } from '../lib/combat';
 import { sfx, haptic } from '../lib/sfx';
+import { distributeSquadExp } from '../lib/rewards';
+import { todayKey } from '../data/tower';
 import { db } from '../lib/db';
 import { incrementTask } from '../lib/tasks';
 import type { CombatUnit, BattleResult } from '../types';
@@ -217,7 +219,6 @@ export default function BattlePlayPage() {
   }, [stageId]);
   const heroes = useHeroes(s => s.heroes);
   const equipment = useHeroes(s => s.equipment);
-  const updateHero = useHeroes(s => s.updateHero);
   const addEquipment = useHeroes(s => s.addEquipment);
 
   const battle: BattleResult | null = useMemo(() => {
@@ -601,8 +602,11 @@ export default function BattlePlayPage() {
     // World Boss short-circuit — sum damage dealt to 'wb_boss' from the
     // log, bump bestDamage + attempts. Matches WorldBossPage.attack().
     if (isWorldBoss) {
-      const wk = isoWeek();
-      const boss = currentBoss(wk);
+      // Daily key (matches WorldBossPage). World Boss rotates + resets daily;
+      // the play-through path must use the same key as the page's skip path or
+      // the two diverge (worldBossWeek stores the day key now).
+      const day = todayKey();
+      const boss = currentBoss(day);
       const startingHp = boss.hpMillions * 1_000_000;
       let damage = 0;
       for (const a of battle.log) {
@@ -610,15 +614,15 @@ export default function BattlePlayPage() {
       }
       damage = Math.min(damage, startingHp);
       const profile0 = useProfile.getState().profile;
-      const weekMatched = profile0.worldBossWeek === wk;
-      const attemptsUsed = weekMatched ? (profile0.worldBossAttemptsUsed ?? 0) : 0;
-      const bestDamage = weekMatched ? (profile0.worldBossBestDamage ?? 0) : 0;
+      const dayMatched = profile0.worldBossWeek === day;
+      const attemptsUsed = dayMatched ? (profile0.worldBossAttemptsUsed ?? 0) : 0;
+      const bestDamage = dayMatched ? (profile0.worldBossBestDamage ?? 0) : 0;
       await useProfile.getState().patch({
-        worldBossWeek: wk,
+        worldBossWeek: day,
         worldBossAttemptsUsed: attemptsUsed + 1,
         worldBossBestDamage: Math.max(damage, bestDamage),
-        // reset claimed tier on week change
-        worldBossClaimedTier: weekMatched ? (profile0.worldBossClaimedTier ?? -1) : -1,
+        // reset claimed tier on day change
+        worldBossClaimedTier: dayMatched ? (profile0.worldBossClaimedTier ?? -1) : -1,
       });
       if (won) await recordEvent({ kind: 'battleWon' });
       else await recordEvent({ kind: 'battleLost' });
@@ -633,12 +637,13 @@ export default function BattlePlayPage() {
     // Spirit Bomb short-circuit — sum damage to 'spirit_boss', accumulate
     // into spiritBossDamage. Matches SpiritBombPage.attack().
     if (isSpiritBomb) {
-      const wk = isoWeek();
-      const boss = currentSpiritBoss(wk);
+      // Daily key (matches SpiritBombPage) — Shatter rotates + resets daily.
+      const day = todayKey();
+      const boss = currentSpiritBoss(day);
       const profile0 = useProfile.getState().profile;
-      const weekMatched = profile0.spiritBossWeek === wk;
-      const dmgSoFar = weekMatched ? (profile0.spiritBossDamage ?? 0) : 0;
-      const attemptsUsed = weekMatched ? (profile0.spiritBossAttemptsUsed ?? 0) : 0;
+      const dayMatched = profile0.spiritBossWeek === day;
+      const dmgSoFar = dayMatched ? (profile0.spiritBossDamage ?? 0) : 0;
+      const attemptsUsed = dayMatched ? (profile0.spiritBossAttemptsUsed ?? 0) : 0;
       const remainingHp = Math.max(0, boss.hp - dmgSoFar);
       let dealt = 0;
       for (const a of battle.log) {
@@ -647,10 +652,10 @@ export default function BattlePlayPage() {
       dealt = Math.min(dealt, remainingHp);
       const newDamage = dmgSoFar + dealt;
       await useProfile.getState().patch({
-        spiritBossWeek: wk,
+        spiritBossWeek: day,
         spiritBossDamage: newDamage,
         spiritBossAttemptsUsed: attemptsUsed + 1,
-        spiritBossClaimedTier: weekMatched ? (profile0.spiritBossClaimedTier ?? -1) : -1,
+        spiritBossClaimedTier: dayMatched ? (profile0.spiritBossClaimedTier ?? -1) : -1,
       });
       if (won) await recordEvent({ kind: 'battleWon' });
       else await recordEvent({ kind: 'battleLost' });
@@ -673,19 +678,7 @@ export default function BattlePlayPage() {
           await recordEvent({ kind: 'goldEarned', amount: r.gold });
         }
         if (r.exp) {
-          const playerLevel = useProfile.getState().profile.level;
-          for (const id of loadSquad()) {
-            const h = heroes.find(x => x.id === id);
-            if (!h) continue;
-            let lvl = h.level;
-            let exp = h.exp + r.exp;
-            const cap = effectiveMaxLevel(h.star, playerLevel);
-            while (exp >= xpForLevel(lvl) && lvl < cap) {
-              exp -= xpForLevel(lvl);
-              lvl++;
-            }
-            await updateHero(h.id, { level: lvl, exp });
-          }
+          await distributeSquadExp(loadSquad(), r.exp);
           await useProfile.getState().gainExp(r.exp);
         }
         if (r.gems) await useProfile.getState().addGems(r.gems);
@@ -723,21 +716,8 @@ export default function BattlePlayPage() {
       const stars = alive === battle.initial.player.length ? 3 : alive >= 2 ? 2 : 1;
       // grant rewards
       await useProfile.getState().addGold(stage.rewards.gold);
-      // distribute exp to squad heroes
-      const squad = loadSquad();
-      const playerLevel = useProfile.getState().profile.level;
-      for (const id of squad) {
-        const h = heroes.find(x => x.id === id);
-        if (!h) continue;
-        let lvl = h.level;
-        let exp = h.exp + stage.rewards.exp;
-        const cap = effectiveMaxLevel(h.star, playerLevel);
-        while (exp >= xpForLevel(lvl) && lvl < cap) {
-          exp -= xpForLevel(lvl);
-          lvl++;
-        }
-        await updateHero(h.id, { level: lvl, exp });
-      }
+      // distribute exp to squad heroes (shared with dungeon + skip paths)
+      await distributeSquadExp(loadSquad(), stage.rewards.exp);
       // stage clear record
       const existing = await db.stageClears.get(stage.id);
       const newStars = Math.max(stars, existing?.stars ?? 0);
