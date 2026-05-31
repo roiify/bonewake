@@ -121,6 +121,21 @@ html.reduce-motion *::after {
 }
 html.reduce-motion .ash-overlay { animation: none !important; }
 
+/* The weapon-tier glow auras are animation-only (the drop-shadow lives inside
+   the keyframes), so neutralizing animation above would erase them entirely.
+   The aura encodes information (upgrade tier), not just flourish — so under
+   reduced motion we keep a STATIC glow (the keyframe's peak/mid frame) and
+   only drop the pulsing. */
+html.reduce-motion .glow-pulse-orange {
+  filter: drop-shadow(0 0 14px #ef4444) drop-shadow(0 0 7px #fdba74);
+}
+html.reduce-motion .glow-pulse-rainbow {
+  filter: drop-shadow(0 0 10px #8b5cf6) drop-shadow(0 0 5px #06b6d4);
+}
+html.reduce-motion .glow-pulse-divine {
+  filter: drop-shadow(0 0 16px #fde047) drop-shadow(0 0 8px #fffbeb) drop-shadow(0 0 4px #ffffff);
+}
+
 /* CRT scanline overlay (Display setting). Fixed, non-interactive, sits above
    everything. Subtle horizontal lines + faint vignette for a retro feel. */
 .scanlines-overlay {
