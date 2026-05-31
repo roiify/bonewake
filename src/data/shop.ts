@@ -28,6 +28,19 @@ export interface ShopItem {
 }
 
 export const SHOP_ITEMS: ShopItem[] = [
+  // Friendship Exchange — the ONLY sink for friendPoints, which otherwise
+  // accrued forever with nothing to spend it on (daily sign-in + mail granted
+  // it but no item ever cost it). Modest daily-limited conversions into
+  // resources that are actually consumed.
+  { id: 'fp_gold',   category: 'currency',  name: 'Friendship Coin',  description: 'Trade friend points for +2500 gold.', emoji: '🤝',
+    cost: { currency: 'friendPoints', amount: 20 }, grant: { kind: 'gold', amount: 2500 }, dailyLimit: 5 },
+  { id: 'fp_energy', category: 'currency',  name: 'Friendship Flask', description: 'Trade friend points for +60 energy.', emoji: '🤝',
+    cost: { currency: 'friendPoints', amount: 30 }, grant: { kind: 'energy', amount: 60 }, dailyLimit: 3 },
+  { id: 'fp_scrap',  category: 'materials', name: 'Friendship Scrap',  description: 'Trade friend points for +12 Scrap.', emoji: '🤝',
+    cost: { currency: 'friendPoints', amount: 25 }, grant: { kind: 'forgeMat', matId: 'mat_scrap', amount: 12 }, dailyLimit: 5 },
+  { id: 'fp_shard',  category: 'materials', name: 'Friendship Shards', description: 'Trade friend points for +3 Soulshards.', emoji: '🤝',
+    cost: { currency: 'friendPoints', amount: 40 }, grant: { kind: 'soulshard', amount: 3 }, dailyLimit: 2 },
+
   // Currency conversion
   { id: 'energy_small',  category: 'currency', name: 'Energy Flask',  description: 'Restore 60 energy.', emoji: '⚡',
     cost: { currency: 'gems', amount: 30 }, grant: { kind: 'energy', amount: 60 }, dailyLimit: 5 },
