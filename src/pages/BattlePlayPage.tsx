@@ -204,9 +204,15 @@ export default function BattlePlayPage() {
   // their rewards sum damage across the whole battle log, which a re-resolved
   // branch would miscount.
   const manualMode = manualUltSetting && !isWorldBoss && !isSpiritBomb;
+  const [speed, setSpeed] = useState<1 | 2 | 4 | 8>(useProfile.getState().profile.settings?.defaultBattleSpeed ?? 2);
+  // Manual holding only makes sense at slow speeds — at x4/x8 there's no time
+  // to react and tap Unleash, so ults auto-fire there. Crossing this threshold
+  // mid-battle re-resolves the rest with the matching policy (see effect below).
+  const manualActive = manualMode && speed <= 2;
 
-  // Build the initial battle for the current stage. In manual mode all player
-  // ults start 'held', so the player drives when they fire (see onUnleash).
+  // Build the initial battle for the current stage. When manual control is
+  // active all player ults start 'held', so the player drives when they fire
+  // (see onUnleash); otherwise ults auto-fire.
   function buildBattle(): BattleResult | null {
     if (!stage) return null;
     const squad = loadSquad()
@@ -253,7 +259,7 @@ export default function BattlePlayPage() {
         return buildEnemyUnit(e.templateId, e.level, e.star, `e${i}`, enemyTpls);
       });
     }
-    const ultPolicy: UltPolicy | undefined = manualMode
+    const ultPolicy: UltPolicy | undefined = manualActive
       ? Object.fromEntries(playerUnits.map(u => [u.id, 'hold' as const]))
       : undefined;
     return resolveBattle(playerUnits, enemyUnits, undefined, ultPolicy ? { ultPolicy } : undefined);
@@ -293,25 +299,45 @@ export default function BattlePlayPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stageId]);
 
-  // Manual ult: re-resolve the rest of the fight from the current LIVE state,
-  // forcing the chosen hero to unleash on its next turn. The other player ults
-  // stay held. Swaps in the new branch log and restarts playback from it; the
-  // live `units` already match the branch's initial snapshot.
-  function onUnleash(unitId: string) {
-    if (!battle || done || !manualMode) return;
-    const u = units[unitId];
-    if (!u || !u.alive || u.energy < 100) return;
+  // Re-resolve the remainder of the fight from the current LIVE state with the
+  // given ult policy (and optional forced release). Swaps in the new branch log
+  // and restarts playback from it; the live `units` already match the branch's
+  // initial snapshot.
+  function reResolveFromLive(ultPolicy: UltPolicy, forceUltNow?: string) {
+    if (!battle) return;
     const playerUnits = battle.initial.player.map(pu => ({ ...units[pu.id] })).filter(Boolean);
     const enemyUnits = battle.initial.enemy.map(eu => ({ ...units[eu.id] })).filter(Boolean);
-    const ultPolicy: UltPolicy = Object.fromEntries(playerUnits.map(pu => [pu.id, 'hold' as const]));
     branchSeed.current += 1;
     const next = resolveBattle(playerUnits, enemyUnits, `branch-${branchSeed.current}-${battle.seed}`, {
-      resume: true, ultPolicy, forceUltNow: unitId,
+      resume: true, ultPolicy, forceUltNow,
     });
     impactedTick.current = -1;
     setBattle(next);
     setTick(0);
   }
+  const holdAllPolicy = (): UltPolicy =>
+    battle ? Object.fromEntries(battle.initial.player.map(pu => [pu.id, 'hold' as const])) : {};
+
+  // Manual ult: the player taps to release a charged hero's ultimate now.
+  function onUnleash(unitId: string) {
+    if (!battle || done || !manualActive) return;
+    const u = units[unitId];
+    if (!u || !u.alive || u.energy < 100) return;
+    reResolveFromLive(holdAllPolicy(), unitId);
+  }
+
+  // Speed-threshold adaptation: when manual control toggles on/off because the
+  // player changed speed mid-battle (x2->x4 makes it auto; x4->x2 makes it
+  // manual again), re-resolve the remainder with the matching policy so held
+  // ults auto-fire at high speed and resume holding at low speed.
+  const prevManualActive = useRef(manualActive);
+  useEffect(() => {
+    if (prevManualActive.current === manualActive) return;
+    prevManualActive.current = manualActive;
+    if (!battle || done) return;
+    reResolveFromLive(manualActive ? holdAllPolicy() : {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manualActive]);
 
   const [attacker, setAttacker] = useState<string | null>(null);
   const [hit, setHit] = useState<string | null>(null);
@@ -334,7 +360,6 @@ export default function BattlePlayPage() {
   // Reset to null after the CSS animation completes.
   const [shake, setShake] = useState<'soft' | 'hard' | null>(null);
   const [done, setDone] = useState(false);
-  const [speed, setSpeed] = useState<1 | 2 | 4 | 8>(useProfile.getState().profile.settings?.defaultBattleSpeed ?? 2);
   const [paused, setPaused] = useState(false);
   const [energyDeducted, setEnergyDeducted] = useState(false);
   const [lootDrops, setLootDrops] = useState<OwnedEquipment[]>([]);
@@ -926,7 +951,7 @@ export default function BattlePlayPage() {
       {/* Manual ult: "Unleash" buttons for each charged (100-energy) player
           hero. Real agency — tapping re-resolves the fight from here with that
           hero firing now (see onUnleash). Only rendered in manual mode. */}
-      {manualMode && !done && (
+      {manualActive && !done && (
         <div className="absolute top-12 right-2 z-30 flex flex-col gap-1 items-end">
           {playerSlots.filter(u => u && u.alive && u.energy >= 100).map(u => (
             <button
