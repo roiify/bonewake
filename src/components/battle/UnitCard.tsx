@@ -78,7 +78,7 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
   let animSrc: string | null = sprites?.idle ?? null;
   if (sprites) {
     if (!unit.alive) animSrc = (heroSprites?.death ?? enemySprites?.death) ?? animSrc;
-    else if (hit && !attacker && heroSprites?.hitCols) animSrc = heroSprites.hit;
+    else if (hit && !attacker && (heroSprites?.hitCols || enemySprites?.hitCols)) animSrc = (heroSprites?.hit ?? enemySprites?.hit) ?? animSrc;
     else if (attacker && isHealing && heroSprites?.heal) animSrc = heroSprites.heal;
     else if (attacker && isUlt && (heroSprites?.ult || enemySprites?.skill)) animSrc = heroSprites?.ult ?? heroSprites?.skill ?? enemySprites?.skill ?? animSrc;
     else if (attacker && isSkill && (heroSprites?.skill || enemySprites?.skill)) animSrc = heroSprites?.skill ?? enemySprites?.skill ?? animSrc;
@@ -94,9 +94,9 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
   let effectiveCols = sprites?.cols ?? 1;
   if (!unit.alive) {
     // Dead units gray out on the single-frame base — no death strip.
-  } else if (hit && !attacker && heroSprites?.hitCols) {
+  } else if (hit && !attacker && (heroSprites?.hitCols ?? enemySprites?.hitCols)) {
     // Flinch strip — plays once at high fps while the hit shake runs.
-    effectiveCols = heroSprites.hitCols;
+    effectiveCols = (heroSprites?.hitCols ?? enemySprites?.hitCols)!;
   } else if (attacker && isHealing) {
     // Heal actions fall back to the attack sprite when no dedicated heal
     // pose exists (see animSrc above) — match that strip's cols too.
@@ -107,8 +107,8 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
     if (isUlt && heroSprites.ultCols) effectiveCols = heroSprites.ultCols;
   } else if (isAttackState && (heroSprites?.attackCols ?? enemySprites?.attackCols)) {
     effectiveCols = (heroSprites?.attackCols ?? enemySprites?.attackCols)!;
-  } else if (unit.alive && !attacker && heroSprites?.idleCols) {
-    effectiveCols = heroSprites.idleCols;
+  } else if (unit.alive && !attacker && (heroSprites?.idleCols ?? enemySprites?.idleCols)) {
+    effectiveCols = (heroSprites?.idleCols ?? enemySprites?.idleCols)!;
   }
   // Multi-frame idle = breathing loop, rendered at a slow 5fps below.
   // Single-frame sprites skip the animation interval inside SpriteAnimator.

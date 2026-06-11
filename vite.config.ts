@@ -14,7 +14,10 @@ function safeExec(cmd: string, fallback = ''): string {
 const APP_VERSION = safeExec('git rev-parse --short HEAD', 'dev');
 const APP_COMMIT_MSG = safeExec('git log -1 --pretty=%s', 'Local build');
 
-export default defineConfig({
+// The PWA plugin is build-only: in dev it has hung vite startup entirely
+// (no log output, port never binds) since the asset library got large, and
+// the service worker just fights HMR anyway.
+export default defineConfig(({ command }) => ({
   base,
   define: {
     __APP_VERSION__: JSON.stringify(APP_VERSION),
@@ -22,7 +25,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    VitePWA({
+    ...(command !== 'build' ? [] : [VitePWA({
       registerType: 'autoUpdate',
       // Only the icons/favicon ship with the install shell. Sprites and audio
       // are intentionally NOT pre-bundled here — they are fetched on demand and
@@ -77,6 +80,6 @@ export default defineConfig({
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
-    }),
+    })]),
   ],
-});
+}));
