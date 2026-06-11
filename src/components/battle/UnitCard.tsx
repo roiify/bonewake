@@ -94,7 +94,9 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
   if (!unit.alive) {
     // Dead units gray out on the single-frame base — no death strip.
   } else if (attacker && isHealing) {
-    // Heal pose has no multi-frame strip yet — keep base cols.
+    // Heal actions fall back to the attack sprite when no dedicated heal
+    // pose exists (see animSrc above) — match that strip's cols too.
+    if (!heroSprites?.heal && heroSprites?.attackCols) effectiveCols = heroSprites.attackCols;
   } else if (attacker && (isUlt || isSkill) && heroSprites) {
     // Hero skill/ult poses are still single-frame bases — keep base cols.
     // (Enemies fall through: painted-boss skill/ult reuse the attack atlas.)
