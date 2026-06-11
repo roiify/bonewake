@@ -77,6 +77,39 @@ export const BASE_ITEMS: BaseItem[] = [
 
 export const BASE_BY_ID = Object.fromEntries(BASE_ITEMS.map(b => [b.id, b]));
 
+// Which heroes can use each base type. Loot is assigned to a specific hero
+// at DROP time: roll the base, then pick a random owned hero from its class
+// list (a bow is always an archer's; if two archers exist someday, drops
+// randomize between them). Bases not listed here (accessories) fit anyone.
+export const BASE_CLASS_USERS: Record<string, string[]> = {
+  // Weapons — matched to each hero's actual armament
+  bow:    ['elara'],
+  staff:  ['luna', 'aelia', 'pyra', 'manny'],
+  sword:  ['kaius', 'reiji', 'twins', 'len'],
+  axe:    ['korvan', 'george', 'kengo', 'chino'],
+  // Armor
+  plate:   ['kaius', 'kengo', 'george', 'korvan'],
+  robe:    ['luna', 'aelia', 'pyra', 'manny'],
+  leather: ['elara', 'len', 'chino', 'reiji', 'twins'],
+  // Helms
+  helm:  ['kaius', 'kengo', 'george', 'korvan'],
+  hood:  ['elara', 'len', 'chino', 'reiji', 'twins'],
+  crown: ['luna', 'aelia', 'pyra', 'manny'],
+  // Boots
+  boots:   ['kaius', 'kengo', 'george', 'korvan', 'reiji', 'twins', 'chino'],
+  sandals: ['elara', 'len', 'luna', 'aelia', 'pyra', 'manny'],
+};
+
+// Pick the owner for a fresh drop: random eligible owned hero, falling back
+// to any owned hero when the player owns nobody of that class yet.
+export function pickOwnerFor(baseId: string, ownedTemplateIds: string[]): string | undefined {
+  if (ownedTemplateIds.length === 0) return undefined;
+  const users = BASE_CLASS_USERS[baseId];
+  const eligible = users ? ownedTemplateIds.filter(t => users.includes(t)) : ownedTemplateIds;
+  const pool = eligible.length > 0 ? eligible : ownedTemplateIds;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 // Naming pools
 export const PREFIXES = [
   'Iron', 'Steel', 'Bone', 'Shadow', 'Frost', 'Flame', 'Storm', 'Ancient',

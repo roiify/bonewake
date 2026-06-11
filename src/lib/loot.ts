@@ -15,6 +15,9 @@ import {
 } from '../data/loot';
 import { uid } from './id';
 import type { OwnedEquipment } from './db';
+import { pickOwnerFor } from '../data/loot';
+import { useHeroes } from '../store/heroes';
+import { HIDDEN_HERO_IDS } from '../data/heroes';
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -155,6 +158,16 @@ export function genLoot(opts: {
     name = base.name;
   }
 
+  // Drops are made for a specific hero: pick a random owned hero whose
+  // class uses this base type. The piece is theirs from the moment it drops.
+  let boundTo: string | undefined;
+  try {
+    const owned = useHeroes.getState().heroes
+      .map(h => h.templateId)
+      .filter(t => !HIDDEN_HERO_IDS.has(t));
+    boundTo = pickOwnerFor(base.id, [...new Set(owned)]);
+  } catch { boundTo = undefined; }
+
   return {
     id: uid(),
     baseType: base.id,
@@ -165,6 +178,7 @@ export function genLoot(opts: {
     affixes,
     upgradeLevel: 0,
     equippedTo: null,
+    boundTo,
     obtainedAt: Date.now(),
     templateId: undefined,
     level: undefined,

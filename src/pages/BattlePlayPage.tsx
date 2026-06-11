@@ -23,7 +23,7 @@ import { incrementTask } from '../lib/tasks';
 import type { CombatUnit, BattleResult, BattleAction } from '../types';
 import type { OwnedEquipment } from '../lib/db';
 import { CHAPTER_BG } from '../data/auraMap';
-import { HERO_SPRITES, ENEMY_SPRITES } from '../data/heroes';
+import { HERO_SPRITES, ENEMY_SPRITES, HERO_BY_ID } from '../data/heroes';
 import { SKILL_BY_ID } from '../data/skills';
 import SpriteAnimator from '../components/SpriteAnimator';
 import { UnitCard, type FloatingNumber } from '../components/battle/UnitCard';
@@ -1300,6 +1300,9 @@ export default function BattlePlayPage() {
                             <div className="text-[9px] text-zinc-400">
                               {LOOT_RARITY_NAME[item.rarity as LootRarity]} · iL{item.itemLevel}
                               {item.affixes && item.affixes.length > 0 && <span> · {item.affixes.length} affix{item.affixes.length > 1 ? 'es' : ''}</span>}
+                              {item.boundTo && HERO_BY_ID[item.boundTo] && (
+                                <span className="text-cyan-300"> · {HERO_BY_ID[item.boundTo].name}'s</span>
+                              )}
                             </div>
                           </div>
                         </motion.div>
