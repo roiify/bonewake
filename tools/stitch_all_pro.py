@@ -16,15 +16,15 @@ import urllib.request
 from pathlib import Path
 from PIL import Image
 
-QUEUE = Path(__file__).parent / "hero_pro_queue.json"
+QUEUE = Path(__file__).parent / os.environ.get("STITCH_QUEUE", "hero_pro_queue.json")
 MCP = Path(__file__).parent / "pixellab_mcp.py"
-PRO_DIR = Path(__file__).parent.parent / "public/sprites/pixellab/heroes/pro"
+PRO_DIR = Path(__file__).parent.parent / os.environ.get("STITCH_OUT", "public/sprites/pixellab/heroes/pro")
 KEY = os.environ.get("PIXELLAB_KEY_KIDBOT", "")
 ANIMS = json.loads(os.environ.get(
     "STITCH_ANIMS",
     '{"breathing-idle": "idle", "falling-back-death": "death"}',
 ))
-MAX_MINUTES = 45
+MAX_MINUTES = int(os.environ.get("MAX_MINUTES", "45"))
 
 
 def fetch_url(u: str) -> Image.Image:
@@ -42,7 +42,10 @@ def get_info(cid: str) -> str:
     ).stdout
 
 
-def parse_animation_frames(text: str, anim_name: str, direction: str = "east"):
+DIRECTION = os.environ.get("STITCH_DIRECTION", "east")
+
+
+def parse_animation_frames(text: str, anim_name: str, direction: str = DIRECTION):
     lines = text.splitlines()
     for i, line in enumerate(lines):
         s = line.strip()
