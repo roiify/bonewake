@@ -47,7 +47,7 @@ const SQUAD_KEY = 'bonewake_squad';
 // attack spawns a flying VFX sprite from caster→target instead of lunging.
 // Damage timing in applyImpact() is unchanged — we shift the projectile
 // spawn earlier so it visually arrives exactly when damage lands.
-const PROJECTILES: Record<string, { sprite: string; travelMs: number; impact: string; impactMs: number; size: number; spin: boolean; suppressLunge: boolean; rotate?: number }> = {
+const PROJECTILES: Record<string, { sprite: string; travelMs: number; impact: string; impactMs: number; size: number; spin: boolean; suppressLunge: boolean; rotate?: number; spawnYUpPct?: number }> = {
   pyra: {
     sprite: '/sprites/vfx/fireball.png',
     travelMs: 350,
@@ -89,6 +89,7 @@ const PROJECTILES: Record<string, { sprite: string; travelMs: number; impact: st
     sprite: '/sprites/vfx/arrow.png',
     travelMs: 260,
     rotate: 45,  // sprite is drawn diagonally; level it out so it flies point-first
+    spawnYUpPct: 0.2,  // launch from the bow, not the card center (her figure sits high)
     impact: '/sprites/vfx/arrow_hit.png',
     impactMs: 300,
     size: 48,
@@ -527,7 +528,7 @@ export default function BattlePlayPage() {
         const rootR = rootEl.getBoundingClientRect();
         const aR = aEl.getBoundingClientRect();
         const tR = tEl.getBoundingClientRect();
-        const from = { x: aR.left + aR.width / 2 - rootR.left, y: aR.top + aR.height / 2 - rootR.top };
+        const from = { x: aR.left + aR.width / 2 - rootR.left, y: aR.top + aR.height / 2 - aR.height * (proj.spawnYUpPct ?? 0) - rootR.top };
         const to   = { x: tR.left + tR.width / 2 - rootR.left, y: tR.top + tR.height / 2 - rootR.top };
         const pid = ++projId.current;
         setProjectiles(p => [...p, { id: pid, from, to, sprite: projectileSrc(proj.sprite), travelMs: proj.travelMs, spin: proj.spin, rotate: proj.rotate ?? 0 }]);
