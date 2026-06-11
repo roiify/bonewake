@@ -16,7 +16,7 @@ ROOT = Path(__file__).parent.parent
 HEROES_TS = ROOT / "src/data/heroes.ts"
 PRO_DIR = ROOT / "public/sprites/pixellab/heroes/pro"
 QUEUE = Path(__file__).parent / "hero_pro_queue.json"
-POSES = [("idle", "idleCols"), ("attack", "attackCols")]
+POSES = [("idle", "idleCols"), ("attack", "attackCols"), ("ult", "ultCols")]
 
 
 def cols_of(p: Path) -> int:

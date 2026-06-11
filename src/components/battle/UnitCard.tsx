@@ -98,8 +98,9 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
     // pose exists (see animSrc above) — match that strip's cols too.
     if (!heroSprites?.heal && heroSprites?.attackCols) effectiveCols = heroSprites.attackCols;
   } else if (attacker && (isUlt || isSkill) && heroSprites) {
-    // Hero skill/ult poses are still single-frame bases — keep base cols.
+    // Hero ults have their own strips; skill stays on the single-frame base.
     // (Enemies fall through: painted-boss skill/ult reuse the attack atlas.)
+    if (isUlt && heroSprites.ultCols) effectiveCols = heroSprites.ultCols;
   } else if (isAttackState && (heroSprites?.attackCols ?? enemySprites?.attackCols)) {
     effectiveCols = (heroSprites?.attackCols ?? enemySprites?.attackCols)!;
   } else if (unit.alive && !attacker && heroSprites?.idleCols) {

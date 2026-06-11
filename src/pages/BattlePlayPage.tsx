@@ -1051,7 +1051,7 @@ export default function BattlePlayPage() {
                 {fsSrc ? (
                   <SpriteAnimator
                     src={fsSrc}
-                    cols={fs?.cols ?? 1}
+                    cols={fsHero?.ultCols ?? fs?.cols ?? 1}
                     rows={fs?.rows ?? 1}
                     fps={10}
                     size={224}
