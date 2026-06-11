@@ -9,6 +9,7 @@ import { SUMMON_POOLS } from '../data/summonPools';
 import { useHeroes } from '../store/heroes';
 import { motion } from 'framer-motion';
 import { canClaimMysteryBox, claimMysteryBox } from '../lib/mysteryBox';
+import { computeAwayEarnings, formatAway, type AwayEarnings } from '../lib/awayEarnings';
 import ChestOpen, { type ChestReward } from '../components/ChestOpen';
 import Card from '../components/ui/Card';
 import PrimaryButton from '../components/ui/PrimaryButton';
@@ -32,6 +33,25 @@ export default function HomePage() {
   const heroes = useHeroes(s => s.heroes);
   const [taskCount, setTaskCount] = useState({ done: 0, total: TASKS.length });
   const [chestRewards, setChestRewards] = useState<ChestReward[] | null>(null);
+  const [away, setAway] = useState<AwayEarnings | null>(null);
+
+  // Away earnings — computed once per visit against the last time the game
+  // was closed/hidden. Collecting resets the clock.
+  useEffect(() => {
+    if (!profile.lastClosedAt) return;
+    computeAwayEarnings(profile.lastClosedAt).then(a => { if (a) setAway(a); });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const gainExp = useProfile(s => s.gainExp);
+  const addGold = useProfile(s => s.addGold);
+  async function collectAway() {
+    if (!away) return;
+    await addGold(away.gold);
+    await gainExp(away.exp);
+    await patch({ lastClosedAt: Date.now() });
+    setAway(null);
+  }
   const mysteryAvailable = canClaimMysteryBox(profile.mysteryBoxLastClaim);
 
   async function openMysteryBox() {
@@ -95,6 +115,25 @@ export default function HomePage() {
           </p>
         </div>
       </div>
+
+      {/* Away earnings — your heroes kept fighting while you were gone */}
+      {away && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+          <Card tint="#fbbf24">
+            <div className="p-3 flex items-center gap-3">
+              <div className="text-3xl">🎁</div>
+              <div className="flex-1 min-w-0">
+                <div className="font-pixel text-xs text-amber-300 text-shadow-soft">Welcome back!</div>
+                <div className="text-[10px] text-zinc-400 mt-0.5 leading-snug">
+                  Away {formatAway(away.hours)} — your heroes kept fighting near {away.stageName}.
+                </div>
+                <div className="text-[11px] text-zinc-200 mt-1">+{away.gold.toLocaleString()} 🪙 · +{away.exp.toLocaleString()} xp</div>
+              </div>
+              <PrimaryButton onClick={collectAway}>Collect</PrimaryButton>
+            </div>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Daily sign-in */}
       <Card>
