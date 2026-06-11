@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { syncMusicSetting } from '../lib/music';
 import { useProfile } from '../store/profile';
 import { DEFAULT_SETTINGS, normalizeSettings, type GameSettings } from '../lib/db';
 import { useEffect, useRef, useState } from 'react';
@@ -70,8 +71,10 @@ export default function SettingsPage() {
       {/* Audio */}
       <div className="rounded-md border border-zinc-800 bg-zinc-900 p-3 space-y-3">
         <div className="font-pixel text-xs text-amber-300">Audio &amp; Feedback</div>
+        <Toggle label="Music" value={s.music} onChange={v => { update('music', v); syncMusicSetting(v); }} />
         <Toggle label="Sound effects" value={s.soundEnabled} onChange={v => update('soundEnabled', v)} />
         <Toggle label="Haptics (vibration)" value={s.hapticsEnabled} onChange={v => update('hapticsEnabled', v)} />
+        <div className="text-[9px] text-zinc-500">Music: Kevin MacLeod (incompetech.com) · CC BY 4.0</div>
       </div>
 
       {/* Display */}

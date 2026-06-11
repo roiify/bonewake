@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { playMusic } from './lib/music';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { initSave } from './lib/db';
@@ -115,6 +116,9 @@ export default function App() {
         }
       }
       setReady(true);
+      // Menu music — after the profile (and its music setting) is loaded.
+      // Autoplay rules defer actual playback to the first tap.
+      playMusic('menu');
     })();
   }, [loadProfile, loadHeroes, loadItems]);
 

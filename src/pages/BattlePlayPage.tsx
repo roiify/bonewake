@@ -16,6 +16,7 @@ import { useProfile } from '../store/profile';
 import { buildEnemyUnit, toCombatUnit } from '../lib/stats';
 import { resolveBattle, type UltPolicy } from '../lib/combat';
 import { sfx, haptic } from '../lib/sfx';
+import { playMusic } from '../lib/music';
 import { distributeSquadExp } from '../lib/rewards';
 import { todayKey } from '../data/tower';
 import { db } from '../lib/db';
@@ -326,6 +327,13 @@ export default function BattlePlayPage() {
   const [bossIntro, setBossIntro] = useState<CombatUnit | null>(
     () => battle?.initial.enemy.find(u => PAINTED_BOSS_IDS.has(u.templateId)) ?? null,
   );
+  // Battle music — boss theme when a painted boss is on the field.
+  useEffect(() => {
+    playMusic(battle?.initial.enemy.some(u => PAINTED_BOSS_IDS.has(u.templateId)) ? 'boss' : 'battle');
+    return () => playMusic('menu');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (!bossIntro) return;
     sfx('ult');

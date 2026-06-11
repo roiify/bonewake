@@ -67,6 +67,8 @@ export interface GameSettings {
   reduceMotion: boolean;
   soundEnabled: boolean;
   hapticsEnabled: boolean;
+  // Background music (menu / battle / boss themes).
+  music: boolean;
   // Manual ultimates: heroes hold their ult at 100 energy and the player taps
   // to unleash, instead of auto-firing. Real interactive combat (re-resolves
   // the fight from the release point). Excludes World Boss / Shatter.
@@ -84,6 +86,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   reduceMotion: false,
   soundEnabled: true,
   hapticsEnabled: true,
+  music: true,
   manualUlt: false,
   autoSalvage: { 1: true, 2: true, 3: false, 4: false, 5: false },
 };
@@ -98,6 +101,7 @@ export function normalizeSettings(settings?: Partial<GameSettings> | null): Game
     reduceMotion: settings?.reduceMotion ?? DEFAULT_SETTINGS.reduceMotion,
     soundEnabled: settings?.soundEnabled ?? DEFAULT_SETTINGS.soundEnabled,
     hapticsEnabled: settings?.hapticsEnabled ?? DEFAULT_SETTINGS.hapticsEnabled,
+    music: settings?.music ?? DEFAULT_SETTINGS.music,
     manualUlt: settings?.manualUlt ?? DEFAULT_SETTINGS.manualUlt,
     // Was previously dropped here — normalizeSettings rebuilt a fresh object
     // without autoSalvage, and profile.load() wrote that back to disk, wiping
