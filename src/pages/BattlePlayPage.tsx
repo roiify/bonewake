@@ -89,7 +89,7 @@ const PROJECTILES: Record<string, { sprite: string; travelMs: number; impact: st
     sprite: '/sprites/vfx/arrow.png',
     travelMs: 260,
     rotate: 45,  // sprite is drawn diagonally; level it out so it flies point-first
-    spawnYUpPct: 0.2,  // launch from the bow, not the card center (her figure sits high)
+    spawnYUpPct: 0.24,  // launch from the bow, not the card center (her figure sits high)
     impact: '/sprites/vfx/arrow_hit.png',
     impactMs: 300,
     size: 48,
