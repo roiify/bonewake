@@ -23,7 +23,7 @@ import { incrementTask } from '../lib/tasks';
 import type { CombatUnit, BattleResult, BattleAction } from '../types';
 import type { OwnedEquipment } from '../lib/db';
 import { CHAPTER_BG } from '../data/auraMap';
-import { HERO_SPRITES, ENEMY_SPRITES, HERO_BY_ID } from '../data/heroes';
+import { HERO_SPRITES, ENEMY_SPRITES, HERO_BY_ID, PAINTED_BOSS_IDS } from '../data/heroes';
 import { SKILL_BY_ID } from '../data/skills';
 import SpriteAnimator from '../components/SpriteAnimator';
 import { UnitCard, type FloatingNumber } from '../components/battle/UnitCard';
@@ -320,6 +320,23 @@ export default function BattlePlayPage() {
   // Re-resolution branch seed counter (manual ult releases).
   const branchSeed = useRef(0);
 
+  // Boss entrance — painted bosses get a ~2.4s name-slam intro before round
+  // one. Both tick effects hold while this is set, so the fight starts only
+  // after the banner clears.
+  const [bossIntro, setBossIntro] = useState<CombatUnit | null>(
+    () => battle?.initial.enemy.find(u => PAINTED_BOSS_IDS.has(u.templateId)) ?? null,
+  );
+  useEffect(() => {
+    if (!bossIntro) return;
+    sfx('ult');
+    haptic([40, 80, 40]);
+    const tShake = setTimeout(() => setShake('hard'), 700);
+    const tShakeEnd = setTimeout(() => setShake(null), 1050);
+    const tEnd = setTimeout(() => setBossIntro(null), 2400);
+    return () => { clearTimeout(tShake); clearTimeout(tShakeEnd); clearTimeout(tEnd); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [tick, setTick] = useState(0);
   // Idempotency guard: tracks the last tick whose impact already fired.
   // If the user pauses then resumes during the impact→end window, the
@@ -439,7 +456,7 @@ export default function BattlePlayPage() {
   }, [stage, battle, energyDeducted]);
 
   useEffect(() => {
-    if (!battle || done) return;
+    if (!battle || done || bossIntro) return;
     if (tick >= battle.log.length) {
       // finish: short pause then end. Clear caster flags so the last
       // unit's attack/heal sprite doesn't freeze on its final frame
@@ -495,10 +512,10 @@ export default function BattlePlayPage() {
       setUltFlash(null);
     }
     return;
-  }, [tick, battle, done]);
+  }, [tick, battle, done, bossIntro]);
 
   useEffect(() => {
-    if (!battle || done || paused) return;
+    if (!battle || done || paused || bossIntro) return;
     if (tick >= battle.log.length) return;
     const a = battle.log[tick];
     // Continuation entries (extra targets of a multi-target ult) get a
@@ -544,7 +561,7 @@ export default function BattlePlayPage() {
     const tImpact = setTimeout(() => applyImpact(), impactDelay / speed);
     const tEnd = setTimeout(() => endAction(), baseDuration / speed);
     return () => { clearTimeout(tImpact); clearTimeout(tEnd); if (tProj) clearTimeout(tProj); };
-  }, [tick, battle, done, speed, paused]);
+  }, [tick, battle, done, speed, paused, bossIntro]);
 
   // Phase 1: damage/heal lands. Shake + float number + SFX fire here.
   // Lunge animation keeps playing so the attacker holds at target during
@@ -1014,6 +1031,52 @@ export default function BattlePlayPage() {
           <div className="font-pixel text-amber-300 text-2xl tracking-widest" style={{ textShadow: '0 2px 8px #000, 0 0 16px #000' }}>PAUSED</div>
         </div>
       )}
+
+      {/* Boss entrance — dark vignette, the painted boss looming, name slam. */}
+      <AnimatePresence>
+        {bossIntro && (() => {
+          const bSprites = ENEMY_SPRITES[bossIntro.templateId as keyof typeof ENEMY_SPRITES];
+          const bSrc = bSprites?.portrait ?? bSprites?.idle ?? null;
+          return (
+            <motion.div
+              key="boss-intro"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 z-40 flex flex-col items-center justify-center pointer-events-none"
+              style={{ background: 'radial-gradient(circle, rgba(127,29,29,0.55) 0%, rgba(0,0,0,0.88) 60%, rgba(0,0,0,0.95) 100%)' }}
+            >
+              {bSrc && (
+                <motion.img
+                  src={bSrc}
+                  alt={bossIntro.name}
+                  initial={{ scale: 1.6, opacity: 0, y: -20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ type: 'spring', damping: 14, stiffness: 120, delay: 0.15 }}
+                  style={{ width: 260, height: 260, objectFit: 'contain', imageRendering: 'pixelated',
+                           filter: 'drop-shadow(0 0 30px rgba(220,38,38,0.6)) drop-shadow(0 8px 16px rgba(0,0,0,0.9))' }}
+                />
+              )}
+              <motion.div
+                initial={{ scale: 2.4, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.55 }}
+                className="font-fantasy text-3xl tracking-[0.2em] uppercase text-center mt-3"
+                style={{ color: '#fecaca', textShadow: '0 2px 0 #000, 0 0 24px #dc2626' }}
+              >
+                {bossIntro.name}
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="font-pixel text-[11px] tracking-[0.5em] text-red-400 mt-2"
+              >
+                — BOSS —
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
 
       {/* Ult slow-mo cue: dark full-screen overlay with the hero's ACTUAL
           sprite scaling in large + ability name, fable-style. Falls back to
