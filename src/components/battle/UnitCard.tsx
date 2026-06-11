@@ -91,8 +91,13 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
   // pose that animSrc resolved to above.
   const isAttackState = !!(attacker && !isHealing);
   let effectiveCols = sprites?.cols ?? 1;
-  if (!unit.alive && heroSprites?.deathCols) {
-    effectiveCols = heroSprites.deathCols;
+  if (!unit.alive) {
+    if (heroSprites?.deathCols) effectiveCols = heroSprites.deathCols;
+  } else if (attacker && isHealing) {
+    // Heal pose has no multi-frame strip yet — keep base cols.
+  } else if (attacker && (isUlt || isSkill) && heroSprites) {
+    // Hero skill/ult poses are still single-frame bases — keep base cols.
+    // (Enemies fall through: painted-boss skill/ult reuse the attack atlas.)
   } else if (isAttackState && (heroSprites?.attackCols ?? enemySprites?.attackCols)) {
     effectiveCols = (heroSprites?.attackCols ?? enemySprites?.attackCols)!;
   } else if (unit.alive && !attacker && heroSprites?.idleCols) {

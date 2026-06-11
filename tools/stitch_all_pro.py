@@ -20,7 +20,10 @@ QUEUE = Path(__file__).parent / "hero_pro_queue.json"
 MCP = Path(__file__).parent / "pixellab_mcp.py"
 PRO_DIR = Path(__file__).parent.parent / "public/sprites/pixellab/heroes/pro"
 KEY = os.environ.get("PIXELLAB_KEY_KIDBOT", "")
-ANIMS = {"breathing-idle": "idle", "falling-back-death": "death"}
+ANIMS = json.loads(os.environ.get(
+    "STITCH_ANIMS",
+    '{"breathing-idle": "idle", "falling-back-death": "death"}',
+))
 MAX_MINUTES = 45
 
 
