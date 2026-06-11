@@ -47,7 +47,7 @@ const SQUAD_KEY = 'bonewake_squad';
 // attack spawns a flying VFX sprite from caster→target instead of lunging.
 // Damage timing in applyImpact() is unchanged — we shift the projectile
 // spawn earlier so it visually arrives exactly when damage lands.
-const PROJECTILES: Record<string, { sprite: string; travelMs: number; impact: string; impactMs: number; size: number; spin: boolean; suppressLunge: boolean }> = {
+const PROJECTILES: Record<string, { sprite: string; travelMs: number; impact: string; impactMs: number; size: number; spin: boolean; suppressLunge: boolean; rotate?: number }> = {
   pyra: {
     sprite: '/sprites/vfx/fireball.png',
     travelMs: 350,
@@ -55,6 +55,53 @@ const PROJECTILES: Record<string, { sprite: string; travelMs: number; impact: st
     impactMs: 380,
     size: 56,
     spin: true,
+    suppressLunge: true,
+  },
+  // Casters stay rooted and fire a projectile matching their attack strip.
+  aelia: {
+    sprite: '/sprites/vfx/ice_shard.png',
+    travelMs: 330,
+    impact: '/sprites/vfx/ice_burst.png',
+    impactMs: 380,
+    size: 48,
+    spin: false,
+    suppressLunge: true,
+  },
+  manny: {
+    sprite: '/sprites/vfx/dark_bolt.png',
+    travelMs: 360,
+    impact: '/sprites/vfx/dark_burst.png',
+    impactMs: 380,
+    size: 52,
+    spin: false,
+    suppressLunge: true,
+  },
+  lich_sovereign: {
+    sprite: '/sprites/vfx/dark_bolt.png',
+    travelMs: 360,
+    impact: '/sprites/vfx/dark_burst.png',
+    impactMs: 380,
+    size: 56,
+    spin: false,
+    suppressLunge: true,
+  },
+  elara: {
+    sprite: '/sprites/vfx/arrow.png',
+    travelMs: 260,
+    rotate: 45,  // sprite is drawn diagonally; level it out so it flies point-first
+    impact: '/sprites/vfx/arrow_hit.png',
+    impactMs: 300,
+    size: 48,
+    spin: false,
+    suppressLunge: true,
+  },
+  luna: {
+    sprite: '/sprites/vfx/blood_arc.png',
+    travelMs: 340,
+    impact: '/sprites/vfx/blood_burst.png',
+    impactMs: 380,
+    size: 48,
+    spin: false,
     suppressLunge: true,
   },
 };
@@ -356,7 +403,7 @@ export default function BattlePlayPage() {
   // then despawns. Impacts are a short burst at the target. Ranged casters
   // (PROJECTILES map below) suppress their default lunge so they cast in place.
   const battleRootRef = useRef<HTMLDivElement | null>(null);
-  const [projectiles, setProjectiles] = useState<Array<{ id: number; from: { x: number; y: number }; to: { x: number; y: number }; sprite: string; travelMs: number; spin: boolean }>>([]);
+  const [projectiles, setProjectiles] = useState<Array<{ id: number; from: { x: number; y: number }; to: { x: number; y: number }; sprite: string; travelMs: number; spin: boolean; rotate: number }>>([]);
   const [impacts, setImpacts] = useState<Array<{ id: number; at: { x: number; y: number }; sprite: string; durMs: number }>>([]);
   const projId = useRef(0);
   // True when the currently-attacking unit is performing a heal action.
@@ -483,7 +530,7 @@ export default function BattlePlayPage() {
         const from = { x: aR.left + aR.width / 2 - rootR.left, y: aR.top + aR.height / 2 - rootR.top };
         const to   = { x: tR.left + tR.width / 2 - rootR.left, y: tR.top + tR.height / 2 - rootR.top };
         const pid = ++projId.current;
-        setProjectiles(p => [...p, { id: pid, from, to, sprite: projectileSrc(proj.sprite), travelMs: proj.travelMs, spin: proj.spin }]);
+        setProjectiles(p => [...p, { id: pid, from, to, sprite: projectileSrc(proj.sprite), travelMs: proj.travelMs, spin: proj.spin, rotate: proj.rotate ?? 0 }]);
         // Schedule despawn + impact burst at arrival
         setTimeout(() => {
           setProjectiles(p => p.filter(x => x.id !== pid));
@@ -1072,8 +1119,8 @@ export default function BattlePlayPage() {
               key={p.id}
               src={p.sprite}
               alt=""
-              initial={{ x: p.from.x - 28, y: p.from.y - 28, rotate: 0 }}
-              animate={{ x: p.to.x - 28, y: p.to.y - 28, rotate: p.spin ? 540 : 0 }}
+              initial={{ x: p.from.x - 28, y: p.from.y - 28, rotate: p.rotate }}
+              animate={{ x: p.to.x - 28, y: p.to.y - 28, rotate: p.spin ? 540 : p.rotate }}
               transition={{ duration: (p.travelMs / 1000) / speed, ease: 'easeIn' }}
               style={{ position: 'absolute', width: 56, height: 56, imageRendering: 'pixelated', filter: 'drop-shadow(0 0 8px rgba(255,140,0,0.7))' }}
             />
