@@ -33,7 +33,7 @@ export interface UltimateSetDef {
 // now costs 2.5× the original soulshards/essence/gold. A full 5-piece set
 // goes from ~270 shards + 140 essence → ~675 + 350 — turns gear progression
 // into a real long-term goal instead of a one-weekend craft.
-const COST_MULT = 2.5;
+const COST_MULT = 4;
 const c = (shard: number, ess: number, gold: number) =>
   ({
     soulshard: Math.ceil(shard * COST_MULT),

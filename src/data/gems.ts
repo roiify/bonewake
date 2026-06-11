@@ -28,11 +28,11 @@ export interface GemDef {
 // were strictly worse than atk; bumping them keeps tank builds viable.
 const STAT_VALUES: Record<LootStat, [number, number, number, number]> = {
   // [tier 1, 2, 3, 4]
-  hp:   [100, 300, 700, 1500],
-  atk:  [15, 40, 90, 200],
-  def:  [20, 55, 130, 300],
-  spd:  [5, 12, 25, 55],
-  crit: [0.02, 0.05, 0.10, 0.18],
+  hp:   [80, 220, 480, 900],
+  atk:  [12, 30, 60, 120],
+  def:  [16, 40, 85, 180],
+  spd:  [4, 9, 16, 30],
+  crit: [0.015, 0.03, 0.06, 0.10],
 };
 
 const GEM_EMOJI: Record<LootStat, string> = {
@@ -64,30 +64,30 @@ interface UltGemSeed { heroId: string; name: string; emoji: string;
   bonus: Partial<Record<LootStat, number>>;
   cost: { soulshard: number; essence: number; gold: number };
 }
-const ULT_GEM_COST = { soulshard: 60, essence: 25, gold: 18000 };
+const ULT_GEM_COST = { soulshard: 90, essence: 40, gold: 30000 };
 const ULT_GEM_SEEDS: UltGemSeed[] = [
   // Mages — ATK primary + crit bundle
-  { heroId: 'aelia',  name: 'Frost Heart',      emoji: '💠', primary: { stat: 'atk', value: 280 }, bonus: { crit: 0.10, hp: 800 }, cost: ULT_GEM_COST },
-  { heroId: 'pyra',   name: 'Ember Core',       emoji: '🔥', primary: { stat: 'atk', value: 280 }, bonus: { crit: 0.10, hp: 800 }, cost: ULT_GEM_COST },
-  { heroId: 'manny',  name: 'Soulbinder Stone', emoji: '☠️', primary: { stat: 'atk', value: 280 }, bonus: { crit: 0.10, hp: 800 }, cost: ULT_GEM_COST },
+  { heroId: 'aelia',  name: 'Frost Heart',      emoji: '💠', primary: { stat: 'atk', value: 180 }, bonus: { crit: 0.06, hp: 500 }, cost: ULT_GEM_COST },
+  { heroId: 'pyra',   name: 'Ember Core',       emoji: '🔥', primary: { stat: 'atk', value: 180 }, bonus: { crit: 0.06, hp: 500 }, cost: ULT_GEM_COST },
+  { heroId: 'manny',  name: 'Soulbinder Stone', emoji: '☠️', primary: { stat: 'atk', value: 180 }, bonus: { crit: 0.06, hp: 500 }, cost: ULT_GEM_COST },
   // Healer — HP primary + atk bundle
-  { heroId: 'luna',   name: 'Dawn Tear',        emoji: '☀️', primary: { stat: 'hp',  value: 2400 }, bonus: { atk: 160, def: 100 }, cost: ULT_GEM_COST },
+  { heroId: 'luna',   name: 'Dawn Tear',        emoji: '☀️', primary: { stat: 'hp',  value: 1500 }, bonus: { atk: 100, def: 65 }, cost: ULT_GEM_COST },
   // Tank — HP primary + def bundle
-  { heroId: 'kaius',  name: 'Aegis Sigil',      emoji: '🛡️', primary: { stat: 'hp',  value: 2800 }, bonus: { def: 220, atk: 100 }, cost: ULT_GEM_COST },
+  { heroId: 'kaius',  name: 'Aegis Sigil',      emoji: '🛡️', primary: { stat: 'hp',  value: 1800 }, bonus: { def: 140, atk: 65 }, cost: ULT_GEM_COST },
   // Warriors — HP/ATK split
-  { heroId: 'kengo',  name: 'Mountain Pearl',   emoji: '🪨', primary: { stat: 'hp',  value: 2200 }, bonus: { atk: 200, def: 120 }, cost: ULT_GEM_COST },
-  { heroId: 'korvan', name: 'Black Harvest Gem', emoji: '🩸', primary: { stat: 'atk', value: 320 }, bonus: { crit: 0.10, hp: 1200 }, cost: ULT_GEM_COST },
-  { heroId: 'george', name: 'Heart of the Wild', emoji: '🌿', primary: { stat: 'hp',  value: 2200 }, bonus: { atk: 200, def: 120 }, cost: ULT_GEM_COST },
+  { heroId: 'kengo',  name: 'Mountain Pearl',   emoji: '🪨', primary: { stat: 'hp',  value: 1400 }, bonus: { atk: 130, def: 80 }, cost: ULT_GEM_COST },
+  { heroId: 'korvan', name: 'Black Harvest Gem', emoji: '🩸', primary: { stat: 'atk', value: 200 }, bonus: { crit: 0.06, hp: 750 }, cost: ULT_GEM_COST },
+  { heroId: 'george', name: 'Heart of the Wild', emoji: '🌿', primary: { stat: 'hp',  value: 1400 }, bonus: { atk: 130, def: 80 }, cost: ULT_GEM_COST },
   // Assassins — CRIT primary + spd bundle. Primary bumped above tier-4
   // (0.18) so the ult feels strictly stronger, not equivalent.
-  { heroId: 'len',    name: 'Eclipse Shard',    emoji: '🌒', primary: { stat: 'crit', value: 0.28 }, bonus: { atk: 220, spd: 50 }, cost: ULT_GEM_COST },
-  { heroId: 'elara',  name: 'Worldweave Crystal', emoji: '🍃', primary: { stat: 'crit', value: 0.28 }, bonus: { atk: 220, spd: 50 }, cost: ULT_GEM_COST },
+  { heroId: 'len',    name: 'Eclipse Shard',    emoji: '🌒', primary: { stat: 'crit', value: 0.16 }, bonus: { atk: 140, spd: 30 }, cost: ULT_GEM_COST },
+  { heroId: 'elara',  name: 'Worldweave Crystal', emoji: '🍃', primary: { stat: 'crit', value: 0.16 }, bonus: { atk: 140, spd: 30 }, cost: ULT_GEM_COST },
   // Chino: warrior brawler — crit+spd bundle to match his drunken-CRIT identity
-  { heroId: 'chino',  name: 'Drunken Pearl',      emoji: '🍶', primary: { stat: 'crit', value: 0.26 }, bonus: { atk: 240, spd: 50 }, cost: ULT_GEM_COST },
+  { heroId: 'chino',  name: 'Drunken Pearl',      emoji: '🍶', primary: { stat: 'crit', value: 0.15 }, bonus: { atk: 150, spd: 30 }, cost: ULT_GEM_COST },
   // Reiji: dual-blade samurai — ATK primary above tier-4 (200) with crit bundle
-  { heroId: 'reiji',  name: 'Eclipse Tear',       emoji: '☯️', primary: { stat: 'atk', value: 320 }, bonus: { crit: 0.12, spd: 40 }, cost: ULT_GEM_COST },
+  { heroId: 'reiji',  name: 'Eclipse Tear',       emoji: '☯️', primary: { stat: 'atk', value: 200 }, bonus: { crit: 0.07, spd: 25 }, cost: ULT_GEM_COST },
   // Twins: yin-yang duo — ATK primary with hp bundle (two bodies share)
-  { heroId: 'twins',  name: 'Mirror Bond Stone',  emoji: '☯️', primary: { stat: 'atk', value: 300 }, bonus: { crit: 0.12, hp: 1200 }, cost: ULT_GEM_COST },
+  { heroId: 'twins',  name: 'Mirror Bond Stone',  emoji: '☯️', primary: { stat: 'atk', value: 190 }, bonus: { crit: 0.07, hp: 750 }, cost: ULT_GEM_COST },
   // Warriors — bump Korvan above tier-4 ATK (200) too
 ];
 

@@ -7,7 +7,7 @@ import { addMaterial, spendMaterial } from './crafting';
 import { MAT_SOULSHARD } from '../data/ultimateGear';
 
 export const MAX_ULT_LEVEL = 10;
-export const ULT_BONUS_PER_LEVEL = 0.08; // +8% per level
+export const ULT_BONUS_PER_LEVEL = 0.06; // +6% per level
 
 export function ultLevelMultiplier(level: number = 0): number {
   return 1 + level * ULT_BONUS_PER_LEVEL;

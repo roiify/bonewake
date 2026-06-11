@@ -186,7 +186,9 @@ export const BRANCH_NAME: Record<TalentBranch, string> = {
 };
 
 export function talentPointsForLevel(level: number): number {
-  return Math.max(0, level - 10);
+  // 1 point per 3 levels past 10 — maxing every hero's tree should be a
+  // long-haul goal, not automatic by mid-game.
+  return Math.max(0, Math.floor((level - 10) / 3));
 }
 
 // Filter by hero AND branch

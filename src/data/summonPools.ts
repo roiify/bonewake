@@ -16,15 +16,13 @@ export const SUMMON_POOLS: SummonPool[] = [
     id: 'premium',
     name: 'Stellar Wish',
     kind: 'hero',
-    // Mainstream-gacha alignment: SSS dropped to 1% (was 2%), SS to 18%
-    // (was 24%), pity pushed to 150 (was 120), cost bumped to 15 gems
-    // (was 10). Industry comparison: Genshin 0.6% / Wuthering Waves 0.8%
-    // / FGO 1%. Bonewake now sits at the generous end of the standard
-    // range — SSS still feels achievable but isn't trivial.
-    description: 'Best odds. Featured SSS hero · pity SSS at 150.',
+    // Single-player pacing pass: SSS 0.6% (was 1%), SS 9% (was 18%) so
+    // the roster fills out over weeks, not days. Pity eased to 120 as the
+    // counterweight — a guaranteed SSS is never more than 120 pulls away.
+    description: 'Best odds. Featured SSS hero · pity SSS at 120.',
     cost: { currency: 'gems', amount: 15 },
-    rates: { 3: 0.81, 4: 0.18, 5: 0.01 },
-    pityFive: 150,
+    rates: { 3: 0.904, 4: 0.09, 5: 0.006 },
+    pityFive: 120,
     featuredHeroId: 'luna',
   },
   {
@@ -34,8 +32,8 @@ export const SUMMON_POOLS: SummonPool[] = [
     description: 'Cheap gold pulls. Mostly S, rare SS, almost never SSS.',
     // SSS halved again (0.25% → 0.10%), SS trimmed (7% → 5%) to keep
     // the standard banner as a low-stakes filler, not a real SSS path.
-    cost: { currency: 'gold', amount: 100 },
-    rates: { 3: 0.9490, 4: 0.05, 5: 0.0010 },
+    cost: { currency: 'gold', amount: 500 },
+    rates: { 3: 0.9748, 4: 0.025, 5: 0.0002 },
     pityFive: null,
   },
   {
@@ -43,7 +41,7 @@ export const SUMMON_POOLS: SummonPool[] = [
     name: 'Equipment Wish',
     kind: 'equipment',
     description: 'Random gear roll at high item level. Mostly Rare+, chance for Legendary.',
-    cost: { currency: 'gems', amount: 8 },
+    cost: { currency: 'gems', amount: 12 },
     rates: { 3: 0, 4: 0, 5: 0 }, // unused for non-hero pools
     pityFive: null,
     equipmentItemLevel: 60,
@@ -53,23 +51,23 @@ export const SUMMON_POOLS: SummonPool[] = [
     id: 'socket',
     name: 'Socket Wish',
     kind: 'socket',
-    description: 'Random socketable gem. Stat & tier are RNG up to Crystal (T4).',
-    cost: { currency: 'gold', amount: 250 },
+    description: 'Random socketable gem. Stat & tier are RNG up to Radiant (T3).',
+    cost: { currency: 'gold', amount: 600 },
     rates: { 3: 0, 4: 0, 5: 0 },
     pityFive: null,
-    socketMaxTier: 4,
+    socketMaxTier: 3,
   },
   {
     id: 'material',
     name: 'Material Wish',
     kind: 'material',
     description: 'Bundle of soulshards. Small chance to also pull a hero essence.',
-    cost: { currency: 'gold', amount: 200 },
+    cost: { currency: 'gold', amount: 400 },
     rates: { 3: 0, 4: 0, 5: 0 },
     pityFive: null,
-    materialSoulshardMin: 8,
-    materialSoulshardMax: 20,
-    materialEssenceChance: 0.12,
+    materialSoulshardMin: 6,
+    materialSoulshardMax: 14,
+    materialEssenceChance: 0.08,
   },
 ];
 

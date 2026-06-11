@@ -325,10 +325,10 @@ export async function craftGem(stat: 'hp' | 'atk' | 'def' | 'spd' | 'crit', tier
 }
 
 export function maybeRollGem(itemLevel: number, isBoss: boolean): GemDef | null {
-  const chance = isBoss ? 0.5 : 0.1 + itemLevel * 0.005;
+  const chance = isBoss ? 0.35 : 0.06 + itemLevel * 0.003;
   if (Math.random() > chance) return null;
   const r = Math.random();
-  const tier = (isBoss && r < 0.10) ? 4 : (r < 0.25) ? 3 : (r < 0.55) ? 2 : 1;
+  const tier = (isBoss && r < 0.06) ? 4 : (r < 0.18) ? 3 : (r < 0.50) ? 2 : 1;
   const stats = ['hp', 'atk', 'def', 'spd', 'crit'] as const;
   const stat = stats[Math.floor(Math.random() * stats.length)];
   return GEM_BY_ID[`gem_${stat}_${tier}`];

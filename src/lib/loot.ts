@@ -177,8 +177,8 @@ export function equipStats(eq: OwnedEquipment): Partial<Record<LootStat, number>
   const out: Partial<Record<LootStat, number>> = {};
   const isMythic = (eq.rarity ?? 0) >= 6 && !!eq.craftedPieceId;
   const upgradeMult = isMythic
-    ? 1 + (eq.upgradeLevel ?? 0) * 0.12
-    : 1 + (eq.upgradeLevel ?? 0) * 0.1;
+    ? 1 + (eq.upgradeLevel ?? 0) * 0.06
+    : 1 + (eq.upgradeLevel ?? 0) * 0.05;
   if (eq.primary) {
     const k = eq.primary.stat as LootStat;
     const v = eq.primary.value * upgradeMult;

@@ -106,8 +106,8 @@ export const RARITY_WEIGHTS: Record<LootRarity, number> = {
   1: 60,  // Common
   2: 28,  // Magic
   3: 9,   // Rare
-  4: 2.5, // Epic
-  5: 0.5, // Legendary
+  4: 1.5, // Epic
+  5: 0.2, // Legendary
 };
 
 // Minimum affix count per rarity. Actual count = min + chance of +1
@@ -157,4 +157,4 @@ export const AFFIX_RANGE: Record<LootStat, [number, number]> = {
 // multiplied by (1 + (N-1) * AFFIX_ILVL_SCALE). Steeper than the
 // original 0.08 because the wider base ranges already handle most of
 // the variance — ilvl now mainly bumps the floor.
-export const AFFIX_ILVL_SCALE = 0.06;
+export const AFFIX_ILVL_SCALE = 0.05;

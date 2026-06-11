@@ -9,7 +9,7 @@ import { spendMaterial, getMaterialCount } from './crafting';
 import { MAT_SOULSHARD, essenceItemId } from '../data/ultimateGear';
 
 export const MAX_ASCENSION = 10;
-export const ASCEND_BONUS_PER_LEVEL = 0.12; // +12% all stats per level
+export const ASCEND_BONUS_PER_LEVEL = 0.08; // +8% all stats per level
 
 // Crafted items have rarity 6 (Mythic). Their effective stat scaling here.
 export function mythicAscensionMultiplier(level: number = 0): number {

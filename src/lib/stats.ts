@@ -301,7 +301,7 @@ export function buildEnemyUnit(
 }
 
 export const xpForLevel = (level: number) => Math.floor(50 * Math.pow(1.18, level - 1));
-export const goldToLevelUp = (level: number) => 50 + level * 30;
+export const goldToLevelUp = (level: number) => 120 + level * 80;
 // Theoretical per-star ceiling — generous so star tier never artificially
 // stops a hero from scaling alongside the player's account level.
 export const maxLevelForStar = (star: number) => star * 200;
