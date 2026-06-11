@@ -92,7 +92,7 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
   const isAttackState = !!(attacker && !isHealing);
   let effectiveCols = sprites?.cols ?? 1;
   if (!unit.alive) {
-    if (heroSprites?.deathCols) effectiveCols = heroSprites.deathCols;
+    // Dead units gray out on the single-frame base — no death strip.
   } else if (attacker && isHealing) {
     // Heal pose has no multi-frame strip yet — keep base cols.
   } else if (attacker && (isUlt || isSkill) && heroSprites) {
@@ -120,32 +120,22 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
   return (
     <motion.div
       ref={setRef}
-      animate={
-        !unit.alive
-          // Death fall — keel over away from the fight, sink, and dim.
-          // transformOrigin near the feet so it reads as toppling, not spinning.
-          ? { x: 0, y: 10, scale: 1, rotate: side === 'player' ? -82 : 82, opacity: 0.55 }
-          : {
-              x: isLunge
-                ? [0, windUpX, dashX, dashX, 0]
-                : (attacker ? (side === 'player' ? 24 : -24) : 0),
-              y: isLunge ? [0, 0, dashY, dashY, 0] : 0,
-              scale: attacker ? 1.12 : 1,
-              rotate: 0,
-              opacity: 1,
-            }
-      }
+      animate={{
+        x: isLunge
+          ? [0, windUpX, dashX, dashX, 0]
+          : (attacker ? (side === 'player' ? 24 : -24) : 0),
+        y: isLunge ? [0, 0, dashY, dashY, 0] : 0,
+        scale: attacker ? 1.12 : 1,
+      }}
       transition={
-        !unit.alive
-          ? { duration: 0.55, ease: 'easeIn' }
-          : isLunge
-            // 1.0s total: wind-up → dash → hold-at-target while impact lands → retreat
-            // Impact fires at 600ms (60%), retreat finishes by 1000ms.
-            ? { duration: 1.0, times: [0, 0.10, 0.35, 0.65, 1] }
-            : { duration: 0.18 }
+        isLunge
+          // 1.0s total: wind-up → dash → hold-at-target while impact lands → retreat
+          // Impact fires at 600ms (60%), retreat finishes by 1000ms.
+          ? { duration: 1.0, times: [0, 0.10, 0.35, 0.65, 1] }
+          : { duration: 0.18 }
       }
-      style={{ zIndex: unleashReady ? 25 : attacker ? 15 : 5, cursor: unleashReady ? 'pointer' : undefined, transformOrigin: '50% 88%' }}
-      className={`relative ${hit && unit.alive ? 'animate-shake' : ''} ${unit.alive ? '' : 'grayscale'} ${unleashReady ? 'ult-ready-ring' : ''}`}
+      style={{ zIndex: unleashReady ? 25 : attacker ? 15 : 5, cursor: unleashReady ? 'pointer' : undefined }}
+      className={`relative ${hit && unit.alive ? 'animate-shake' : ''} ${unit.alive ? '' : 'grayscale opacity-60'} ${unleashReady ? 'ult-ready-ring' : ''}`}
       onClick={unleashReady ? onUnleash : undefined}
       role={unleashReady ? 'button' : undefined}
       title={unleashReady ? `Tap to fire ${unit.name}'s ultimate` : undefined}
@@ -161,8 +151,8 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
         </div>
       )}
 
-      {/* Floating HP bar + name above the unit — fades out as the body falls */}
-      <div className={`absolute -top-9 left-1/2 -translate-x-1/2 w-24 z-10 pointer-events-none transition-opacity duration-500 ${unit.alive ? '' : 'opacity-0'}`}>
+      {/* Floating HP bar + name above the unit */}
+      <div className="absolute -top-9 left-1/2 -translate-x-1/2 w-24 z-10 pointer-events-none">
         {/* Archetype seal tucked at the HP bar. Anchored to the side facing the
             battlefield center (right edge of the bar for left-column heroes,
             left edge for right-column enemies) so both teams read the same. */}
