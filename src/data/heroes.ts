@@ -290,6 +290,7 @@ export const HERO_SPRITES: Record<string, {
   idleCols?: number;
   attackCols?: number;
   ultCols?: number;
+  hitCols?: number;
 }> = {
   // New PixelLab mature-fantasy sprites. Static for now (all 5 poses point to the
   // same base) — multi-frame animation strips will replace these per-pose as the
@@ -299,7 +300,7 @@ export const HERO_SPRITES: Record<string, {
   aelia:          { idle: A('sprites/pixellab/heroes/pro/aelia_idle.png'), attack: A('sprites/pixellab/heroes/pro/aelia_attack.png'), skill: A('sprites/pixellab/heroes/pro/aelia_east.png'), ult: A('sprites/pixellab/heroes/pro/aelia_ult.png'), hit: A('sprites/pixellab/heroes/pro/aelia_east.png'), death: A('sprites/pixellab/heroes/pro/aelia_east.png'), cols: 1, rows: 1, idleCols: 4, attackCols: 9, ultCols: 9 },
   kengo:          { idle: A('sprites/pixellab/heroes/pro/kengo_idle.png'), attack: A('sprites/pixellab/heroes/pro/kengo_attack.png'), skill: A('sprites/pixellab/heroes/pro/kengo_east.png'), ult: A('sprites/pixellab/heroes/pro/kengo_ult.png'), hit: A('sprites/pixellab/heroes/pro/kengo_east.png'), death: A('sprites/pixellab/heroes/pro/kengo_east.png'), cols: 1, rows: 1, idleCols: 4, attackCols: 9, ultCols: 9 },
   len:            { idle: A('sprites/pixellab/heroes/pro/len_idle.png'), attack: A('sprites/pixellab/heroes/pro/len_attack.png'), skill: A('sprites/pixellab/heroes/pro/len_east.png'), ult: A('sprites/pixellab/heroes/pro/len_ult.png'), hit: A('sprites/pixellab/heroes/pro/len_east.png'), death: A('sprites/pixellab/heroes/pro/len_east.png'), cols: 1, rows: 1, idleCols: 4, attackCols: 9, ultCols: 9 },
-  kaius:          { idle: A('sprites/pixellab/heroes/pro/kaius_idle.png'), attack: A('sprites/pixellab/heroes/pro/kaius_attack.png'), skill: A('sprites/pixellab/heroes/pro/kaius_east.png'), ult: A('sprites/pixellab/heroes/pro/kaius_ult.png'), hit: A('sprites/pixellab/heroes/pro/kaius_east.png'), death: A('sprites/pixellab/heroes/pro/kaius_east.png'), cols: 1, rows: 1, idleCols: 4, attackCols: 9, ultCols: 9 },
+  kaius:          { idle: A('sprites/pixellab/heroes/pro/kaius_idle.png'), attack: A('sprites/pixellab/heroes/pro/kaius_attack.png'), skill: A('sprites/pixellab/heroes/pro/kaius_east.png'), ult: A('sprites/pixellab/heroes/pro/kaius_ult.png'), hit: A('sprites/pixellab/heroes/pro/kaius_hit.png'), death: A('sprites/pixellab/heroes/pro/kaius_east.png'), cols: 1, rows: 1, idleCols: 4, attackCols: 9, ultCols: 9, hitCols: 6 },
   pyra:           { idle: A('sprites/pixellab/heroes/pro/pyra_idle.png'), attack: A('sprites/pixellab/heroes/pro/pyra_attack.png'), skill: A('sprites/pixellab/heroes/pro/pyra_east.png'), ult: A('sprites/pixellab/heroes/pro/pyra_ult.png'), hit: A('sprites/pixellab/heroes/pro/pyra_east.png'), death: A('sprites/pixellab/heroes/pro/pyra_east.png'), cols: 1, rows: 1, idleCols: 4, attackCols: 9, ultCols: 9 },
   korvan:         { idle: A('sprites/pixellab/heroes/pro/korvan_idle.png'), attack: A('sprites/pixellab/heroes/pro/korvan_attack.png'), skill: A('sprites/pixellab/heroes/pro/korvan_east.png'), ult: A('sprites/pixellab/heroes/pro/korvan_ult.png'), hit: A('sprites/pixellab/heroes/pro/korvan_east.png'), death: A('sprites/pixellab/heroes/pro/korvan_east.png'), cols: 1, rows: 1, idleCols: 4, attackCols: 9, ultCols: 9 },
   // George shapeshifts: skill = wolf form, ult = bear form. attack stays in human form.
