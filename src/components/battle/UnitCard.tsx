@@ -84,14 +84,22 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
     else if (attacker) animSrc = (heroSprites?.attack ?? enemySprites?.attack) ?? animSrc;
   }
 
-  // Per-state column override for painted bosses — their idle is a single
-  // painted PNG (cols=1) but their attack atlas is a 9-frame strip
-  // (attackCols=9). When the animSrc is the attack/skill atlas, use the
-  // per-state cols instead of the default idle cols.
+  // Per-state column override — painted bosses have 9-frame attack atlases
+  // (attackCols=9) over a single painted idle, and pro heroes are gaining
+  // per-pose strips (idleCols / attackCols / deathCols) as the PixelLab
+  // template-animation pipeline produces them. Pick the cols matching the
+  // pose that animSrc resolved to above.
   const isAttackState = !!(attacker && !isHealing);
-  const effectiveCols = (isAttackState && enemySprites?.attackCols)
-    ? enemySprites.attackCols
-    : (sprites?.cols ?? 1);
+  let effectiveCols = sprites?.cols ?? 1;
+  if (!unit.alive && heroSprites?.deathCols) {
+    effectiveCols = heroSprites.deathCols;
+  } else if (isAttackState && (heroSprites?.attackCols ?? enemySprites?.attackCols)) {
+    effectiveCols = (heroSprites?.attackCols ?? enemySprites?.attackCols)!;
+  } else if (unit.alive && !attacker && heroSprites?.idleCols) {
+    effectiveCols = heroSprites.idleCols;
+  }
+  // Multi-frame idle = breathing loop, rendered at a slow 5fps below.
+  // Single-frame sprites skip the animation interval inside SpriteAnimator.
 
   const hpPct = (unit.hp / unit.maxHp) * 100;
   const hpColor = hpPct > 50 ? '#22c55e' : hpPct > 25 ? '#f59e0b' : '#ef4444';
@@ -107,22 +115,32 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
   return (
     <motion.div
       ref={setRef}
-      animate={{
-        x: isLunge
-          ? [0, windUpX, dashX, dashX, 0]
-          : (attacker ? (side === 'player' ? 24 : -24) : 0),
-        y: isLunge ? [0, 0, dashY, dashY, 0] : 0,
-        scale: attacker ? 1.12 : 1,
-      }}
-      transition={
-        isLunge
-          // 1.0s total: wind-up → dash → hold-at-target while impact lands → retreat
-          // Impact fires at 600ms (60%), retreat finishes by 1000ms.
-          ? { duration: 1.0, times: [0, 0.10, 0.35, 0.65, 1] }
-          : { duration: 0.18 }
+      animate={
+        !unit.alive
+          // Death fall — keel over away from the fight, sink, and dim.
+          // transformOrigin near the feet so it reads as toppling, not spinning.
+          ? { x: 0, y: 10, scale: 1, rotate: side === 'player' ? -82 : 82, opacity: 0.55 }
+          : {
+              x: isLunge
+                ? [0, windUpX, dashX, dashX, 0]
+                : (attacker ? (side === 'player' ? 24 : -24) : 0),
+              y: isLunge ? [0, 0, dashY, dashY, 0] : 0,
+              scale: attacker ? 1.12 : 1,
+              rotate: 0,
+              opacity: 1,
+            }
       }
-      style={{ zIndex: unleashReady ? 25 : attacker ? 15 : 5, cursor: unleashReady ? 'pointer' : undefined }}
-      className={`relative ${hit ? 'animate-shake' : ''} ${unit.alive ? '' : 'grayscale opacity-60'} ${unleashReady ? 'ult-ready-ring' : ''}`}
+      transition={
+        !unit.alive
+          ? { duration: 0.55, ease: 'easeIn' }
+          : isLunge
+            // 1.0s total: wind-up → dash → hold-at-target while impact lands → retreat
+            // Impact fires at 600ms (60%), retreat finishes by 1000ms.
+            ? { duration: 1.0, times: [0, 0.10, 0.35, 0.65, 1] }
+            : { duration: 0.18 }
+      }
+      style={{ zIndex: unleashReady ? 25 : attacker ? 15 : 5, cursor: unleashReady ? 'pointer' : undefined, transformOrigin: '50% 88%' }}
+      className={`relative ${hit && unit.alive ? 'animate-shake' : ''} ${unit.alive ? '' : 'grayscale'} ${unleashReady ? 'ult-ready-ring' : ''}`}
       onClick={unleashReady ? onUnleash : undefined}
       role={unleashReady ? 'button' : undefined}
       title={unleashReady ? `Tap to fire ${unit.name}'s ultimate` : undefined}
@@ -138,8 +156,8 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
         </div>
       )}
 
-      {/* Floating HP bar + name above the unit */}
-      <div className="absolute -top-9 left-1/2 -translate-x-1/2 w-24 z-10 pointer-events-none">
+      {/* Floating HP bar + name above the unit — fades out as the body falls */}
+      <div className={`absolute -top-9 left-1/2 -translate-x-1/2 w-24 z-10 pointer-events-none transition-opacity duration-500 ${unit.alive ? '' : 'opacity-0'}`}>
         {/* Archetype seal tucked at the HP bar. Anchored to the side facing the
             battlefield center (right edge of the bar for left-column heroes,
             left edge for right-column enemies) so both teams read the same. */}
@@ -272,10 +290,17 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
         const weaponAnchor: { cx: number; cy: number; size: number } | null = null;
         const showWeaponGlow = false;
         void getWeaponAnchor; // referenced for future use, suppress unused warning
+        // Idle breathing bob — staggered per slot so the field doesn't pulse in
+        // sync. Paused (no class) while dead; keeps running during attacks since
+        // the lunge transform lives on the outer motion.div.
+        const bobDelay = `${(((unit.id.charCodeAt(0) * 7) + (parseInt(unit.id.slice(1), 10) || 0) * 5) % 8) * 0.2}s`;
         return (
-          <div className={outerGlowClass} style={glowStyle}>
           <div
-            className={`relative ${containerSize} flex items-end justify-center ${isPaintedBoss ? '' : 'overflow-hidden'}`}
+            className={`${outerGlowClass} ${unit.alive ? 'animate-bob' : ''}`}
+            style={{ ...glowStyle, animationDelay: bobDelay }}
+          >
+          <div
+            className={`relative ${containerSize} flex items-end justify-center ${isPaintedBoss ? '' : 'overflow-hidden'} ${hit && unit.alive ? 'animate-hit-flash' : ''}`}
             style={wrapStyle}
           >
             {animSrc ? (
@@ -301,9 +326,9 @@ export function UnitCard({ unit, attacker, hit, side, floats, isUlt, isSkill, is
                   src={animSrc}
                   cols={effectiveCols}
                   rows={sprites!.rows}
-                  fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 14 : 14)))}
+                  fps={hit ? 18 : (attacker && isUlt ? 7 : (attacker && isSkill ? 10 : (attacker ? 14 : 5)))}
                   loop={unit.alive && !hit}
-                  paused={unit.alive && !attacker && !hit}
+                  paused={false}
                   size={renderSize}
                 />
               )

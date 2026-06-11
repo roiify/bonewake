@@ -444,18 +444,39 @@ export default function SummonPage() {
                       : r.kind === 'equipment' ? r.rarity >= 5
                       : r.kind === 'socket' ? r.tier >= 4
                       : false;
+                    // Card-flip reveal: each card waits face-down as a pulsing
+                    // skull, then flips over (rotateY 90→0 spring) with a
+                    // rarity-colored flare that washes out as the card lands.
+                    const flipDelay = 0.15 + i * 0.12;
                     return (
+                      <div key={i} className="relative" style={{ perspective: 600 }}>
+                        {/* Face-down back — flips away at this card's reveal time */}
+                        <motion.div
+                          initial={{ rotateY: 0, opacity: 1 }}
+                          animate={{ rotateY: -90, opacity: 0 }}
+                          transition={{ delay: flipDelay, duration: 0.16, ease: 'easeIn' }}
+                          className="absolute inset-0 z-20 rounded-md border-2 border-zinc-700 bg-zinc-950 flex items-center justify-center"
+                        >
+                          <span className={`animate-pulse ${reveal.length === 1 ? 'text-5xl' : 'text-2xl'}`}>💀</span>
+                        </motion.div>
                       <motion.div
-                        key={i}
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: i * 0.08, type: 'spring', stiffness: 250 }}
+                        initial={{ rotateY: 90, opacity: 0 }}
+                        animate={{ rotateY: 0, opacity: 1 }}
+                        transition={{ delay: flipDelay + 0.12, type: 'spring', damping: 14, stiffness: 220 }}
                         className="relative rounded-md border-2 p-2 bg-zinc-900 text-center"
                         style={{
                           borderColor: itemColor,
                           boxShadow: isMax ? `0 0 18px ${itemColor}` : 'none',
                         }}
                       >
+                        {/* Rarity flare — bright wash that fades as the card settles */}
+                        <motion.div
+                          initial={{ opacity: 0.9 }}
+                          animate={{ opacity: 0 }}
+                          transition={{ delay: flipDelay + 0.16, duration: 0.9, ease: 'easeOut' }}
+                          className="absolute inset-0 rounded-sm pointer-events-none z-10"
+                          style={{ background: `radial-gradient(circle, ${itemColor}dd 0%, transparent 72%)` }}
+                        />
                         {r.kind === 'hero' && (
                           <div className="absolute top-0.5 right-0.5 z-10">
                             <HeroBadges archetype={r.hero.archetype} element={r.hero.element} size={16} />
@@ -500,6 +521,7 @@ export default function SummonPage() {
                           <div className="text-[10px] font-pixel mt-0.5" style={{ color: itemColor }}>{r.sub}</div>
                         )}
                       </motion.div>
+                      </div>
                     );
                   })}
                 </div>

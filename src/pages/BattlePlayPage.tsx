@@ -23,6 +23,9 @@ import { incrementTask } from '../lib/tasks';
 import type { CombatUnit, BattleResult, BattleAction } from '../types';
 import type { OwnedEquipment } from '../lib/db';
 import { CHAPTER_BG } from '../data/auraMap';
+import { HERO_SPRITES, ENEMY_SPRITES } from '../data/heroes';
+import { SKILL_BY_ID } from '../data/skills';
+import SpriteAnimator from '../components/SpriteAnimator';
 import { UnitCard, type FloatingNumber } from '../components/battle/UnitCard';
 import { genLoot } from '../lib/loot';
 import { LOOT_RARITY_COLOR, LOOT_RARITY_NAME, type LootRarity } from '../data/loot';
@@ -436,7 +439,9 @@ export default function BattlePlayPage() {
     if (action.ult) {
       const u = units[action.src];
       setUltFlash(u);
-      const t = setTimeout(() => setUltFlash(null), 700 / speed);
+      // 950ms gives the slow-mo sprite overlay time to land before the
+      // impact fires at 1400ms — still inside the ult's tick budget.
+      const t = setTimeout(() => setUltFlash(null), 950 / speed);
       return () => clearTimeout(t);
     } else {
       setUltFlash(null);
@@ -962,43 +967,78 @@ export default function BattlePlayPage() {
         </div>
       )}
 
-      {/* Brief ult cue: radial color flash + hero emoji + "ULT!" badge.
-          Kept short (~600ms) so the battle keeps its cadence — the full
-          cinematic ult animation is intentionally off. */}
+      {/* Ult slow-mo cue: dark full-screen overlay with the hero's ACTUAL
+          sprite scaling in large + ability name, fable-style. Falls back to
+          the emoji when a unit has no sprite art. ~950ms, then clears before
+          the impact lands so the battle keeps its cadence. */}
       <AnimatePresence>
-        {ultFlash && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 0.85 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 / speed }}
-            className="absolute inset-0 z-30 flex flex-col items-center justify-center pointer-events-none"
-            style={{ background: `radial-gradient(circle, ${ultFlash.color}cc 0%, ${ultFlash.color}55 30%, #00000000 70%)` }}
-          >
+        {ultFlash && (() => {
+          const fsHero = HERO_SPRITES[ultFlash.templateId];
+          const fsEnemy = ENEMY_SPRITES[ultFlash.templateId as keyof typeof ENEMY_SPRITES];
+          const fs = fsHero ?? fsEnemy;
+          const fsSrc = fsHero?.ult ?? fs?.idle ?? null;
+          const ultName = SKILL_BY_ID[ultFlash.ultimateId]?.name ?? 'ULTIMATE';
+          return (
             <motion.div
-              initial={{ scale: 0.3, rotate: -15, opacity: 0 }}
-              animate={{ scale: 1.2, rotate: 0, opacity: 1 }}
-              exit={{ scale: 1.6, opacity: 0 }}
-              transition={{ duration: 0.32 / speed, type: 'spring', stiffness: 260 }}
-              className="text-7xl drop-shadow-[0_4px_10px_rgba(0,0,0,0.95)]"
-            >
-              {ultFlash.emoji}
-            </motion.div>
-            <motion.div
-              initial={{ y: 18, opacity: 0, scale: 0.7 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.3 }}
-              transition={{ duration: 0.32 / speed, delay: 0.08 / speed }}
-              className="mt-1 px-4 py-1 rounded-md text-2xl font-black tracking-[0.25em] uppercase"
+              // Keyed per tick: a manual-ult re-resolve can clear + re-set
+              // ultFlash within one exit animation, and a keyless child that
+              // re-enters mid-exit gets stuck at the exit state (opacity 0).
+              // A fresh key forces a clean mount with initial → animate.
+              key={`ultflash-${tick}`}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 / speed }}
+              className="absolute inset-0 z-30 flex flex-col items-center justify-center pointer-events-none"
               style={{
-                color: '#fff',
-                background: `${ultFlash.color}`,
-                boxShadow: `0 0 18px ${ultFlash.color}`,
-                WebkitTextStroke: '1px rgba(0,0,0,0.6)',
+                background: `radial-gradient(circle, ${ultFlash.color}66 0%, rgba(0,0,0,0.82) 55%, rgba(0,0,0,0.88) 100%)`,
               }}
             >
-              {ultFlash.name} ULT!
+              <motion.div
+                initial={{ scale: 0.4, opacity: 0 }}
+                animate={{ scale: 1.1, opacity: 1 }}
+                exit={{ scale: 1.35, opacity: 0 }}
+                transition={{ type: 'spring', damping: 12, stiffness: 180 }}
+                className="drop-shadow-[0_6px_14px_rgba(0,0,0,0.95)]"
+                style={{ filter: `drop-shadow(0 0 28px ${ultFlash.color}aa)` }}
+              >
+                {fsSrc ? (
+                  <SpriteAnimator
+                    src={fsSrc}
+                    cols={fs?.cols ?? 1}
+                    rows={fs?.rows ?? 1}
+                    fps={10}
+                    size={224}
+                  />
+                ) : (
+                  <div className="text-8xl">{ultFlash.emoji}</div>
+                )}
+              </motion.div>
+              <motion.div
+                initial={{ y: 22, opacity: 0, scale: 0.7 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.25 }}
+                transition={{ type: 'spring', damping: 14, delay: 0.08 / speed }}
+                className="mt-2 text-center"
+              >
+                <div
+                  className="font-fantasy px-5 py-1 rounded-md text-3xl tracking-[0.18em] uppercase"
+                  style={{
+                    color: '#fff',
+                    textShadow: `0 2px 0 #000, 0 0 18px ${ultFlash.color}`,
+                    WebkitTextStroke: '1px rgba(0,0,0,0.55)',
+                  }}
+                >
+                  {ultName}
+                </div>
+                <div
+                  className="font-pixel text-[11px] tracking-[0.3em] uppercase mt-1"
+                  style={{ color: ultFlash.color, textShadow: '0 1px 0 #000' }}
+                >
+                  {ultFlash.name} · Ultimate
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
+          );
+        })()}
       </AnimatePresence>
 
       {/* Battlefield: heroes on left facing right, enemies on right facing left */}
@@ -1069,7 +1109,30 @@ export default function BattlePlayPage() {
             </motion.div>
             {battle.winner === 'player' && (
               <div className="space-y-2 mb-4 w-full max-w-sm">
-                <div className="text-amber-400 text-2xl text-center">{'★'.repeat(playerSlots.filter(u => u.alive).length === playerSlots.length ? 3 : playerSlots.filter(u => u.alive).length >= 2 ? 2 : 1)}</div>
+                {/* Star cascade — earned stars spin in one after another with a
+                    spring pop; unearned slots sit dim so the miss reads too. */}
+                {(() => {
+                  const aliveCount = playerSlots.filter(u => u.alive).length;
+                  const starCount = aliveCount === playerSlots.length ? 3 : aliveCount >= 2 ? 2 : 1;
+                  return (
+                    <div className="flex items-center justify-center gap-2">
+                      {[0, 1, 2].map(i => (
+                        <motion.span
+                          key={i}
+                          initial={{ scale: 0, rotate: -180, opacity: 0 }}
+                          animate={i < starCount
+                            ? { scale: 1, rotate: 0, opacity: 1 }
+                            : { scale: 0.8, rotate: 0, opacity: 0.22 }}
+                          transition={{ delay: 0.3 + i * 0.18, type: 'spring', damping: 10, stiffness: 220 }}
+                          className="text-3xl"
+                          style={i < starCount
+                            ? { color: '#fbbf24', textShadow: '0 0 14px rgba(251,191,36,0.75), 0 2px 0 #000' }
+                            : { color: '#52525b' }}
+                        >★</motion.span>
+                      ))}
+                    </div>
+                  );
+                })()}
                 <div className="text-zinc-300 text-sm text-center">+{stage.rewards.gold} 🪙 · +{stage.rewards.exp} xp</div>
                 {/* MVP / damage breakdown */}
                 {(() => {

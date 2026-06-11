@@ -29,7 +29,9 @@ export default function SpriteAnimator({
   const total = cols * rows;
 
   useEffect(() => {
-    if (paused) return;
+    // Single-frame sprites have nothing to animate — skip the interval so
+    // static units don't re-render at fps for no reason.
+    if (paused || total <= 1) return;
     const interval = setInterval(() => {
       setFrame(f => {
         const next = f + 1;

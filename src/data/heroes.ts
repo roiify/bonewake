@@ -283,6 +283,13 @@ export const HERO_SPRITES: Record<string, {
   heal?: string;
   cols: number;
   rows: number;
+  // Per-pose column overrides — a pose with its own multi-frame strip
+  // (PixelLab template animations run on the pro characters) declares its
+  // frame count here while the other poses stay on the single-frame base.
+  // Mirrors the enemy `attackCols` pattern.
+  idleCols?: number;
+  attackCols?: number;
+  deathCols?: number;
 }> = {
   // New PixelLab mature-fantasy sprites. Static for now (all 5 poses point to the
   // same base) — multi-frame animation strips will replace these per-pose as the
@@ -290,7 +297,7 @@ export const HERO_SPRITES: Record<string, {
   luna:           { idle: A('sprites/pixellab/heroes/pro/luna_east.png'), attack: A('sprites/pixellab/heroes/pro/luna_east.png'), skill: A('sprites/pixellab/heroes/pro/luna_east.png'), ult: A('sprites/pixellab/heroes/pro/luna_east.png'), hit: A('sprites/pixellab/heroes/pro/luna_east.png'), death: A('sprites/pixellab/heroes/pro/luna_east.png'), cols: 1, rows: 1 },
   elara:          { idle: A('sprites/pixellab/heroes/pro/elara_east.png'), attack: A('sprites/pixellab/heroes/pro/elara_east.png'), skill: A('sprites/pixellab/heroes/pro/elara_east.png'), ult: A('sprites/pixellab/heroes/pro/elara_east.png'), hit: A('sprites/pixellab/heroes/pro/elara_east.png'), death: A('sprites/pixellab/heroes/pro/elara_east.png'), cols: 1, rows: 1 },
   aelia:          { idle: A('sprites/pixellab/heroes/pro/aelia_east.png'), attack: A('sprites/pixellab/heroes/pro/aelia_east.png'), skill: A('sprites/pixellab/heroes/pro/aelia_east.png'), ult: A('sprites/pixellab/heroes/pro/aelia_east.png'), hit: A('sprites/pixellab/heroes/pro/aelia_east.png'), death: A('sprites/pixellab/heroes/pro/aelia_east.png'), cols: 1, rows: 1 },
-  kengo:          { idle: A('sprites/pixellab/heroes/pro/kengo_east.png'), attack: A('sprites/pixellab/heroes/pro/kengo_east.png'), skill: A('sprites/pixellab/heroes/pro/kengo_east.png'), ult: A('sprites/pixellab/heroes/pro/kengo_east.png'), hit: A('sprites/pixellab/heroes/pro/kengo_east.png'), death: A('sprites/pixellab/heroes/pro/kengo_east.png'), cols: 1, rows: 1 },
+  kengo:          { idle: A('sprites/pixellab/heroes/pro/kengo_idle.png'), attack: A('sprites/pixellab/heroes/pro/kengo_east.png'), skill: A('sprites/pixellab/heroes/pro/kengo_east.png'), ult: A('sprites/pixellab/heroes/pro/kengo_east.png'), hit: A('sprites/pixellab/heroes/pro/kengo_east.png'), death: A('sprites/pixellab/heroes/pro/kengo_east.png'), cols: 1, rows: 1, idleCols: 4 },
   len:            { idle: A('sprites/pixellab/heroes/pro/len_east.png'), attack: A('sprites/pixellab/heroes/pro/len_east.png'), skill: A('sprites/pixellab/heroes/pro/len_east.png'), ult: A('sprites/pixellab/heroes/pro/len_east.png'), hit: A('sprites/pixellab/heroes/pro/len_east.png'), death: A('sprites/pixellab/heroes/pro/len_east.png'), cols: 1, rows: 1 },
   kaius:          { idle: A('sprites/pixellab/heroes/pro/kaius_east.png'), attack: A('sprites/pixellab/heroes/pro/kaius_east.png'), skill: A('sprites/pixellab/heroes/pro/kaius_east.png'), ult: A('sprites/pixellab/heroes/pro/kaius_east.png'), hit: A('sprites/pixellab/heroes/pro/kaius_east.png'), death: A('sprites/pixellab/heroes/pro/kaius_east.png'), cols: 1, rows: 1 },
   pyra:           { idle: A('sprites/pixellab/heroes/pro/pyra_east.png'), attack: A('sprites/pixellab/heroes/pro/pyra_east.png'), skill: A('sprites/pixellab/heroes/pro/pyra_east.png'), ult: A('sprites/pixellab/heroes/pro/pyra_east.png'), hit: A('sprites/pixellab/heroes/pro/pyra_east.png'), death: A('sprites/pixellab/heroes/pro/pyra_east.png'), cols: 1, rows: 1 },

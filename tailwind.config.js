@@ -27,12 +27,25 @@ export default {
         'screen-shake': 'screen-shake 0.18s ease-out',
         'screen-shake-hard': 'screen-shake-hard 0.32s ease-out',
         'impact-flash': 'impact-flash 0.18s ease-out',
+        'bob': 'bob 1.6s ease-in-out infinite',
+        'hit-flash': 'hit-flash 0.25s ease-out',
       },
       keyframes: {
         shake: {
           '0%,100%': { transform: 'translateX(0)' },
           '25%': { transform: 'translateX(-4px)' },
           '75%': { transform: 'translateX(4px)' },
+        },
+        // Idle breathing — units gently bob while waiting for their turn.
+        // Staggered per-unit via animation-delay so the field doesn't sync.
+        bob: {
+          '0%,100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-3px)' },
+        },
+        // Brief white-hot flash on the sprite the moment damage lands.
+        'hit-flash': {
+          '0%': { filter: 'brightness(2.4) saturate(0.5)' },
+          '100%': { filter: 'brightness(1)' },
         },
         // Global battlefield shake — short, sharp, decays toward 0.
         'screen-shake': {
