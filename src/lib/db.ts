@@ -156,6 +156,9 @@ export interface OwnedEquipment {
   craftedPieceId?: string;
   setId?: string;
   setRestrictedTo?: string; // heroId — only that hero can equip this piece
+  // Hero templateId — set the first time a piece is equipped. From then on
+  // only that hero can ever wear it; gear is personal, never shared.
+  boundTo?: string;
   isUltimateWeapon?: boolean;
   emoji?: string;
   slot?: string;

@@ -43,49 +43,51 @@ export default function HeroesPage() {
   }
 
   async function autoEquipAll() {
-    // Strategy: clear every assignment, then redistribute in priority order.
-    // Priority = highest star, then highest level (strongest heroes get first pick).
+    // Gear is personal: each hero keeps what they own. Strongest heroes
+    // (highest star, then level) pick first from the FREE pool — items
+    // that are unbound and not worn by anyone. A hero's own bound stash
+    // is always preferred when it beats the free pool.
     const allHeroes = [...heroes];
     const order = [...allHeroes].sort((a, b) => b.star - a.star || b.level - a.level);
-    // Unequip everything first
-    for (const eq of equipment) {
-      if (eq.equippedTo) await updateEquipment(eq.id, { equippedTo: null });
-    }
-    for (const h of allHeroes) {
-      if (Object.keys(h.equipped).length > 0) await updateHero(h.id, { equipped: {} });
-    }
-    // Now assign from a shared pool. Mythic set pieces are bound to a
-    // specific hero via setRestrictedTo — never let the wrong hero claim
-    // them, otherwise Kaius's Aegis ends up on Tatiana.
+    const heroById = new Map(allHeroes.map(h => [h.id, h]));
+    // Who owns a piece: explicit binding, else whoever is wearing it (legacy saves).
+    const ownerOf = (e: typeof equipment[number]): string | undefined =>
+      e.boundTo ?? (e.equippedTo ? heroById.get(e.equippedTo)?.templateId : undefined);
     const claimed = new Set<string>();
     const slots: EquipSlot[] = ['weapon', 'armor', 'helm', 'boots', 'accessory'];
     let totalEquipped = 0;
     for (const hero of order) {
-      const newEquipped: Partial<Record<string, string>> = {};
+      const newEquipped: Partial<Record<string, string>> = { ...hero.equipped };
+      let changed = false;
       for (const slot of slots) {
         const candidates = equipment.filter(e => {
           if (claimed.has(e.id)) return false;
           if (itemSlot(e) !== slot) return false;
           if (e.setRestrictedTo && e.setRestrictedTo !== hero.templateId) return false;
+          const owner = ownerOf(e);
+          if (owner && owner !== hero.templateId) return false; // someone else's gear
           return true;
         });
         if (candidates.length === 0) continue;
-        // Prefer bound Mythic pieces first so each hero gets their own
-        // set before non-bound chapter loot is distributed.
+        // Prefer the hero's own bound pieces (incl. Mythic set), then raw power.
         const best = [...candidates].sort((a, b) => {
-          const boundA = a.setRestrictedTo === hero.templateId ? 1 : 0;
-          const boundB = b.setRestrictedTo === hero.templateId ? 1 : 0;
+          const boundA = (a.setRestrictedTo === hero.templateId || ownerOf(a) === hero.templateId) ? 1 : 0;
+          const boundB = (b.setRestrictedTo === hero.templateId || ownerOf(b) === hero.templateId) ? 1 : 0;
           if (boundA !== boundB) return boundB - boundA;
           return equipPower(b) - equipPower(a);
         })[0];
         claimed.add(best.id);
+        if (newEquipped[slot] === best.id) continue;
+        const prev = newEquipped[slot];
+        if (prev) await updateEquipment(prev, { equippedTo: null, boundTo: hero.templateId });
         newEquipped[slot] = best.id;
-        await updateEquipment(best.id, { equippedTo: hero.id });
+        changed = true;
+        await updateEquipment(best.id, { equippedTo: hero.id, boundTo: hero.templateId });
         totalEquipped++;
       }
-      await updateHero(hero.id, { equipped: newEquipped });
+      if (changed) await updateHero(hero.id, { equipped: newEquipped });
     }
-    setAutoEquipMsg(`Equipped ${totalEquipped} items across ${order.length} heroes`);
+    setAutoEquipMsg(`Equipped ${totalEquipped} items across ${order.length} heroes — nobody's gear was taken`);
     setTimeout(() => setAutoEquipMsg(null), 2500);
   }
 
@@ -180,7 +182,7 @@ export default function HeroesPage() {
         <div className="flex items-center gap-2">
           <button className="btn-pixel" onClick={autoEquipAll}>Auto Equip All</button>
           <div className="text-[9px] text-zinc-500 flex-1">
-            Redistributes all loot — highest-tier heroes pick first.
+            Fills empty slots from free loot — never takes another hero's gear.
           </div>
         </div>
       )}

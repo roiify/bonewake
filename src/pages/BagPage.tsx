@@ -233,6 +233,9 @@ export default function BagPage() {
                     {eq.itemLevel && <span> · iL{eq.itemLevel}</span>}
                     {eq.isUltimateWeapon && <span className="ml-1 text-amber-400">· ★ULT</span>}
                     {eq.setRestrictedTo && <span className="ml-1 text-rose-300">· Set: {eq.setRestrictedTo}</span>}
+                    {eq.boundTo && !eq.setRestrictedTo && (
+                      <span className="ml-1 text-cyan-300">· {HERO_BY_ID[eq.boundTo]?.name ?? eq.boundTo}'s</span>
+                    )}
                   </div>
                   {/* Show individual rolls with their quality tier so you can spot
                       a god-roll affix at a glance — classic ARPG-looter affordance. */}
