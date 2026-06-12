@@ -85,7 +85,11 @@ def main() -> int:
             by_slug.setdefault(s, []).append(p)
         for slug, poses in by_slug.items():
             h = next(x for x in heroes if x["slug"] == slug)
-            info = get_info(h["char_id"])
+            try:
+                info = get_info(h["char_id"])
+            except Exception as e:  # noqa: BLE001 — transient network failure, retry next pass
+                print(f"info fail {slug}: {e}", flush=True)
+                continue
             for anim, pose in ANIMS.items():
                 if pose not in poses:
                     continue
