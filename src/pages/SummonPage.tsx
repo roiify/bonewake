@@ -11,7 +11,7 @@ import { db } from '../lib/db';
 import { incrementTask } from '../lib/tasks';
 import type { HeroTemplate, Rarity, SummonPool } from '../types';
 import { uid } from '../lib/id';
-import { addFragments, DUP_FRAGMENT_VALUE } from '../lib/fragments';
+import { addFragments, DUP_FRAGMENT_VALUE, MAX_STAR } from '../lib/fragments';
 import { sfx, haptic } from '../lib/sfx';
 import { recordEvent } from '../lib/lifetime';
 import { tierLabel, tierColor } from '../lib/tier';
@@ -26,7 +26,7 @@ import { useHeroes as useHeroesStore } from '../store/heroes';
 // Generic reveal item — every pool kind boils down to one of these so
 // the capsule + reveal grid stays uniform.
 type RevealItem =
-  | { kind: 'hero'; hero: HeroTemplate; rarity: Rarity; star: number; isDup: boolean; fragCount: number }
+  | { kind: 'hero'; hero: HeroTemplate; rarity: Rarity; star: number; isDup: boolean; fragCount: number; promotedTo?: number }
   | { kind: 'equipment'; name: string; emoji: string; rarity: number; color: string; sub: string }
   | { kind: 'socket'; name: string; emoji: string; tier: number; color: string; sub: string }
   | { kind: 'material'; name: string; emoji: string; color: string; sub: string };
@@ -81,6 +81,7 @@ export default function SummonPage() {
   const profile = useProfile(s => s.profile);
   const patch = useProfile(s => s.patch);
   const addHero = useHeroes(s => s.addHero);
+  const updateHero = useHeroes(s => s.updateHero);
   const heroes = useHeroes(s => s.heroes);
   const refreshItems = useItems(s => s.refresh);
   const [reveal, setReveal] = useState<RevealItem[] | null>(null);
@@ -114,20 +115,34 @@ export default function SummonPage() {
         await patch({ pityCounter: newPity });
       }
 
-      // First-time templateId → add hero. Already owned → fragments + auto-promote.
+      // First-time templateId → add hero at its pulled star.
+      // Duplicate → fragments, AND if the pull's tier is higher than the hero
+      // you own, promote that hero ONE star toward it (e.g. an SSS dup bumps a
+      // 3★ hero to 4★, not straight to 5★). This keeps high pulls meaningful
+      // once your roster is complete without trivializing the fragment star-up
+      // grind — going 3★→5★ still needs multiple high-tier pulls of that hero.
       const grantedThisPull = new Set<string>();
+      // Effective star per template within this pull, so repeated dupes promote
+      // progressively instead of every result reading the stale render snapshot.
+      const liveStar = new Map<string, number>();
+      for (const h of heroes) liveStar.set(h.templateId, h.star);
       for (const r of results) {
         const existing = heroes.find(h => h.templateId === r.hero.id);
         const alreadyOwned = !!existing || grantedThisPull.has(r.hero.id);
         const fragCount = DUP_FRAGMENT_VALUE[Math.min(5, Math.max(3, r.star)) as Rarity];
+        let promotedTo: number | undefined;
 
         if (alreadyOwned) {
-          // Duplicates pay out fragments ONLY. The owned hero's star is NOT
-          // bumped for free here — promotion happens by spending fragments via
-          // the legit STAR_UP_COST path (HeroDetailPage). The old free auto-
-          // promote let a 5★ dup jump a 3★ hero to 5★ instantly, skipping
-          // ~760 fragments and trivializing the entire star-up economy.
           await addFragments(r.hero.id, fragCount);
+          if (existing) {
+            const cur = liveStar.get(r.hero.id) ?? existing.star;
+            if (r.star > cur && cur < MAX_STAR) {
+              const next = Math.min(cur + 1, r.star, MAX_STAR);
+              await updateHero(existing.id, { star: next });
+              liveStar.set(r.hero.id, next);
+              promotedTo = next;
+            }
+          }
         } else {
           const newHero = {
             id: uid(),
@@ -140,9 +155,10 @@ export default function SummonPage() {
           };
           await addHero(newHero);
           grantedThisPull.add(r.hero.id);
+          liveStar.set(r.hero.id, r.star);
         }
         await db.pullLogs.add({ poolId: pool.id, heroTemplateId: r.hero.id, pulledAt: Date.now() });
-        enriched.push({ kind: 'hero', hero: r.hero, rarity: r.rarity, star: r.star, isDup: alreadyOwned, fragCount });
+        enriched.push({ kind: 'hero', hero: r.hero, rarity: r.rarity, star: r.star, isDup: alreadyOwned, fragCount, promotedTo });
       }
       for (const r of enriched) {
         if (r.kind === 'hero') await recordEvent({ kind: 'summon', landedSSS: r.star >= 5 });
@@ -500,9 +516,11 @@ export default function SummonPage() {
                         {r.kind === 'hero' && (
                           <>
                             <div className="text-[9px] font-pixel" style={{ color: tierColor(r.star) }}>{tierLabel(r.star)}</div>
-                            {r.isDup
-                              ? <div className="text-[8px] text-cyan-300 mt-0.5 font-pixel">+{r.fragCount}f</div>
-                              : <div className="text-[8px] text-emerald-400 mt-0.5 font-pixel">NEW</div>}
+                            {!r.isDup
+                              ? <div className="text-[8px] text-emerald-400 mt-0.5 font-pixel">NEW</div>
+                              : r.promotedTo
+                                ? <div className="text-[8px] mt-0.5 font-pixel" style={{ color: tierColor(r.promotedTo) }}>★ {tierLabel(r.promotedTo)} · +{r.fragCount}f</div>
+                                : <div className="text-[8px] text-cyan-300 mt-0.5 font-pixel">+{r.fragCount}f</div>}
                           </>
                         )}
                         {r.kind === 'equipment' && (
