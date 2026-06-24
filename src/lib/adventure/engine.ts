@@ -185,7 +185,7 @@ export class AdventureEngine {
 
   // --- sprites -----------------------------------------------------------
   private async loadSprites(): Promise<void> {
-    const dirs: Dir[] = ['south', 'east', 'west'];
+    const dirs: Dir[] = ['south', 'east', 'west', 'north'];
     await Promise.all(
       dirs.map(async (d) => {
         try {
@@ -195,8 +195,9 @@ export class AdventureEngine {
         }
       }),
     );
-    // North has no art yet — Slice Canon stopgap: face the camera (south).
-    this.sprites.north = this.sprites.south;
+    // North now has a real back-facing frame (pulled from PixelLab); fall back
+    // to the camera-facing south frame only if it failed to load.
+    if (!this.sprites.north) this.sprites.north = this.sprites.south;
   }
 
   // --- render ------------------------------------------------------------
