@@ -30,6 +30,7 @@ import SummonPage from './pages/SummonPage';
 import BattlePage from './pages/BattlePage';
 import StagePrebattlePage from './pages/StagePrebattlePage';
 import BattlePlayPage from './pages/BattlePlayPage';
+import AdventurePage from './pages/AdventurePage';
 import MorePage from './pages/MorePage';
 import TasksPage from './pages/TasksPage';
 import BagPage from './pages/BagPage';
@@ -201,6 +202,12 @@ function AppRouter({ basename }: { basename?: string }) {
         <Route path="/battle/play/:stageId" element={
           <div className="h-full max-w-[420px] mx-auto bg-zinc-950">
             <BattlePlayPage />
+          </div>
+        } />
+        {/* Adventure (Story RPG) mode — full-screen, outside Shell. See docs/RPG_DESIGN.md */}
+        <Route path="/adventure" element={
+          <div className="h-full bg-zinc-950">
+            <AdventurePage />
           </div>
         } />
         <Route path="/reset" element={<ResetPage />} />
