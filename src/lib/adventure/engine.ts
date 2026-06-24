@@ -7,7 +7,7 @@
 // docs/RPG_DESIGN.md §7.1/§7.3, proven small before the M1 vertical slice.
 
 import { asset } from '../assetPath';
-import { loadImage } from './sprites';
+import { loadImage, getTrim } from './sprites';
 import type { AdventureMap, Dir } from '../../data/adventure/types';
 
 const VIEW_W = 15; // visible tiles wide  (Slice Canon §0)
@@ -61,6 +61,7 @@ export class AdventureEngine {
   private toX = 0;
   private toY = 0;
   private moveStart = 0;
+  private moveProgress = 0; // 0..1 within the current step, for the walk-bob
 
   private sprites: Partial<Record<Dir, HTMLImageElement>> = {};
 
@@ -161,11 +162,13 @@ export class AdventureEngine {
 
     if (this.moving) {
       const t = clamp((now - this.moveStart) / STEP_MS, 0, 1);
+      this.moveProgress = t;
       const e = smooth(t);
       this.px = lerp(this.fromX * this.tile, this.toX * this.tile, e);
       this.py = lerp(this.fromY * this.tile, this.toY * this.tile, e);
       if (t >= 1) {
         this.moving = false;
+        this.moveProgress = 0;
         this.tx = this.toX;
         this.ty = this.toY;
         this.px = this.tx * this.tile;
@@ -246,21 +249,29 @@ export class AdventureEngine {
     const drawX = this.px - camX;
     const drawY = this.py - camY;
 
-    // contact shadow
+    // walk-bob: a small vertical hop over each step. Procedural (V1) — no
+    // per-direction walk-cycle art exists yet (see docs/RPG_DESIGN.md §7.4).
+    const bob = this.moving ? Math.sin(this.moveProgress * Math.PI) * 2.5 : 0;
+
+    // contact shadow (shrinks slightly as the sprite hops)
+    const shadow = 0.34 - bob * 0.02;
     ctx.fillStyle = 'rgba(0,0,0,0.38)';
     ctx.beginPath();
-    ctx.ellipse(drawX + tile / 2, drawY + tile - 3, tile * 0.34, tile * 0.16, 0, 0, Math.PI * 2);
+    ctx.ellipse(drawX + tile / 2, drawY + tile - 3, tile * shadow, tile * 0.15, 0, 0, Math.PI * 2);
     ctx.fill();
 
     const spr = this.sprites[this.facing];
     if (spr && spr.naturalWidth > 0) {
-      const targetH = tile * 1.9;
-      const scale = targetH / spr.naturalHeight;
-      const w = spr.naturalWidth * scale;
+      // scale the OPAQUE bounds to a consistent height so the character is the
+      // same size in every facing despite uneven source padding.
+      const tr = getTrim(spr);
+      const targetH = tile * 1.55;
+      const scale = targetH / tr.sh;
+      const w = tr.sw * scale;
       const h = targetH;
       const dx = Math.round(drawX + tile / 2 - w / 2);
-      const dy = Math.round(drawY + tile - h + 2); // feet near tile bottom
-      ctx.drawImage(spr, dx, dy, Math.round(w), Math.round(h));
+      const dy = Math.round(drawY + tile - h + 2 - bob); // feet near tile bottom
+      ctx.drawImage(spr, tr.sx, tr.sy, tr.sw, tr.sh, dx, dy, Math.round(w), Math.round(h));
     } else {
       // placeholder until the sprite resolves — keeps movement visible
       ctx.fillStyle = '#c0392b';
