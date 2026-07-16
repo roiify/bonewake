@@ -77,7 +77,7 @@ function noise(c: AudioContext, dur: number, gain = 0.15, hp = 600) {
 
 export type SfxName =
   | 'hit' | 'crit' | 'heal' | 'ult' | 'burn'
-  | 'reveal' | 'reveal_rare' | 'chest' | 'click' | 'win' | 'lose';
+  | 'reveal' | 'reveal_rare' | 'chest' | 'click' | 'coin' | 'win' | 'lose';
 
 export function sfx(name: SfxName): void {
   if (!soundOn()) return;
@@ -120,6 +120,12 @@ export function sfx(name: SfxName): void {
       break;
     case 'click':
       voice(c, { type: 'square', from: 660, to: 660, dur: 0.04, gain: 0.05 });
+      break;
+    case 'coin':
+      // Two-tone arcade pickup: a clipped base note that jumps an interval up
+      // and rings out. B5 -> E6 is the classic coin fourth.
+      voice(c, { type: 'square', from: 988, dur: 0.05, gain: 0.09 });
+      voice(c, { type: 'square', from: 1319, dur: 0.17, gain: 0.09, delay: 0.05 });
       break;
     case 'win':
       [523, 659, 784, 1047].forEach((f, i) => voice(c, { type: 'triangle', from: f, dur: 0.22, gain: 0.1, delay: i * 0.1 }));

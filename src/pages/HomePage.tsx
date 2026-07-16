@@ -14,6 +14,7 @@ import ChestOpen, { type ChestReward } from '../components/ChestOpen';
 import Card from '../components/ui/Card';
 import PrimaryButton from '../components/ui/PrimaryButton';
 import { asset } from '../lib/assetPath';
+import { sfx, haptic } from '../lib/sfx';
 
 const UI_BANNER = asset('sprites/ui/banner_home.png');
 const MODE_ICONS = {
@@ -47,6 +48,8 @@ export default function HomePage() {
   const addGold = useProfile(s => s.addGold);
   async function collectAway() {
     if (!away) return;
+    sfx('coin');
+    haptic(12);
     await addGold(away.gold);
     await gainExp(away.exp);
     await patch({ lastClosedAt: Date.now() });
